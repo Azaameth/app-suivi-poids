@@ -155,3 +155,15 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 2. Rappeler à Maxime de cocher la case dans `docs/plan-projet.md` (📍 Suivi).
 3. Proposer une ligne pour le 📝 Journal (date, bloc, note).
 4. Toute nouvelle décision → ligne dans le 🗂️ Registre des décisions.
+
+---
+
+## 9. Environnement constaté (2026-10-24)
+
+- Arch Linux, VS Code en **Flatpak** (choix assumé). Outils ajoutés au bac à sable :
+  - Node 26 et Java 21 via les extensions SDK (`FLATPAK_ENABLE_SDK_EXT=node26,openjdk21`, runtime 25.08) ;
+  - `gh` en binaire dans `~/.local/bin`, authentifié par `gh auth login` + `gh auth setup-git` (jeton dans KWallet).
+- Si une commande manque dans le bac à sable : `flatpak-spawn --host <commande>`.
+- Jalon 3 : USB/adb accessible (`devices=all`), SDK Android à installer dans le dossier personnel.
+- Configs rangées dans `config/` (ESLint, Prettier, Vite/Vitest, tsconfig.*) et `firebase/` (règles, index). Les scripts npm et `.vscode/settings.json` pointent dessus.
+- Garde-fou secrets : `scripts/check-secrets.mjs` en pre-commit (`core.hooksPath = .githooks`, posé par `npm install`) et en CI.
