@@ -112,7 +112,7 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 
 ## 6. Points ouverts à clarifier en premier
 
-1. Prochain : **jalon 2**, bloc 2.1 (types + validation + règles Firestore pour `pesees`).
+1. Prochain : bloc **2.2** (DataStore web + état de la synchro) ; `core/pesees` (2.1) fournit `encodePesee` / `decodePesee`.
 
 Réglés le 2026-10-24 : OS (Arch, Flatpak), cadrage 0.2, D6 conflits, D12 verrouillage auto, D13 KeyStore Android — voir le Registre de `docs/plan-projet.md`.
 
