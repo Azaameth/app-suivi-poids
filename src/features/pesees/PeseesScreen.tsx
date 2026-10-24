@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Pesee } from '../../core/pesees'
+import { DevTools } from '../dev/DevTools'
 import { SettingsPanel } from '../prefs/SettingsPanel'
 import { ExportPanel } from './ExportPanel'
 import { PeseeForm } from './PeseeForm'
@@ -55,6 +56,9 @@ export function PeseesScreen() {
           )}
           {tab === 'graphique' && <WeightChart pesees={state.pesees} />}
           {tab === 'reglages' && <ExportPanel pesees={state.pesees} />}
+          {import.meta.env.DEV && tab === 'reglages' && (
+            <DevTools pesees={state.pesees} repo={repo} />
+          )}
         </>
       )}
       {tab === 'reglages' && <SettingsPanel />}

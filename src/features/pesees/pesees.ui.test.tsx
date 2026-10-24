@@ -132,3 +132,30 @@ describe('export et réglages', () => {
     expect(services.prefs.get().autoLockMinutes).toBe(15)
   }, 15_000)
 })
+
+describe('outils de dev', () => {
+  test('données fictives : un an, réalistes, reproductibles', async () => {
+    const { fakePesees } = await import('../dev/fakePesees')
+    const today = new Date(2026, 9, 24)
+    const data = fakePesees(365, today)
+    expect(data.length).toBeGreaterThan(250)
+    expect(data.length).toBeLessThan(330)
+    expect(data.at(-1)!.date <= '2026-10-24').toBe(true)
+    expect(data.every((p) => p.poids > 70 && p.poids < 90)).toBe(true)
+    expect(fakePesees(365, today)).toEqual(data)
+  })
+
+  test('générer puis tout effacer', async () => {
+    await start()
+    fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Générer un an de données fictives' }))
+    await screen.findByText(/Génération : \d+ pesée\(s\), synchronisé/, undefined, {
+      timeout: 10_000,
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Journal' }))
+    expect(within(history()).getAllByRole('listitem').length).toBeGreaterThan(250)
+    fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tout effacer' }))
+    await screen.findByText(/Effacement : \d+ pesée\(s\), synchronisé/)
+  }, 30_000)
+})
