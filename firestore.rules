@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// Provisoire (bloc 1.2) : tout est refusé. Les vraies règles arrivent au bloc 1.5.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

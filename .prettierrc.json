@@ -2,5 +2,13 @@
   "semi": false,
   "singleQuote": true,
   "trailingComma": "all",
-  "printWidth": 100
+  "printWidth": 100,
+  "overrides": [
+    {
+      "files": ".firebaserc",
+      "options": {
+        "parser": "json"
+      }
+    }
+  ]
 }
