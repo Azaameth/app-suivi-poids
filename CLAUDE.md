@@ -166,5 +166,4 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 - Si une commande manque dans le bac à sable : `flatpak-spawn --host <commande>`.
 - Jalon 3 : USB/adb accessible (`devices=all`), SDK Android à installer dans le dossier personnel.
 - Configs rangées dans `config/` (ESLint, Prettier, Vite/Vitest, tsconfig.*) et `firebase/` (règles, index). Les scripts npm et `.vscode/settings.json` pointent dessus.
-- Issues en attente : `docs/issues/` → `scripts/create-issues.sh` une fois `gh` disponible.
 - Garde-fou secrets : `scripts/check-secrets.mjs` en pre-commit (`core.hooksPath = .githooks`, posé par `npm install`) et en CI.
