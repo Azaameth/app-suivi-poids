@@ -155,3 +155,12 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 2. Rappeler à Maxime de cocher la case dans `docs/plan-projet.md` (📍 Suivi).
 3. Proposer une ligne pour le 📝 Journal (date, bloc, note).
 4. Toute nouvelle décision → ligne dans le 🗂️ Registre des décisions.
+
+---
+
+## 9. Environnement constaté (2026-10-24)
+
+- Arch Linux, mais VS Code en **Flatpak** : Node 26 fourni par le SDK Flatpak, **pas de Java** ni de `gh` dans le bac à sable.
+- Émulateur Firestore = Java 21 requis. Sans Java système, `npm run test:rules` échoue ; la CI, elle, installe Java.
+- Configs rangées dans `config/` (ESLint, Prettier, Vite/Vitest, tsconfig.*) et `firebase/` (règles, index). Les scripts npm et `.vscode/settings.json` pointent dessus.
+- Garde-fou secrets : `scripts/check-secrets.mjs` en pre-commit (`core.hooksPath = .githooks`, posé par `npm install`) et en CI.
