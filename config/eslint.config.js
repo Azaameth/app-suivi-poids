@@ -49,8 +49,10 @@ export default defineConfig([
     },
   },
   // Les écrans ne connaissent que src/core/ et les contextes React.
+  // Les tests, eux, peuvent injecter les implémentations en mémoire.
   {
     files: ['src/features/**/*.{ts,tsx}'],
+    ignores: ['src/features/**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',

@@ -7,6 +7,7 @@ import {
   WeakPassphraseError,
 } from '../../core/vault'
 import { useServices } from '../../context/ServicesContext'
+import { usePreferences } from '../prefs/usePreferences'
 import { PassphraseForm } from './PassphraseForm'
 import { useAutoLock } from './useAutoLock'
 import { VaultContext, type UnlockedVault } from './VaultContext'
@@ -47,6 +48,8 @@ export function VaultGate({
   children: ReactNode
 }) {
   const { data, keys } = useServices()
+  const [preferences] = usePreferences()
+  const idleMs = autoLockMs ?? preferences.autoLockMinutes * 60_000
   const vault = useMemo(() => new Vault(data, keys, uid), [data, keys, uid])
   const [state, setState] = useState<State>({ kind: 'loading' })
 
@@ -74,12 +77,13 @@ export function VaultGate({
     () =>
       state.kind === 'unlocked'
         ? {
+            uid,
             key: state.key,
             lock,
             changePassphrase: (oldP, newP) => vault.changePassphrase(oldP, newP),
           }
         : null,
-    [state, lock, vault],
+    [state, lock, vault, uid],
   )
 
   switch (state.kind) {
@@ -146,14 +150,14 @@ export function VaultGate({
     case 'unlocked':
       return (
         <VaultContext.Provider value={unlocked}>
-          <AutoLock onIdle={lock} timeoutMs={autoLockMs} />
+          <AutoLock onIdle={lock} timeoutMs={idleMs} />
           {children}
         </VaultContext.Provider>
       )
   }
 }
 
-function AutoLock({ onIdle, timeoutMs }: { onIdle: () => void; timeoutMs?: number }) {
+function AutoLock({ onIdle, timeoutMs }: { onIdle: () => void; timeoutMs: number }) {
   useAutoLock(onIdle, timeoutMs)
   return null
 }

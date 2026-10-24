@@ -1,41 +1,10 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen } from '@testing-library/react'
 import { afterEach, expect, test } from 'vitest'
-import { App } from './App'
 import { createMemoryServices } from './adapters/memory'
 import type { MemoryDataStore } from './adapters/memory/MemoryDataStore'
-import { ServicesProvider } from './context/ServicesProvider'
-import type { Services } from './core'
+import { PHRASE, createVault, fill, renderApp, signIn } from './test/appHarness'
 
 afterEach(cleanup)
-
-function renderApp(services: Services = createMemoryServices(), autoLockMs?: number) {
-  render(
-    <ServicesProvider services={services}>
-      <App autoLockMs={autoLockMs} />
-    </ServicesProvider>,
-  )
-  return services
-}
-
-const PHRASE = 'cheval agrafe batterie'
-
-function fill(label: string, value: string) {
-  fireEvent.change(screen.getByLabelText(label), { target: { value } })
-}
-
-async function signIn() {
-  fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
-  await screen.findByText(/Connecté : Test/)
-}
-
-/** Premier lancement : création du coffre. */
-async function createVault() {
-  await screen.findByRole('heading', { name: 'Choisis ta phrase secrète' })
-  fill('Phrase secrète', PHRASE)
-  fill('Confirmation', PHRASE)
-  fireEvent.click(screen.getByRole('button', { name: 'Créer mon coffre' }))
-  await screen.findByText(/Coffre déverrouillé/, undefined, { timeout: 5000 })
-}
 
 test('affiche le titre', () => {
   renderApp()
@@ -71,9 +40,10 @@ test('premier lancement : création du coffre, verrouillage, déverrouillage', a
   await signIn()
   await createVault()
 
+  fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
   fireEvent.click(screen.getByRole('button', { name: '🔒 Verrouiller' }))
   await screen.findByRole('heading', { name: 'Coffre verrouillé' })
-  expect(screen.queryByText(/Coffre déverrouillé/)).toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Nouvelle pesée' })).toBeNull()
 
   fill('Phrase secrète', 'pas la bonne phrase')
   fireEvent.click(screen.getByRole('button', { name: 'Déverrouiller' }))
@@ -83,7 +53,7 @@ test('premier lancement : création du coffre, verrouillage, déverrouillage', a
 
   fill('Phrase secrète', PHRASE)
   fireEvent.click(screen.getByRole('button', { name: 'Déverrouiller' }))
-  await screen.findByText(/Coffre déverrouillé/, undefined, { timeout: 5000 })
+  await screen.findByRole('heading', { name: 'Nouvelle pesée' }, { timeout: 5000 })
 }, 15_000)
 
 test('création refusée si la confirmation diffère', async () => {

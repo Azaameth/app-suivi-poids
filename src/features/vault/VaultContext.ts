@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 
 export interface UnlockedVault {
+  uid: string
   /** Clé de données déverrouillée (en mémoire uniquement). */
   key: CryptoKey
   lock(): void
