@@ -46,7 +46,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 1.5 | Socle web | Règles Firestore + tests | [x] |
 | 1.6 | Socle web | Authentification web | [x] |
 | 1.7 | Socle web | Déploiement sur Firebase Hosting | [x] |
-| 2.1 | Fonctionnel | Modèle de données | [ ] |
+| 2.1 | Fonctionnel | Modèle de données | [x] |
 | 2.2 | Fonctionnel | DataStore web + état de la synchro | [ ] |
 | 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [ ] |
 | 2.4 | Fonctionnel | Écrans métier | [ ] |
@@ -426,6 +426,9 @@ Déclenché sur un tag `v*` :
 | D16 | 2026-10-24 | Date en clair (et identifiant du document), poids et note chiffrés | Tri et filtre par période côté Firestore ; la date seule révèle peu (#2) | Tout chiffrer (tri côté client) |
 | D17 | 2026-10-24 | Session d'auth web : persistance par défaut du SDK (survit au rechargement) ; clé et phrase en mémoire uniquement | Critère du 1.6 ; le jeton seul ne donne pas accès aux données chiffrées (#16) | Session limitée à l'onglet |
 | D18 | 2026-10-24 | Vrai projet `machimoto` utilisé par le build de production uniquement ; dev et tests restent sur `demo-suivi-poids` | Garde D8 : `npm run dev` ne peut pas toucher les vraies données | Variables d'environnement `.env` (inutiles : la config est publique) |
+| D19 | 2026-10-24 | Règles Firestore en liste explicite : seuls `meta/keys` et `pesees/{date}` sont autorisés, forme validée (miroir du schéma Zod) | Défense en profondeur : une collection non prévue ou une donnée en clair est refusée côté serveur | Tout permis sous `users/{uid}` |
+| D20 | 2026-10-24 | `createdAt` / `updatedAt` en millisecondes (entier), posés par le client | `core/` reste indépendant de Firebase (même code web et Android) | `Timestamp` Firestore / `serverTimestamp()` |
+| D21 | 2026-10-24 | Poids en kg, entre 1 et 500 ; note de 1 à 500 caractères, absente si vide | Bornes larges contre les fautes de frappe grossières ; l'unité d'affichage viendra avec le profil (v1.1) | Bornes strictes, stockage dans l'unité choisie |
  
 ## ⚠️ Risques
  
@@ -455,3 +458,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 1.2 | Projet Firebase `machimoto` créé (Spark, Auth Google, Firestore europe-west1). Config branchée sur le build de prod (D18) ; `.firebaserc` : `default` = machimoto, alias `demo` (#5). |
 | 2026-10-24 | 1.6 | Connexion Google par popup (#16), testée sur émulateur puis en réel. |
 | 2026-10-24 | 1.7 | Premier déploiement : https://machimoto.web.app sert le build de `main`, connexion Google réelle OK, Firestore vérifié en europe-west1. Script `npm run deploy`. Fin du jalon 1 → `v0.1.0`. |
+| 2026-10-24 | 2.1 | `core/pesees` : schémas Zod (clair / stocké), `encodePesee` / `decodePesee`. Règles en liste explicite (D19). 32 tests unitaires, 19 tests de règles dont une pesée réellement chiffrée. Règles à redéployer (`npm run deploy`). |
