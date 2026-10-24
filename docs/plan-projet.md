@@ -47,7 +47,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 1.6 | Socle web | Authentification web | [x] |
 | 1.7 | Socle web | Déploiement sur Firebase Hosting | [x] |
 | 2.1 | Fonctionnel | Modèle de données | [x] |
-| 2.2 | Fonctionnel | DataStore web + état de la synchro | [ ] |
+| 2.2 | Fonctionnel | DataStore web + état de la synchro | [x] |
 | 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [ ] |
 | 2.4 | Fonctionnel | Écrans métier | [ ] |
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [ ] |
@@ -268,8 +268,8 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 - `syncState()` : `en ligne` / `hors ligne` / `écritures en attente`
 - Indicateur de synchro visible dans l'interface
 **Critères d'acceptation**
-- [ ] Les composants ne voient que des données en clair, typées
-- [ ] Dans la console Firebase, les champs sensibles sont illisibles
+- [x] Les composants ne voient que des données en clair, typées
+- [x] Dans la console Firebase, les champs sensibles sont illisibles
 ## Bloc 2.3 — Déverrouillage et gestion de la phrase secrète
 **Livrables**
 - Premier lancement : choix de la phrase secrète, puis génération et encapsulation de la clé
@@ -429,6 +429,8 @@ Déclenché sur un tag `v*` :
 | D19 | 2026-10-24 | Règles Firestore en liste explicite : seuls `meta/keys` et `pesees/{date}` sont autorisés, forme validée (miroir du schéma Zod) | Défense en profondeur : une collection non prévue ou une donnée en clair est refusée côté serveur | Tout permis sous `users/{uid}` |
 | D20 | 2026-10-24 | `createdAt` / `updatedAt` en millisecondes (entier), posés par le client | `core/` reste indépendant de Firebase (même code web et Android) | `Timestamp` Firestore / `serverTimestamp()` |
 | D21 | 2026-10-24 | Poids en kg, de 0 à 5 000 inclus ; note de 1 à 500 caractères, absente si vide | Choix d'Azaameth (#19) ; l'unité d'affichage viendra avec le profil (v1.1) | 1 à 500 kg |
+| D22 | 2026-10-24 | Chiffrement dans `core/pesees` (`PeseeRepository`), pas dans l'adaptateur ; le `DataStore` ne voit que du chiffré | Écrit une fois pour web et Android ; l'adaptateur natif (3.3) n'aura rien à chiffrer | Chiffrement dans chaque adaptateur |
+| D23 | 2026-10-24 | Écritures non bloquantes : effet local immédiat, `synced` se résout à la confirmation du serveur | Hors ligne, l'interface ne reste pas figée en attendant le réseau | Attendre la confirmation du serveur |
  
 ## ⚠️ Risques
  
@@ -460,3 +462,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 1.7 | Premier déploiement : https://machimoto.web.app sert le build de `main`, connexion Google réelle OK, Firestore vérifié en europe-west1. Script `npm run deploy`. Fin du jalon 1 → `v0.1.0`. |
 | 2026-10-24 | 2.1 | `core/pesees` : schémas Zod (clair / stocké), `encodePesee` / `decodePesee`. Règles en liste explicite (D19). 32 tests unitaires, 19 tests de règles dont une pesée réellement chiffrée. Règles à redéployer (`npm run deploy`). |
 | 2026-10-24 | 2.1 | D20 validée ; bornes du poids passées à 0 – 5 000 kg (D21). |
+| 2026-10-24 | 2.2 | `WebDataStore` (Firestore, cache mémoire) + `SyncTracker` (réseau + écritures en attente) ; `PeseeRepository` chiffre/déchiffre (D22, D23) ; indicateur de synchro. Test émulateur : document brut illisible. Logs `PERMISSION_DENIED` coupés dans les tests. |

@@ -1,5 +1,5 @@
 export type { AuthService, AuthUser, Credentials } from './auth/AuthService'
-export type { DataStore, DocData, StoredDoc } from './data/DataStore'
+export type { DataStore, DocData, StoredDoc, SyncState } from './data/DataStore'
 export type { KeyStore } from './keys/KeyStore'
 export type { Unsubscribe } from './types'
 

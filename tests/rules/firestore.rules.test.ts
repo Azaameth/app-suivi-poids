@@ -4,11 +4,22 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing'
-import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  setLogLevel,
+} from 'firebase/firestore'
 import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, beforeEach, describe, test } from 'vitest'
 import { generateDataKey } from '../../src/core/crypto/keys'
 import { encodePesee } from '../../src/core/pesees'
+
+// Les refus attendus sont vérifiés par les tests : inutile que le SDK les journalise.
+setLogLevel('silent')
 
 let env: RulesTestEnvironment
 
