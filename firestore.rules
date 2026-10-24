@@ -1,10 +1,34 @@
 rules_version = '2';
 
-// Provisoire (bloc 1.2) : tout est refusé. Les vraies règles arrivent au bloc 1.5.
+// Refus par défaut : tout ce qui n'est pas explicitement autorisé ci-dessous est interdit.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    match /users/{uid} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+
+      // Méta-données de la clé de données : seul document autorisé dans meta/.
+      // Suppression interdite : perdre wrappedKey rendrait toutes les données illisibles.
+      match /meta/{docId} {
+        allow read: if isOwner() && docId == 'keys';
+        allow create, update: if isOwner() && docId == 'keys' && isValidKeyMeta(request.resource.data);
+        allow delete: if false;
+      }
+
+      // Données de l'utilisateur (toutes collections sauf meta).
+      match /{collection}/{document=**} {
+        allow read, write: if isOwner() && collection != 'meta';
+      }
+
+      function isValidKeyMeta(data) {
+        return data.keys().hasOnly(['wrappedKey', 'salt', 'iterations', 'version'])
+          && data.wrappedKey is string && data.wrappedKey.matches('^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$')
+          && data.salt is string && data.salt.size() > 0
+          && data.iterations is int && data.iterations >= 600000
+          && data.version is int;
+      }
     }
   }
 }
