@@ -48,7 +48,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 1.7 | Socle web | Déploiement sur Firebase Hosting | [x] |
 | 2.1 | Fonctionnel | Modèle de données | [x] |
 | 2.2 | Fonctionnel | DataStore web + état de la synchro | [x] |
-| 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [ ] |
+| 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [x] |
 | 2.4 | Fonctionnel | Écrans métier | [ ] |
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [ ] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
@@ -277,9 +277,9 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 - Changement de phrase secrète : seule la clé est ré-encapsulée, sans rechiffrer les données
 - Verrouillage manuel et verrouillage automatique (D12) : après **5 min** d'inactivité, délai réglable dans les paramètres
 **Critères d'acceptation**
-- [ ] Après rechargement de la page, la phrase secrète est redemandée
-- [ ] Après un changement de phrase, les anciennes données restent lisibles
-- [ ] Aucune clé ni phrase secrète dans `localStorage` ou IndexedDB (vérifier dans les DevTools)
+- [x] Après rechargement de la page, la phrase secrète est redemandée
+- [x] Après un changement de phrase, les anciennes données restent lisibles
+- [x] Aucune clé ni phrase secrète dans `localStorage` ou IndexedDB (vérifier dans les DevTools)
 ## Bloc 2.4 — Écrans métier
 | Écran / fonctionnalité | Statut |
 |---|---|
@@ -431,6 +431,8 @@ Déclenché sur un tag `v*` :
 | D21 | 2026-10-24 | Poids en kg, de 0 à 5 000 inclus ; note de 1 à 500 caractères, absente si vide | Choix d'Azaameth (#19) ; l'unité d'affichage viendra avec le profil (v1.1) | 1 à 500 kg |
 | D22 | 2026-10-24 | Chiffrement dans `core/pesees` (`PeseeRepository`), pas dans l'adaptateur ; le `DataStore` ne voit que du chiffré | Écrit une fois pour web et Android ; l'adaptateur natif (3.3) n'aura rien à chiffrer | Chiffrement dans chaque adaptateur |
 | D23 | 2026-10-24 | Écritures non bloquantes : effet local immédiat, `synced` se résout à la confirmation du serveur | Hors ligne, l'interface ne reste pas figée en attendant le réseau | Attendre la confirmation du serveur |
+| D24 | 2026-10-24 | Phrase secrète : 12 caractères minimum, confirmation à la création, avertissement « perte = données perdues » | Seule protection des données chiffrées ; une suite de mots est facile à retenir | Pas de minimum ; règles de complexité (majuscules, chiffres…) |
+| D25 | 2026-10-24 | Création du coffre : réseau obligatoire, refus d'écraser un `meta/keys` existant ; la déconnexion verrouille | Écraser `meta/keys` ou chiffrer avec une clé non enregistrée rendrait les données illisibles | Création hors ligne |
  
 ## ⚠️ Risques
  
@@ -463,3 +465,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 2.1 | `core/pesees` : schémas Zod (clair / stocké), `encodePesee` / `decodePesee`. Règles en liste explicite (D19). 32 tests unitaires, 19 tests de règles dont une pesée réellement chiffrée. Règles à redéployer (`npm run deploy`). |
 | 2026-10-24 | 2.1 | D20 validée ; bornes du poids passées à 0 – 5 000 kg (D21). |
 | 2026-10-24 | 2.2 | `WebDataStore` (Firestore, cache mémoire) + `SyncTracker` (réseau + écritures en attente) ; `PeseeRepository` chiffre/déchiffre (D22, D23) ; indicateur de synchro. Test émulateur : document brut illisible. Logs `PERMISSION_DENIED` coupés dans les tests. |
+| 2026-10-24 | 2.3 | `core/vault` (création, déverrouillage, verrouillage, changement de phrase) + écrans (`VaultGate`, `VaultSettings`) ; verrouillage auto 5 min (D12). `test:rules` sur son propre émulateur (port 8181), compatible avec `npm run emulators`. Reste : réglage du délai dans les paramètres (avec 2.4). |

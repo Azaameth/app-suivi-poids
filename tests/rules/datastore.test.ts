@@ -5,7 +5,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 import { SyncTracker, type NetworkTarget } from '../../src/adapters/web/SyncTracker'
 import { WebDataStore } from '../../src/adapters/web/WebDataStore'
 import { generateDataKey } from '../../src/core/crypto/keys'
+import { MemoryKeyStore } from '../../src/adapters/memory/MemoryKeyStore'
 import { PeseeRepository, type Pesee } from '../../src/core/pesees'
+import { Vault } from '../../src/core/vault'
 
 // Les refus attendus sont vérifiés par les tests : inutile que le SDK les journalise.
 setLogLevel('silent')
@@ -75,5 +77,17 @@ describe('WebDataStore + PeseeRepository (émulateur, règles actives)', () => {
     await expect(synced).rejects.toMatchObject({ code: 'permission-denied' })
     const error = await new Promise<Error>((resolve) => intrus.watch(() => {}, resolve))
     expect(error).toMatchObject({ code: 'permission-denied' })
+  })
+
+  test('coffre : meta/keys créé par Vault accepté par les règles, puis déverrouillable', async () => {
+    const store = storeFor('alice')
+    const phrase = 'cheval agrafe batterie'
+    await new Vault(store, new MemoryKeyStore(), 'alice').setup(phrase)
+    // Autre appareil (coffre neuf) : retrouve la clé et ne peut pas écraser meta/keys.
+    const ailleurs = new Vault(storeFor('alice'), new MemoryKeyStore(), 'alice')
+    expect(await ailleurs.status()).toBe('locked')
+    await expect(ailleurs.setup('une autre phrase longue')).rejects.toThrow(/existe déjà/)
+    await ailleurs.unlock(phrase)
+    expect(await ailleurs.status()).toBe('unlocked')
   })
 })
