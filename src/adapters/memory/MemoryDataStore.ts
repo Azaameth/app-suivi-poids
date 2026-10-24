@@ -1,4 +1,4 @@
-import type { DataStore, DocData, StoredDoc } from '../../core'
+import type { DataStore, DocData, StoredDoc, SyncState } from '../../core'
 
 type Listener = (docs: StoredDoc[]) => void
 
@@ -6,6 +6,8 @@ export class MemoryDataStore implements DataStore {
   // Clé : `uid/collection` → documents de la collection.
   private collections = new Map<string, Map<string, DocData>>()
   private listeners = new Map<string, Set<Listener>>()
+  private syncState: SyncState = 'online'
+  private syncListeners = new Set<(state: SyncState) => void>()
 
   async get(uid: string, collection: string, id: string) {
     const doc = this.collection(uid, collection).get(id)
@@ -31,6 +33,20 @@ export class MemoryDataStore implements DataStore {
     return () => {
       set.delete(onChange)
     }
+  }
+
+  watchSyncState(listener: (state: SyncState) => void) {
+    this.syncListeners.add(listener)
+    listener(this.syncState)
+    return () => {
+      this.syncListeners.delete(listener)
+    }
+  }
+
+  /** Pour les tests : simule un changement d'état de synchro. */
+  setSyncState(state: SyncState) {
+    this.syncState = state
+    this.syncListeners.forEach((listener) => listener(state))
   }
 
   private collection(uid: string, collection: string) {

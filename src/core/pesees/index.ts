@@ -1,4 +1,5 @@
 export { InvalidPeseeError, decodePesee, encodePesee } from './codec'
+export { PeseeRepository, type PeseeInput } from './repository'
 export {
   NOTE_MAX,
   PESEES,

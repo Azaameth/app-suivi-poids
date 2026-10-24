@@ -1,7 +1,8 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test } from 'vitest'
 import { App } from './App'
 import { createMemoryServices } from './adapters/memory'
+import type { MemoryDataStore } from './adapters/memory/MemoryDataStore'
 import { ServicesProvider } from './context/ServicesProvider'
 import type { Services } from './core'
 
@@ -35,4 +36,12 @@ test('affiche une erreur si la connexion échoue', async () => {
   renderApp(services)
   fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
   expect((await screen.findByRole('alert')).textContent).toMatch(/Connexion impossible/)
+})
+
+test('indicateur de synchro visible une fois connecté', async () => {
+  const services = renderApp()
+  fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
+  expect((await screen.findByRole('status')).textContent).toMatch(/En ligne/)
+  act(() => (services.data as MemoryDataStore).setSyncState('offline'))
+  expect(screen.getByRole('status').textContent).toMatch(/Hors ligne/)
 })
