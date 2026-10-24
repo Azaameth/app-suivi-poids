@@ -80,13 +80,14 @@ Jamais `firebase/*`, `@capacitor/*`, `localStorage`, `indexedDB` en dehors de `s
 
 ## 4. Où on en est
 
-- Environnement de dev : à vérifier (voir point ouvert n°1).
-- Aucun bloc de `docs/plan-projet.md` n'est coché.
-- Le cadrage fonctionnel (bloc 0.2 : nom de l'appli, `appId`, fonctionnalités v1, données, champs chiffrés, méthode de connexion) est **entièrement `<À DÉFINIR>`**.
+- Environnement : Arch + VS Code Flatpak, opérationnel (§9, D9).
+- Blocs 1.1, 1.3, 1.4, 1.5 cochés ; 1.2 attend le projet Firebase réel ; `ci.yml` (4.2) requis sur `main` (ruleset, D14).
+- Le cadrage fonctionnel (bloc 0.2) reste **entièrement `<À DÉFINIR>`** : issue #2, bloquant pour 1.6, 2.x et 3.1.
+- Suivi au quotidien : issues GitHub (label `pour-maxime` pour ses tâches), décisions D6 à D14 au Registre du plan.
 
 ---
 
-## 5. Tâche demandée : générer le squelette
+## 5. Tâche demandée : générer le squelette — ✅ réalisée (PR #6)
 
 Demande de Maxime : *« config Capacitor + Firebase, module de chiffrement, règles Firestore, workflow GitHub Actions »*.
 
@@ -111,11 +112,10 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 
 ## 6. Points ouverts à clarifier en premier
 
-1. **OS de dev — contradiction :** `plan-installation-outils.md` cible **Arch Linux + KDE** (pacman, paru, fnm), alors qu'une version antérieure du contexte mentionnait **Windows** (winget). Demander lequel est actuel avant toute commande système. Par défaut, suivre `plan-installation-outils.md`.
-2. **Cadrage 0.2** : toutes les lignes `<À DÉFINIR>`.
-3. **Règle de conflit (D6)** : dernière écriture gagnante par défaut, à confirmer.
-4. **Délai de verrouillage auto** (bloc 2.3) : `<À DÉFINIR>`.
-5. **KeyStore natif (bloc 3.3)** : sur Android, conserver la clé de données déverrouillée dans le Keystore via `@aparajita/capacitor-secure-storage` après le 1er déverrouillage — à confirmer (compromis confort / sécurité).
+1. **Cadrage 0.2** : toutes les lignes `<À DÉFINIR>` (issue #2).
+2. **Bloc 1.7** : projet Firebase réel à créer par Maxime (issue #5).
+
+Réglés le 2026-10-24 : OS (Arch, Flatpak), D6 conflits, D12 verrouillage auto, D13 KeyStore Android — voir le Registre de `docs/plan-projet.md`.
 
 ---
 
