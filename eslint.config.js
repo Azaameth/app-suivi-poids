@@ -6,6 +6,18 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
+// Règle d'or : seul src/adapters/ touche Firebase, Capacitor et le stockage navigateur.
+const platformImports = [
+  {
+    group: ['firebase', 'firebase/*', '@firebase/*'],
+    message: 'Firebase : src/adapters/ uniquement.',
+  },
+  {
+    group: ['@capacitor/*', '@capacitor-firebase/*', '@aparajita/*'],
+    message: 'Capacitor : src/adapters/ uniquement.',
+  },
+]
+
 export default defineConfig([
   globalIgnores(['dist', 'coverage', 'android']),
   {
@@ -18,7 +30,6 @@ export default defineConfig([
     ],
     languageOptions: { globals: globals.browser },
   },
-  // Règle d'or : seul src/adapters/ touche Firebase, Capacitor et le stockage navigateur.
   {
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/adapters/**', 'src/platform.ts'],
@@ -26,16 +37,7 @@ export default defineConfig([
       'no-restricted-imports': [
         'error',
         {
-          patterns: [
-            {
-              group: ['firebase', 'firebase/*', '@firebase/*'],
-              message: 'Firebase : src/adapters/ uniquement.',
-            },
-            {
-              group: ['@capacitor/*', '@capacitor-firebase/*', '@aparajita/*'],
-              message: 'Capacitor : src/adapters/ uniquement.',
-            },
-          ],
+          patterns: platformImports,
         },
       ],
       'no-restricted-globals': [
@@ -43,6 +45,21 @@ export default defineConfig([
         { name: 'localStorage', message: 'Stockage navigateur : src/adapters/ uniquement.' },
         { name: 'sessionStorage', message: 'Stockage navigateur : src/adapters/ uniquement.' },
         { name: 'indexedDB', message: 'Stockage navigateur : src/adapters/ uniquement.' },
+      ],
+    },
+  },
+  // Les écrans ne connaissent que src/core/ et les contextes React.
+  {
+    files: ['src/features/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            ...platformImports,
+            { group: ['**/adapters/**', '**/platform'], message: 'Passer par useServices().' },
+          ],
+        },
       ],
     },
   },
