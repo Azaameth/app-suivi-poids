@@ -1,0 +1,47 @@
+# Dépendances / build
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.local
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+firebase-debug*.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+pubsub-debug.log
+
+# Firebase
+.firebase/
+.emulator-data/
+
+# ---- SÉCURITÉ (repo public) — ne jamais committer ----
+.env
+.env.*
+!.env.example
+service-account*.json
+*-adminsdk-*.json
+google-services.json
+GoogleService-Info.plist
+*.jks
+*.keystore
+keystore.properties
+*.p12
+*.pem
+
+# Android / Capacitor (jalon 3)
+android/app/release/
+android/.gradle/
+android/local.properties
+
+# Éditeurs / OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+*.sw?
