@@ -15,7 +15,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run --config config/vite.config.ts",
     "test:watch": "vitest --config config/vite.config.ts",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-suivi-poids \"vitest run --config config/vitest.rules.config.ts\"",
+    "test:rules": "firebase emulators:exec --config firebase/firebase.tests.json --only firestore --project demo-suivi-poids \"vitest run --config config/vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --project demo-suivi-poids --import=.emulator-data --export-on-exit=.emulator-data",
     "check:secrets": "node scripts/check-secrets.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
