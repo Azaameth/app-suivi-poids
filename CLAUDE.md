@@ -81,7 +81,7 @@ Jamais `firebase/*`, `@capacitor/*`, `localStorage`, `indexedDB` en dehors de `s
 ## 4. Où on en est
 
 - Environnement : Arch + VS Code Flatpak, opérationnel (§9, D9).
-- Blocs 1.1, 1.3, 1.4, 1.5 cochés ; 1.2 attend le projet Firebase réel ; `ci.yml` (4.2) requis sur `main` (ruleset, D14).
+- Blocs 1.1, 1.3, 1.4, 1.5 cochés ; 1.2 coché (projet `machimoto`, D18) ; `ci.yml` (4.2) requis sur `main` (ruleset, D14).
 - Cadrage 0.2 fait : **Professeur Machimoto** (icône : Machimoto), `appId` `io.github.azaameth.machimoto`, pesées (`users/{uid}/pesees/{YYYY-MM-DD}`, `poids` et `note` chiffrés, date en clair), connexion Google uniquement. Détail : blocs 0.2 et 2.1 du plan, D15-D16.
 - Suivi au quotidien : issues GitHub (label `pour-maxime` pour ses tâches), décisions D6 à D16 au Registre du plan.
 
@@ -112,7 +112,7 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 
 ## 6. Points ouverts à clarifier en premier
 
-1. **Bloc 1.7** : projet Firebase réel à créer par Maxime (issue #5).
+1. **Bloc 1.7** : projet `machimoto` créé ; reste le déploiement (Hosting + règles, domaine autorisé).
 
 Réglés le 2026-10-24 : OS (Arch, Flatpak), cadrage 0.2, D6 conflits, D12 verrouillage auto, D13 KeyStore Android — voir le Registre de `docs/plan-projet.md`.
 

@@ -40,7 +40,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 0.1 | Prérequis | Environnement installé (plan d'installation, jalons 1 et 2) | [ ] |
 | 0.2 | Prérequis | Cadrage fonctionnel minimal | [x] |
 | 1.1 | Socle web | Initialisation du repo et de l'outillage | [x] |
-| 1.2 | Socle web | Projet Firebase + émulateurs | [ ] |
+| 1.2 | Socle web | Projet Firebase + émulateurs | [x] |
 | 1.3 | Socle web | Interfaces et sélection des adaptateurs | [x] |
 | 1.4 | Socle web | Module de chiffrement | [x] |
 | 1.5 | Socle web | Règles Firestore + tests | [x] |
@@ -424,6 +424,7 @@ Déclenché sur un tag `v*` :
 | D14 | 2026-10-24 | `main` protégée par un ruleset : PR obligatoire, check `verify` requis, ni force-push ni suppression | `main` toujours déployable (#8) | Push direct |
 | D15 | 2026-10-24 | Connexion Google uniquement (comptes fictifs de l'émulateur Auth en dev) | Aucun mot de passe en plus de la phrase secrète (#2) | E-mail + mot de passe |
 | D16 | 2026-10-24 | Date en clair (et identifiant du document), poids et note chiffrés | Tri et filtre par période côté Firestore ; la date seule révèle peu (#2) | Tout chiffrer (tri côté client) |
+| D18 | 2026-10-24 | Vrai projet `machimoto` utilisé par le build de production uniquement ; dev et tests restent sur `demo-suivi-poids` | Garde D8 : `npm run dev` ne peut pas toucher les vraies données | Variables d'environnement `.env` (inutiles : la config est publique) |
  
 ## ⚠️ Risques
  
@@ -450,3 +451,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 1.2 | Critères OK sur émulateurs ; le projet Firebase réel et la méthode d'auth attendent le cadrage 0.2 (#2) et le bloc 1.7 (#5). |
 | 2026-10-24 | 4.2 | `ci.yml` anticipé et requis sur `main`. Reste : build APK de debug (jalon 3). |
 | 2026-10-24 | 0.2 / 2.1 | Cadrage fait : **Professeur Machimoto** (`io.github.azaameth.machimoto`), pesées chiffrées (poids, note), connexion Google. Schéma 2.1 validé. D6, D12, D13 précisées ; D15, D16 ajoutées (#2). |
+| 2026-10-24 | 1.2 | Projet Firebase `machimoto` créé (Spark, Auth Google, Firestore europe-west1). Config branchée sur le build de prod (D18) ; `.firebaserc` : `default` = machimoto, alias `demo` (#5). |
