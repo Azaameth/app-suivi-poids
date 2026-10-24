@@ -1,16 +1,16 @@
-# Environnement : VS Code Flatpak sans Java, gh ni identifiants GitHub
+# Environnement : rester sur VS Code Flatpak (Java, gh, push)
 
 **Labels :** env
 
-VS Code tourne en Flatpak : Claude Code y voit Node 26 (SDK Flatpak) mais **ni Java, ni `gh`, ni identifiants git**.
+Décision : on reste sur VS Code **Flatpak**. Ce qu'il voit déjà : tout le disque, tous les périphériques, le trousseau KDE, `flatpak-spawn --host`.
 
-Conséquences :
-- `npm run test:rules` échoue en local (l'émulateur Firestore exige Java 21). Je l'ai validé avec un JRE portable temporaire : 9/9 OK.
-- Je ne peux ni pousser, ni ouvrir de PR, ni créer d'issues.
+- [x] `gh` installé dans `~/.local/bin` (binaire officiel, checksum vérifié)
+- [ ] Java 21 via l'extension SDK, puis redémarrer complètement VS Code :
+  ```sh
+  flatpak install flathub org.freedesktop.Sdk.Extension.openjdk21//25.08
+  flatpak override --user --env=FLATPAK_ENABLE_SDK_EXT=node26,openjdk21 com.visualstudio.code
+  ```
+- [ ] Dans le terminal VS Code : `java -version` → 21, puis `npm run test:rules` OK
+- [ ] `gh auth login` puis `gh auth setup-git` (permet le push)
 
-Options :
-1. **(recommandé)** VS Code natif (`paru -S visual-studio-code-bin`) + `sudo pacman -S jdk21-openjdk github-cli`, puis `gh auth login`.
-2. Garder le Flatpak et lui ouvrir l'accès à l'hôte (`flatpak-spawn --host`, overrides) : plus fragile.
-
-- [ ] Choix fait
-- [ ] `java -version` → 21, `gh auth status` OK depuis le terminal de VS Code
+Note : quand le runtime Flatpak changera de version (25.08 → suivante), réinstaller l'extension openjdk21 sur la branche correspondante.
