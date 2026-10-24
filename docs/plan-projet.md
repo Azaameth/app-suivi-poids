@@ -39,11 +39,11 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 |---|---|---|---|
 | 0.1 | Prérequis | Environnement installé (plan d'installation, jalons 1 et 2) | [ ] |
 | 0.2 | Prérequis | Cadrage fonctionnel minimal | [ ] |
-| 1.1 | Socle web | Initialisation du repo et de l'outillage | [ ] |
+| 1.1 | Socle web | Initialisation du repo et de l'outillage | [x] |
 | 1.2 | Socle web | Projet Firebase + émulateurs | [ ] |
-| 1.3 | Socle web | Interfaces et sélection des adaptateurs | [ ] |
-| 1.4 | Socle web | Module de chiffrement | [ ] |
-| 1.5 | Socle web | Règles Firestore + tests | [ ] |
+| 1.3 | Socle web | Interfaces et sélection des adaptateurs | [x] |
+| 1.4 | Socle web | Module de chiffrement | [x] |
+| 1.5 | Socle web | Règles Firestore + tests | [x] |
 | 1.6 | Socle web | Authentification web | [ ] |
 | 1.7 | Socle web | Déploiement sur Firebase Hosting | [ ] |
 | 2.1 | Fonctionnel | Modèle de données | [ ] |
@@ -154,8 +154,8 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 - Repo GitHub public créé, `main` protégée (pull request obligatoire)
 - Scripts npm : `dev`, `build`, `lint`, `test`, `emulators`
 **Critères d'acceptation**
-- [ ] `npm run lint && npm test && npm run build` passent
-- [ ] `dist/index.html` utilise des chemins relatifs (`./assets/...`)
+- [x] `npm run lint && npm test && npm run build` passent
+- [x] `dist/index.html` utilise des chemins relatifs (`./assets/...`)
 **✅ Vérification**
 ```bash
 npm run lint && npm test -- --run && npm run build && grep -o 'src="./assets' dist/index.html
@@ -169,8 +169,8 @@ npm run lint && npm test -- --run && npm run build && grep -o 'src="./assets' di
 - Config client dans `src/firebase.config.ts`
 - Connexion automatique aux émulateurs en mode dev
 **Critères d'acceptation**
-- [ ] `npm run emulators` démarre, interface accessible sur http://localhost:4000
-- [ ] L'appli en `dev` écrit dans l'**émulateur**, pas en production
+- [x] `npm run emulators` démarre, interface accessible sur http://localhost:4000
+- [x] L'appli en `dev` écrit dans l'**émulateur**, pas en production
 **✅ Vérification**
 ```bash
 npm run emulators   # puis, dans un 2e terminal : npm run dev
@@ -185,8 +185,8 @@ npm run emulators   # puis, dans un 2e terminal : npm run dev
 - Contexte React qui fournit les services aux composants
 - Fausses implémentations en mémoire pour les tests
 **Critères d'acceptation**
-- [ ] Aucun import `firebase/*` en dehors de `src/adapters/`
-- [ ] Tests unitaires de `core/` qui utilisent les fausses implémentations
+- [x] Aucun import `firebase/*` en dehors de `src/adapters/`
+- [x] Tests unitaires de `core/` qui utilisent les fausses implémentations
 **✅ Vérification**
 ```bash
 grep -rn "from 'firebase" src --include=*.ts* | grep -v "src/adapters/" || echo "OK : Firebase isolé"
@@ -201,10 +201,10 @@ grep -rn "from 'firebase" src --include=*.ts* | grep -v "src/adapters/" || echo 
   - `encryptField()` / `decryptField()` : vecteur d'initialisation (IV) aléatoire à chaque chiffrement, format versionné (`v1:<iv>:<données>`)
 - Document Firestore `users/{uid}/meta/keys` : `{ wrappedKey, salt, iterations, version }`
 **Critères d'acceptation**
-- [ ] Chiffrer puis déchiffrer redonne la valeur d'origine
-- [ ] Deux chiffrements de la même valeur donnent des résultats différents
-- [ ] Une mauvaise phrase secrète produit une erreur explicite
-- [ ] Le format versionné permet de changer d'algorithme plus tard
+- [x] Chiffrer puis déchiffrer redonne la valeur d'origine
+- [x] Deux chiffrements de la même valeur donnent des résultats différents
+- [x] Une mauvaise phrase secrète produit une erreur explicite
+- [x] Le format versionné permet de changer d'algorithme plus tard
 **✅ Vérification**
 ```bash
 npm test -- --run src/core/crypto
@@ -215,9 +215,9 @@ npm test -- --run src/core/crypto
 - `firestore.rules` : refus par défaut ; un utilisateur n'accède qu'à `users/{uid}/**` si `request.auth.uid == uid`
 - Tests avec `@firebase/rules-unit-testing` dans `tests/rules/`
 **Critères d'acceptation**
-- [ ] Un utilisateur non connecté est refusé partout
-- [ ] L'utilisateur A ne peut ni lire ni écrire les données de l'utilisateur B
-- [ ] L'utilisateur A peut lire et écrire ses propres données
+- [x] Un utilisateur non connecté est refusé partout
+- [x] L'utilisateur A ne peut ni lire ni écrire les données de l'utilisateur B
+- [x] L'utilisateur A peut lire et écrire ses propres données
 **✅ Vérification**
 ```bash
 firebase emulators:exec --only firestore "npm test -- --run tests/rules"
@@ -270,7 +270,7 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 - Premier lancement : choix de la phrase secrète, puis génération et encapsulation de la clé
 - Lancements suivants : écran de déverrouillage (clé en mémoire uniquement sur le web)
 - Changement de phrase secrète : seule la clé est ré-encapsulée, sans rechiffrer les données
-- Verrouillage manuel et verrouillage automatique après inactivité (`<À DÉFINIR>` minutes)
+- Verrouillage manuel et verrouillage automatique (D12) : après **5 min** onglet caché ou **15 min** d'inactivité, délais réglables dans les paramètres
 **Critères d'acceptation**
 - [ ] Après rechargement de la page, la phrase secrète est redemandée
 - [ ] Après un changement de phrase, les anciennes données restent lisibles
@@ -289,7 +289,7 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 |---|---|---|
 | DevTools → Offline, puis création et modification | Écritures en attente, interface à jour | [ ] |
 | Retour en ligne | Synchro automatique, indicateur à jour | [ ] |
-| Deux onglets modifient le même document | Règle de conflit appliquée (`<À DÉFINIR>` : dernière écriture gagnante par défaut) | [ ] |
+| Deux onglets modifient le même document | Règle de conflit appliquée (D6 : dernière écriture gagnante) | [ ] |
 | Session expirée pendant le hors ligne | Reconnexion demandée sans perte des écritures en attente | [ ] |
  
 > ℹ️ Sur le web, le cache est en mémoire : le hors ligne fonctionne tant que l'onglet reste ouvert. C'est voulu.
@@ -326,7 +326,7 @@ git check-ignore android/app/google-services.json && echo "OK : ignoré"
  
 ## Bloc 3.3 — Adaptateurs natifs
 **Livrables**
-- `KeyStore` natif : stockage sécurisé dans l'Android Keystore (clé de données déverrouillée conservée après le 1er déverrouillage, selon la décision prise)
+- `KeyStore` natif : stockage sécurisé dans l'Android Keystore (D13 : clé de données déverrouillée conservée après le 1er déverrouillage, réglage pour la désactiver ; déverrouillage biométrique à étudier)
 - `AuthService` natif : `@capacitor-firebase/authentication`
 - `DataStore` natif : `@capacitor-firebase/firestore` (cache natif hors ligne)
 - Réseau : `@capacitor/network` alimente `syncState()`
@@ -406,7 +406,15 @@ Déclenché sur un tag `v*` :
 | D3 | | Clé de données encapsulée par PBKDF2 | Accès web + Android, récupération après réinstallation | Clé uniquement dans le Keystore |
 | D4 | | Cache web en mémoire | Pas de données persistées dans le navigateur | Cache IndexedDB |
 | D5 | | Distribution par GitHub Releases + Obtainium | Gratuit, pas de Play Store | Play Store (25 $) |
-| D6 | | `<À DÉFINIR>` règle de conflit | | |
+| D6 | 2026-10-24 | Conflits : dernière écriture gagnante | Simple, suffisant pour un seul utilisateur (#3) | Fusion champ par champ, résolution manuelle |
+| D7 | 2026-10-24 | Configs dans `config/`, règles et index Firestore dans `firebase/` | Racine lisible | Tout à la racine (arborescence cible) |
+| D8 | 2026-10-24 | Dev contre un projet `demo-suivi-poids` | Le SDK ne parle qu'aux émulateurs : la prod est inaccessible par construction | Projet réel dès le 1.2 |
+| D9 | 2026-10-24 | VS Code reste en Flatpak (Java 21 via extension SDK, `gh` dans `~/.local/bin`) | Choix de l'utilisateur (#1) | VS Code natif (AUR) |
+| D10 | 2026-10-24 | ESLint (pas oxlint) | Règle d'or appliquée par des règles par dossier, outil mûr ; la vitesse est sans enjeu ici (#4) | oxlint (défaut Vite 8) |
+| D11 | 2026-10-24 | Node en version LTS uniquement (24, puis 26 dès son passage LTS) | Correctifs de sécurité sur la durée (#4) | Version Current |
+| D12 | 2026-10-24 | Verrouillage auto web : 5 min onglet caché, 15 min d'inactivité, réglable ; bouton manuel | Protège un poste laissé ouvert, coût faible pour une appli de saisie rapide (#12) | Délai fixe, pas de verrouillage auto |
+| D13 | 2026-10-24 | Android : clé conservée dans le Keystore par défaut, réglage pour la désactiver ; biométrie à étudier au 3.3 ; pas de re-verrouillage au retour d'arrière-plan | Confort ; réversible sans toucher aux données (#13) | Phrase à chaque lancement ; re-verrouillage auto sur Android |
+| D14 | 2026-10-24 | `main` protégée par un ruleset : PR obligatoire, check `verify` requis, ni force-push ni suppression | `main` toujours déployable (#8) | Push direct |
  
 ## ⚠️ Risques
  
@@ -428,4 +436,7 @@ Déclenché sur un tag `v*` :
  
 | Date | Bloc | Note (ce qui a été fait, problème rencontré, solution) |
 |---|---|---|
-| | | |
+| 2026-10-24 | 0.1 | Env : VS Code Flatpak conservé ; Java 21 absent → extension SDK `openjdk21` ; `gh` en binaire dans `~/.local/bin`, authentifié (#1). |
+| 2026-10-24 | 1.1→1.5 | Squelette généré et fusionné (PR #6), un commit par bloc. Vérifs OK en local et en CI. `main` protégée (#8). |
+| 2026-10-24 | 1.2 | Critères OK sur émulateurs ; le projet Firebase réel et la méthode d'auth attendent le cadrage 0.2 (#2) et le bloc 1.7 (#5). |
+| 2026-10-24 | 4.2 | `ci.yml` anticipé et requis sur `main`. Reste : build APK de debug (jalon 3). |
