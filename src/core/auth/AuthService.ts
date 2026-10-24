@@ -3,10 +3,11 @@ import type { Unsubscribe } from '../types'
 export interface AuthUser {
   uid: string
   email: string | null
+  displayName: string | null
 }
 
-// Méthode de connexion définitive : <À DÉFINIR> (bloc 0.2). L'union permettra d'en ajouter.
-export type Credentials = { method: 'emailPassword'; email: string; password: string }
+// Google uniquement (D15). L'union permettra d'ajouter une méthode sans casser l'interface.
+export type Credentials = { method: 'google' }
 
 export interface AuthService {
   currentUser(): AuthUser | null

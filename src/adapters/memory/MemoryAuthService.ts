@@ -1,6 +1,6 @@
-import type { AuthService, AuthUser, Credentials } from '../../core'
+import type { AuthService, AuthUser } from '../../core'
 
-/** Fausse auth pour les tests et le dev hors émulateur : accepte n'importe quel mot de passe. */
+/** Fausse auth pour les tests : chaque connexion renvoie le même compte fictif. */
 export class MemoryAuthService implements AuthService {
   private user: AuthUser | null = null
   private listeners = new Set<(user: AuthUser | null) => void>()
@@ -17,8 +17,8 @@ export class MemoryAuthService implements AuthService {
     }
   }
 
-  async signIn(credentials: Credentials) {
-    this.setUser({ uid: `uid-${credentials.email}`, email: credentials.email })
+  async signIn() {
+    this.setUser({ uid: 'uid-test', email: 'test@example.com', displayName: 'Test' })
     return this.user!
   }
 
