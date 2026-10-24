@@ -33,7 +33,7 @@ describe('MemoryAuthService', () => {
     const { auth } = createMemoryServices()
     const listener = vi.fn()
     auth.onAuthStateChanged(listener)
-    await auth.signIn({ method: 'emailPassword', email: 'test@example.com', password: 'x' })
+    await auth.signIn({ method: 'google' })
     await auth.signOut()
     expect(listener.mock.calls.map(([u]) => u?.email ?? null)).toEqual([
       null,
