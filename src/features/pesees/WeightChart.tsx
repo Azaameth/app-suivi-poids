@@ -95,21 +95,27 @@ function Plot({
   const xs = points.map((p) => dayToMs(p.date))
   const weights = points.map((p) => p.poids)
   const [xMin, xMax] = [Math.min(...xs), Math.max(...xs)]
-  const [wMin, wMax] = [Math.min(...weights), Math.max(...weights)]
-  const pad = Math.max(0.5, (wMax - wMin) * 0.1)
-  const yMin = fromZero ? 0 : Math.max(0, wMin - pad)
-  const yMax = wMax + pad
+  const {
+    ticks,
+    min: yMin,
+    max: yMax,
+  } = niceScale(fromZero ? 0 : Math.min(...weights), Math.max(...weights))
 
   const plotW = W - M.left - M.right
   const plotH = H - M.top - M.bottom
   const x = (ms: number) => M.left + ((ms - xMin) / (xMax - xMin || 1)) * plotW
   const y = (kg: number) => M.top + (1 - (kg - yMin) / (yMax - yMin)) * plotH
-  const ticks = [yMin, (yMin + yMax) / 2, yMax]
   const line = (list: { date: string; poids: number }[]) =>
     list.map((p) => `${x(dayToMs(p.date)).toFixed(1)},${y(p.poids).toFixed(1)}`).join(' ')
-  const barWidth = Math.max(2, Math.min(16, (plotW / points.length) * 0.6))
+  // Moins de 6 px par pesée : on n'affiche plus les ronds (zones de survol invisibles).
+  const dense = plotW / points.length < 6
+  // Avec la moyenne, c'est elle qui porte la tendance : les pesées brutes passent en fond.
+  const raw = average ? ' faded' : ''
+  const barWidth = Math.max(1, Math.min(16, (plotW / points.length) * 0.6))
+  const dateTicks = [0, 1 / 3, 2 / 3, 1].map((f) => xMin + f * (xMax - xMin))
   const first = points[0]
   const last = points[points.length - 1]
+  const tooltip = (p: Pesee) => <title>{`${formatDay(p.date)} : ${formatWeight(p.poids)}`}</title>
 
   return (
     <svg
@@ -122,43 +128,67 @@ function Plot({
         <g key={tick} className="grid">
           <line x1={M.left} x2={W - M.right} y1={y(tick)} y2={y(tick)} />
           <text x={M.left - 6} y={y(tick)} textAnchor="end" dominantBaseline="middle">
-            {tick.toFixed(1)}
+            {Number.isInteger(tick) ? tick : tick.toFixed(1)}
           </text>
         </g>
       ))}
-      <text className="axis" x={M.left} y={H - 6}>
-        {formatShortDay(first.date)}
-      </text>
-      <text className="axis" x={W - M.right} y={H - 6} textAnchor="end">
-        {formatShortDay(last.date)}
-      </text>
+      {dateTicks.map((ms, i) => (
+        <text
+          key={ms}
+          className="axis"
+          x={x(ms)}
+          y={H - 6}
+          textAnchor={i === 0 ? 'start' : i === dateTicks.length - 1 ? 'end' : 'middle'}
+        >
+          {formatShortDay(new Date(ms).toISOString().slice(0, 10))}
+        </text>
+      ))}
 
-      {style === 'courbe' && <polyline className="series" points={line(points)} />}
-      {style === 'barres'
-        ? points.map((p) => (
-            <rect
-              key={p.date}
-              className="bar"
-              x={x(dayToMs(p.date)) - barWidth / 2}
-              y={y(p.poids)}
-              width={barWidth}
-              height={Math.max(0, y(yMin) - y(p.poids))}
-            >
-              <title>{`${formatDay(p.date)} : ${formatWeight(p.poids)}`}</title>
-            </rect>
-          ))
-        : points.map((p) => (
+      {style === 'courbe' && (
+        <polyline className={`series${dense ? ' thin' : ''}${raw}`} points={line(points)} />
+      )}
+      {style === 'barres' &&
+        points.map((p) => (
+          <rect
+            key={p.date}
+            className={`bar${raw}`}
+            x={x(dayToMs(p.date)) - barWidth / 2}
+            y={y(p.poids)}
+            width={barWidth}
+            height={Math.max(0, y(yMin) - y(p.poids))}
+          >
+            {tooltip(p)}
+          </rect>
+        ))}
+      {style !== 'barres' &&
+        points.map((p) => {
+          const hidden = style === 'courbe' && dense
+          return (
             <circle
               key={p.date}
-              className="dot"
+              className={hidden ? 'hit' : `dot${raw}`}
               cx={x(dayToMs(p.date))}
               cy={y(p.poids)}
-              r={style === 'points' ? 3.5 : 2.5}
+              r={hidden ? 4 : style === 'points' ? (dense ? 1.8 : 3.5) : 2.5}
             >
-              <title>{`${formatDay(p.date)} : ${formatWeight(p.poids)}`}</title>
+              {tooltip(p)}
             </circle>
-          ))}
+          )
+        })}
       {average && <polyline className="average" points={line(movingAverage(points))} />}
     </svg>
   )
+}
+
+/** Graduations « rondes » (pas de 0,5 / 1 / 2 / 5 kg…) qui encadrent les valeurs. */
+function niceScale(low: number, high: number, target = 4) {
+  const span = Math.max(high - low, 1)
+  const raw = span / target
+  const magnitude = 10 ** Math.floor(Math.log10(raw))
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= raw)!
+  const min = Math.max(0, Math.floor(low / step) * step)
+  const max = Math.ceil(high / step) * step
+  const ticks: number[] = []
+  for (let t = min; t <= max + step / 2; t += step) ticks.push(Math.round(t * 100) / 100)
+  return { ticks, min, max: max > min ? max : min + step }
 }

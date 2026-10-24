@@ -179,10 +179,23 @@ label.inline {
   fill: var(--accent);
 }
 
+.chart .series.thin {
+  stroke-width: 1.25;
+}
+
+/* Pesées brutes en fond quand la moyenne est affichée. */
+.chart .faded {
+  opacity: 0.3;
+}
+
+/* Zones de survol invisibles (info-bulles) quand les points sont trop serrés. */
+.chart .hit {
+  fill: transparent;
+}
+
 .chart .average {
   fill: none;
-  stroke: var(--fg);
-  stroke-width: 1.5;
-  stroke-dasharray: 4 3;
-  opacity: 0.7;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
 }
