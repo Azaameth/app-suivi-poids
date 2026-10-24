@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-suivi-poids"
+    "default": "machimoto",
+    "demo": "demo-suivi-poids"
   }
 }
