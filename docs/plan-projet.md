@@ -38,7 +38,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | Bloc | Jalon | Contenu | Fait |
 |---|---|---|---|
 | 0.1 | Prérequis | Environnement installé (plan d'installation, jalons 1 et 2) | [ ] |
-| 0.2 | Prérequis | Cadrage fonctionnel minimal | [ ] |
+| 0.2 | Prérequis | Cadrage fonctionnel minimal | [x] |
 | 1.1 | Socle web | Initialisation du repo et de l'outillage | [x] |
 | 1.2 | Socle web | Projet Firebase + émulateurs | [ ] |
 | 1.3 | Socle web | Interfaces et sélection des adaptateurs | [x] |
@@ -129,16 +129,17 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
  
 | Question | Réponse |
 |---|---|
-| Nom de l'appli / identifiant du package (ex. `fr.pseudo.app`) | `<À DÉFINIR>` |
-| Fonctionnalités de la v1 (3 à 5 maximum) | `<À DÉFINIR>` |
-| Données manipulées | `<À DÉFINIR>` |
-| Données sensibles à chiffrer | `<À DÉFINIR>` |
-| Utilisateur unique ou plusieurs ? Partage de données entre utilisateurs ? | `<À DÉFINIR>` |
-| Méthode de connexion (Google, email + mot de passe…) | `<À DÉFINIR>` |
- 
+| Nom de l'appli | Titre : **Professeur Machimoto** · nom sous l'icône : **Machimoto** |
+| Identifiant du package | `io.github.azaameth.machimoto` (définitif) |
+| Fonctionnalités de la v1 | 1. Saisir une pesée (date, poids, note facultative) · 2. Historique (modifier, supprimer) · 3. Graphique d'évolution (30 j / 90 j / 1 an / tout) · 4. Export CSV (sert aussi de sauvegarde) |
+| Données manipulées | Pesées ; plus tard un profil (taille, objectif) en v1.1 |
+| Données sensibles à chiffrer | `poids`, `note` (puis `taille`, `objectif` en v1.1) |
+| Utilisateurs / partage | Un seul utilisateur, aucun partage |
+| Méthode de connexion | Google uniquement (en dev : comptes fictifs de l'émulateur Auth) |
+
 **Critères d'acceptation**
-- [ ] Toutes les lignes sont remplies
-- [ ] Les champs chiffrés n'ont pas besoin d'être filtrés ou triés côté serveur
+- [x] Toutes les lignes sont remplies
+- [x] Les champs chiffrés n'ont pas besoin d'être filtrés ou triés côté serveur (seule la date, en clair, sert au tri et au filtre)
 ---
  
 # Jalon 1 — Socle web
@@ -252,11 +253,15 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 - Règles Firestore et tests mis à jour
 | Collection | Champs | Champs chiffrés | Index |
 |---|---|---|---|
-| `<À DÉFINIR>` | | | |
+| `users/{uid}/meta/keys` | `wrappedKey`, `salt`, `iterations`, `version` | — | — |
+| `users/{uid}/pesees/{YYYY-MM-DD}` | `date`, `poids`, `note`, `createdAt`, `updatedAt` | `poids`, `note` | `date` (index simple automatique) |
+| `users/{uid}/meta/profil` (v1.1) | `unite`, `taille`, `objectif` | `taille`, `objectif` | — |
+
+> Identifiant du document = date : une seule pesée par jour, pas de doublon possible.
  
 **Critères d'acceptation**
-- [ ] Le schéma est validé par l'utilisateur
-- [ ] Aucun filtre ni tri ne porte sur un champ chiffré
+- [x] Le schéma est validé par l'utilisateur
+- [x] Aucun filtre ni tri ne porte sur un champ chiffré
 ## Bloc 2.2 — DataStore web + état de la synchro
 **Livrables**
 - Adaptateur web de `DataStore` : cache Firestore **en mémoire**, chiffrement et déchiffrement automatiques des champs marqués
@@ -270,7 +275,7 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 - Premier lancement : choix de la phrase secrète, puis génération et encapsulation de la clé
 - Lancements suivants : écran de déverrouillage (clé en mémoire uniquement sur le web)
 - Changement de phrase secrète : seule la clé est ré-encapsulée, sans rechiffrer les données
-- Verrouillage manuel et verrouillage automatique (D12) : après **5 min** onglet caché ou **15 min** d'inactivité, délais réglables dans les paramètres
+- Verrouillage manuel et verrouillage automatique (D12) : après **5 min** d'inactivité, délai réglable dans les paramètres
 **Critères d'acceptation**
 - [ ] Après rechargement de la page, la phrase secrète est redemandée
 - [ ] Après un changement de phrase, les anciennes données restent lisibles
@@ -278,8 +283,10 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 ## Bloc 2.4 — Écrans métier
 | Écran / fonctionnalité | Statut |
 |---|---|
-| `<À DÉFINIR>` | [ ] |
-| `<À DÉFINIR>` | [ ] |
+| Saisie d'une pesée (date, poids, note facultative) | [ ] |
+| Historique (modifier, supprimer) | [ ] |
+| Graphique d'évolution (30 j / 90 j / 1 an / tout) | [ ] |
+| Export CSV (sert aussi de sauvegarde) | [ ] |
  
 **Critères d'acceptation**
 - [ ] Chaque écran a des états chargement / vide / erreur
@@ -326,7 +333,7 @@ git check-ignore android/app/google-services.json && echo "OK : ignoré"
  
 ## Bloc 3.3 — Adaptateurs natifs
 **Livrables**
-- `KeyStore` natif : stockage sécurisé dans l'Android Keystore (D13 : clé de données déverrouillée conservée après le 1er déverrouillage, réglage pour la désactiver ; déverrouillage biométrique à étudier)
+- `KeyStore` natif : stockage sécurisé dans l'Android Keystore (D13 : phrase secrète saisie une fois par appareil, puis clé conservée dans le Keystore et déverrouillée par **empreinte à l'ouverture** de l'appli ; pas de re-verrouillage en cours d'utilisation)
 - `AuthService` natif : `@capacitor-firebase/authentication`
 - `DataStore` natif : `@capacitor-firebase/firestore` (cache natif hors ligne)
 - Réseau : `@capacitor/network` alimente `syncState()`
@@ -406,15 +413,17 @@ Déclenché sur un tag `v*` :
 | D3 | | Clé de données encapsulée par PBKDF2 | Accès web + Android, récupération après réinstallation | Clé uniquement dans le Keystore |
 | D4 | | Cache web en mémoire | Pas de données persistées dans le navigateur | Cache IndexedDB |
 | D5 | | Distribution par GitHub Releases + Obtainium | Gratuit, pas de Play Store | Play Store (25 $) |
-| D6 | 2026-10-24 | Conflits : dernière écriture gagnante | Simple, suffisant pour un seul utilisateur (#3) | Fusion champ par champ, résolution manuelle |
+| D6 | 2026-10-24 | Conflits : dernière écriture gagnante, au niveau du document du jour | Un document par jour, usage mono-utilisateur (#3) | Fusion champ par champ, résolution manuelle |
 | D7 | 2026-10-24 | Configs dans `config/`, règles et index Firestore dans `firebase/` | Racine lisible | Tout à la racine (arborescence cible) |
 | D8 | 2026-10-24 | Dev contre un projet `demo-suivi-poids` | Le SDK ne parle qu'aux émulateurs : la prod est inaccessible par construction | Projet réel dès le 1.2 |
 | D9 | 2026-10-24 | VS Code reste en Flatpak (Java 21 via extension SDK, `gh` dans `~/.local/bin`) | Choix de l'utilisateur (#1) | VS Code natif (AUR) |
 | D10 | 2026-10-24 | ESLint (pas oxlint) | Règle d'or appliquée par des règles par dossier, outil mûr ; la vitesse est sans enjeu ici (#4) | oxlint (défaut Vite 8) |
 | D11 | 2026-10-24 | Node en version LTS uniquement (24, puis 26 dès son passage LTS) | Correctifs de sécurité sur la durée (#4) | Version Current |
-| D12 | 2026-10-24 | Verrouillage auto web : 5 min onglet caché, 15 min d'inactivité, réglable ; bouton manuel | Protège un poste laissé ouvert, coût faible pour une appli de saisie rapide (#12) | Délai fixe, pas de verrouillage auto |
-| D13 | 2026-10-24 | Android : clé conservée dans le Keystore par défaut, réglage pour la désactiver ; biométrie à étudier au 3.3 ; pas de re-verrouillage au retour d'arrière-plan | Confort ; réversible sans toucher aux données (#13) | Phrase à chaque lancement ; re-verrouillage auto sur Android |
+| D12 | 2026-10-24 | Verrouillage auto web : 5 min d'inactivité, réglable ; bouton manuel | Protège un poste laissé ouvert, coût faible pour une appli de saisie rapide (#12, #2) | Délai fixe ; règle onglet caché séparée |
+| D13 | 2026-10-24 | Phrase secrète saisie une fois par appareil ; Android : clé dans le Keystore, déverrouillée par empreinte à l'ouverture, sans re-verrouillage en cours d'utilisation ; web : phrase à chaque session | Simple au quotidien sans perte de sécurité ; réversible sans toucher aux données (#13, #2) | Pas de chiffrement ; phrase à chaque ouverture ; re-verrouillage auto sur Android |
 | D14 | 2026-10-24 | `main` protégée par un ruleset : PR obligatoire, check `verify` requis, ni force-push ni suppression | `main` toujours déployable (#8) | Push direct |
+| D15 | 2026-10-24 | Connexion Google uniquement (comptes fictifs de l'émulateur Auth en dev) | Aucun mot de passe en plus de la phrase secrète (#2) | E-mail + mot de passe |
+| D16 | 2026-10-24 | Date en clair (et identifiant du document), poids et note chiffrés | Tri et filtre par période côté Firestore ; la date seule révèle peu (#2) | Tout chiffrer (tri côté client) |
  
 ## ⚠️ Risques
  
@@ -440,3 +449,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 1.1→1.5 | Squelette généré et fusionné (PR #6), un commit par bloc. Vérifs OK en local et en CI. `main` protégée (#8). |
 | 2026-10-24 | 1.2 | Critères OK sur émulateurs ; le projet Firebase réel et la méthode d'auth attendent le cadrage 0.2 (#2) et le bloc 1.7 (#5). |
 | 2026-10-24 | 4.2 | `ci.yml` anticipé et requis sur `main`. Reste : build APK de debug (jalon 3). |
+| 2026-10-24 | 0.2 / 2.1 | Cadrage fait : **Professeur Machimoto** (`io.github.azaameth.machimoto`), pesées chiffrées (poids, note), connexion Google. Schéma 2.1 validé. D6, D12, D13 précisées ; D15, D16 ajoutées (#2). |
