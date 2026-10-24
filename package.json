@@ -19,7 +19,8 @@
     "emulators": "firebase emulators:start --project demo-suivi-poids --import=.emulator-data --export-on-exit=.emulator-data",
     "check:secrets": "node scripts/check-secrets.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "verify": "npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run build"
+    "verify": "npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run build",
+    "deploy": "npm run verify && npm run test:rules && firebase deploy --project machimoto --only hosting,firestore:rules"
   },
   "dependencies": {
     "firebase": "^13.1.0",
