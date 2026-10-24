@@ -428,7 +428,7 @@ Déclenché sur un tag `v*` :
 | D18 | 2026-10-24 | Vrai projet `machimoto` utilisé par le build de production uniquement ; dev et tests restent sur `demo-suivi-poids` | Garde D8 : `npm run dev` ne peut pas toucher les vraies données | Variables d'environnement `.env` (inutiles : la config est publique) |
 | D19 | 2026-10-24 | Règles Firestore en liste explicite : seuls `meta/keys` et `pesees/{date}` sont autorisés, forme validée (miroir du schéma Zod) | Défense en profondeur : une collection non prévue ou une donnée en clair est refusée côté serveur | Tout permis sous `users/{uid}` |
 | D20 | 2026-10-24 | `createdAt` / `updatedAt` en millisecondes (entier), posés par le client | `core/` reste indépendant de Firebase (même code web et Android) | `Timestamp` Firestore / `serverTimestamp()` |
-| D21 | 2026-10-24 | Poids en kg, entre 1 et 500 ; note de 1 à 500 caractères, absente si vide | Bornes larges contre les fautes de frappe grossières ; l'unité d'affichage viendra avec le profil (v1.1) | Bornes strictes, stockage dans l'unité choisie |
+| D21 | 2026-10-24 | Poids en kg, de 0 à 5 000 inclus ; note de 1 à 500 caractères, absente si vide | Choix d'Azaameth (#19) ; l'unité d'affichage viendra avec le profil (v1.1) | 1 à 500 kg |
  
 ## ⚠️ Risques
  
@@ -459,3 +459,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 1.6 | Connexion Google par popup (#16), testée sur émulateur puis en réel. |
 | 2026-10-24 | 1.7 | Premier déploiement : https://machimoto.web.app sert le build de `main`, connexion Google réelle OK, Firestore vérifié en europe-west1. Script `npm run deploy`. Fin du jalon 1 → `v0.1.0`. |
 | 2026-10-24 | 2.1 | `core/pesees` : schémas Zod (clair / stocké), `encodePesee` / `decodePesee`. Règles en liste explicite (D19). 32 tests unitaires, 19 tests de règles dont une pesée réellement chiffrée. Règles à redéployer (`npm run deploy`). |
+| 2026-10-24 | 2.1 | D20 validée ; bornes du poids passées à 0 – 5 000 kg (D21). |
