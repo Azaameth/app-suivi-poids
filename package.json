@@ -7,15 +7,15 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "lint": "eslint . && prettier --check .",
-    "format": "prettier --write .",
+    "dev": "vite --config config/vite.config.ts",
+    "build": "tsc -b && vite build --config config/vite.config.ts",
+    "preview": "vite preview --config config/vite.config.ts",
+    "lint": "eslint --config config/eslint.config.js . && prettier --config config/prettier.json --ignore-path config/prettierignore --check .",
+    "format": "prettier --config config/prettier.json --ignore-path config/prettierignore --write .",
     "typecheck": "tsc -b",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-suivi-poids \"vitest run --config vitest.rules.config.ts\"",
+    "test": "vitest run --config config/vite.config.ts",
+    "test:watch": "vitest --config config/vite.config.ts",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-suivi-poids \"vitest run --config config/vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --project demo-suivi-poids --import=.emulator-data --export-on-exit=.emulator-data"
   },
   "dependencies": {

@@ -20,7 +20,7 @@ const validMeta = {
 beforeAll(async () => {
   env = await initializeTestEnvironment({
     projectId: 'demo-suivi-poids',
-    firestore: { rules: readFileSync('firestore.rules', 'utf8') },
+    firestore: { rules: readFileSync('firebase/firestore.rules', 'utf8') },
   })
 })
 
