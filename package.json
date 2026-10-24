@@ -16,7 +16,10 @@
     "test": "vitest run --config config/vite.config.ts",
     "test:watch": "vitest --config config/vite.config.ts",
     "test:rules": "firebase emulators:exec --only firestore --project demo-suivi-poids \"vitest run --config config/vitest.rules.config.ts\"",
-    "emulators": "firebase emulators:start --project demo-suivi-poids --import=.emulator-data --export-on-exit=.emulator-data"
+    "emulators": "firebase emulators:start --project demo-suivi-poids --import=.emulator-data --export-on-exit=.emulator-data",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "verify": "npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "firebase": "^13.1.0",
