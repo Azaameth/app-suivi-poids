@@ -44,8 +44,8 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 1.3 | Socle web | Interfaces et sélection des adaptateurs | [x] |
 | 1.4 | Socle web | Module de chiffrement | [x] |
 | 1.5 | Socle web | Règles Firestore + tests | [x] |
-| 1.6 | Socle web | Authentification web | [ ] |
-| 1.7 | Socle web | Déploiement sur Firebase Hosting | [ ] |
+| 1.6 | Socle web | Authentification web | [x] |
+| 1.7 | Socle web | Déploiement sur Firebase Hosting | [x] |
 | 2.1 | Fonctionnel | Modèle de données | [ ] |
 | 2.2 | Fonctionnel | DataStore web + état de la synchro | [ ] |
 | 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [ ] |
@@ -230,13 +230,13 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 - Écran de connexion minimal + déconnexion
 - Domaines autorisés dans Firebase Auth (`localhost`, domaine du site)
 **Critères d'acceptation**
-- [ ] Connexion et déconnexion fonctionnent avec l'émulateur
-- [ ] La session survit au rechargement de la page
+- [x] Connexion et déconnexion fonctionnent avec l'émulateur
+- [x] La session survit au rechargement de la page
 ## Bloc 1.7 — Déploiement sur Firebase Hosting
 **Critères d'acceptation**
-- [ ] `firebase deploy --only hosting,firestore:rules` réussit
-- [ ] Connexion réelle depuis l'URL `*.web.app`
-- [ ] Les règles déployées sont identiques à celles du repo
+- [x] `firebase deploy --only hosting,firestore:rules` réussit
+- [x] Connexion réelle depuis l'URL `*.web.app`
+- [x] Les règles déployées sont identiques à celles du repo
 **🏁 Fin du jalon 1 :** tag `v0.1.0`.
  
 ---
@@ -424,6 +424,7 @@ Déclenché sur un tag `v*` :
 | D14 | 2026-10-24 | `main` protégée par un ruleset : PR obligatoire, check `verify` requis, ni force-push ni suppression | `main` toujours déployable (#8) | Push direct |
 | D15 | 2026-10-24 | Connexion Google uniquement (comptes fictifs de l'émulateur Auth en dev) | Aucun mot de passe en plus de la phrase secrète (#2) | E-mail + mot de passe |
 | D16 | 2026-10-24 | Date en clair (et identifiant du document), poids et note chiffrés | Tri et filtre par période côté Firestore ; la date seule révèle peu (#2) | Tout chiffrer (tri côté client) |
+| D17 | 2026-10-24 | Session d'auth web : persistance par défaut du SDK (survit au rechargement) ; clé et phrase en mémoire uniquement | Critère du 1.6 ; le jeton seul ne donne pas accès aux données chiffrées (#16) | Session limitée à l'onglet |
 | D18 | 2026-10-24 | Vrai projet `machimoto` utilisé par le build de production uniquement ; dev et tests restent sur `demo-suivi-poids` | Garde D8 : `npm run dev` ne peut pas toucher les vraies données | Variables d'environnement `.env` (inutiles : la config est publique) |
  
 ## ⚠️ Risques
@@ -452,3 +453,5 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 4.2 | `ci.yml` anticipé et requis sur `main`. Reste : build APK de debug (jalon 3). |
 | 2026-10-24 | 0.2 / 2.1 | Cadrage fait : **Professeur Machimoto** (`io.github.azaameth.machimoto`), pesées chiffrées (poids, note), connexion Google. Schéma 2.1 validé. D6, D12, D13 précisées ; D15, D16 ajoutées (#2). |
 | 2026-10-24 | 1.2 | Projet Firebase `machimoto` créé (Spark, Auth Google, Firestore europe-west1). Config branchée sur le build de prod (D18) ; `.firebaserc` : `default` = machimoto, alias `demo` (#5). |
+| 2026-10-24 | 1.6 | Connexion Google par popup (#16), testée sur émulateur puis en réel. |
+| 2026-10-24 | 1.7 | Premier déploiement : https://machimoto.web.app sert le build de `main`, connexion Google réelle OK, Firestore vérifié en europe-west1. Script `npm run deploy`. Fin du jalon 1 → `v0.1.0`. |

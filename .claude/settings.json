@@ -33,6 +33,7 @@
       "Read(./**/keystore.properties)",
       "Bash(firebase deploy*)",
       "Bash(npx firebase deploy*)",
+      "Bash(npm run deploy*)",
       "Bash(git push --force*)",
       "Bash(git push -f*)"
     ]
