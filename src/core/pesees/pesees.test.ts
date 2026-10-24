@@ -22,6 +22,14 @@ describe('encodage des pesées', () => {
     expect(await decodePesee(key, pesee.date, stored)).toEqual(sansNote)
   })
 
+  test('bornes du poids incluses : 0 et 5 000 kg (D21)', async () => {
+    const key = await generateDataKey()
+    for (const poids of [0, 5000]) {
+      const stored = await encodePesee(key, { ...pesee, poids })
+      expect((await decodePesee(key, pesee.date, stored)).poids).toBe(poids)
+    }
+  })
+
   test('poids et note chiffrés, date et horodatages en clair', async () => {
     const stored = await encodePesee(await generateDataKey(), pesee)
     for (const field of PESEE_ENCRYPTED_FIELDS) expect(stored[field]).toMatch(/^v1:/)
@@ -33,7 +41,7 @@ describe('encodage des pesées', () => {
     ['date impossible', { date: '2026-02-30' }],
     ['format de date', { date: '24/10/2026' }],
     ['poids négatif', { poids: -1 }],
-    ['poids absurde', { poids: 900 }],
+    ['poids absurde', { poids: 5000.1 }],
     ['note vide', { note: '   ' }],
     ['note trop longue', { note: 'x'.repeat(501) }],
     ['updatedAt < createdAt', { updatedAt: 0 }],

@@ -3,8 +3,8 @@ import { z } from 'zod'
 /** Collection Firestore : `users/{uid}/pesees/{YYYY-MM-DD}`. */
 export const PESEES = 'pesees'
 
-export const POIDS_MIN = 1
-export const POIDS_MAX = 500
+export const POIDS_MIN = 0
+export const POIDS_MAX = 5000
 export const NOTE_MAX = 500
 
 /** Champs chiffrés : jamais filtrés ni triés côté serveur (D16). */
