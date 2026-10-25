@@ -40,5 +40,6 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:outils
       - run: npm run test:emulateurs
       - run: npm run build

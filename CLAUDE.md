@@ -96,13 +96,34 @@ En dev, l'onglet « Export & réglages » propose des **outils de dev** (donnée
 
 ---
 
-## 6. Fin de chaque bloc
+## 6. Outillage de Claude (`.claude/`, `scripts/`)
+
+**Hooks** (`.claude/settings.json`, garanties automatiques — nés d'erreurs réelles) :
+| Hook | Effet |
+|---|---|
+| `garde-fous.mjs` (avant Bash) | Refuse : un `git commit` sans `npm run verify` réussi sur l'état exact du code (+ `test:emulateurs` si `firebase/`, `tests/emulateurs/`, `src/core/`, `src/adapters/` changent ; docs seules dispensées) ; la suppression d'une branche dont la PR est ouverte ; un texte `gh` non signé ou passé par variable (utiliser `--body-file`) |
+| `formater.mjs` (après Edit/Write) | Prettier sur le fichier modifié |
+| `env` | `npm_config_loglevel=error` (masque les `npm warn` du Flatpak) |
+
+**Skills** (`.claude/skills/`) :
+| Skill | Quand |
+|---|---|
+| `lire-retours` | « regarde les issues », « j'ai répondu », « PR validée » : commentaires, revues, cases cochées, **messages de merge**, alertes |
+| `ouvrir-pr` | Ouvrir une PR de bout en bout ; ménage après fusion (PR empilées, branches) |
+| `fin-de-bloc` | Clôturer un bloc : vérifications + `scripts/plan.mjs` |
+| `verifier-prod` | Après chaque `npm run deploy` d'Azaameth (lecture seule) |
+| `trier-suggestions` | Suggestions des proches → issues, après accord |
+
+**Scripts** : `scripts/plan.mjs` (cocher / critère / journal / décision dans le plan, jamais à la main) ;
+`scripts/empreinte.mjs` (empreinte du code enregistrée par `verify` et `test:emulateurs`, dans `.claude/etat/`, ignoré par Git).
+
+## 7. Fin de chaque bloc
 
 Skill `fin-de-bloc` : vérifications, `git status`, case 📍 Suivi, ligne de 📝 Journal, décisions au 🗂️ Registre.
 
 ---
 
-## 7. Environnement constaté
+## 8. Environnement constaté
 
 - Arch Linux, VS Code en **Flatpak** (choix assumé, D9). Outils ajoutés au bac à sable :
   - Node 26 et Java 21 via les extensions SDK (`FLATPAK_ENABLE_SDK_EXT=node26,openjdk21`, runtime 25.08) ;
