@@ -49,7 +49,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.1 | Fonctionnel | Modèle de données | [x] |
 | 2.2 | Fonctionnel | DataStore web + état de la synchro | [x] |
 | 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [x] |
-| 2.4 | Fonctionnel | Écrans métier | [ ] |
+| 2.4 | Fonctionnel | Écrans métier | [x] |
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [ ] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
@@ -283,14 +283,14 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 ## Bloc 2.4 — Écrans métier
 | Écran / fonctionnalité | Statut |
 |---|---|
-| Saisie d'une pesée (date, poids, note facultative) | [ ] |
-| Historique (modifier, supprimer) | [ ] |
-| Graphique d'évolution (30 j / 90 j / 1 an / tout) | [ ] |
-| Export CSV (sert aussi de sauvegarde) | [ ] |
+| Saisie d'une pesée (date, poids, note facultative) | [x] |
+| Historique (modifier, supprimer) | [x] |
+| Graphique d'évolution (30 j / 90 j / 1 an / tout) | [x] |
+| Export CSV (sert aussi de sauvegarde) | [x] |
  
 **Critères d'acceptation**
-- [ ] Chaque écran a des états chargement / vide / erreur
-- [ ] Interface utilisable sur un écran de téléphone (360 px de large)
+- [x] Chaque écran a des états chargement / vide / erreur
+- [x] Interface utilisable sur un écran de téléphone (360 px de large)
 ## Bloc 2.5 — Tests hors ligne et conflits (navigateur)
 | Scénario | Résultat attendu | OK |
 |---|---|---|
@@ -433,6 +433,10 @@ Déclenché sur un tag `v*` :
 | D23 | 2026-10-24 | Écritures non bloquantes : effet local immédiat, `synced` se résout à la confirmation du serveur | Hors ligne, l'interface ne reste pas figée en attendant le réseau | Attendre la confirmation du serveur |
 | D24 | 2026-10-24 | Phrase secrète : 12 caractères minimum, confirmation à la création, avertissement « perte = données perdues » | Seule protection des données chiffrées ; une suite de mots est facile à retenir | Pas de minimum ; règles de complexité (majuscules, chiffres…) |
 | D25 | 2026-10-24 | Création du coffre : réseau obligatoire, refus d'écraser un `meta/keys` existant ; la déconnexion verrouille | Écraser `meta/keys` ou chiffrer avec une clé non enregistrée rendrait les données illisibles | Création hors ligne |
+| D26 | 2026-10-24 | 4ᵉ interface `PreferencesStore` (délai de verrouillage, réglages du graphique) ; web : `localStorage`, propre à l'appareil | Rien de secret ; la règle d'or interdit `localStorage` hors `adapters/` | Firestore `meta/prefs` (synchro entre appareils, règles à étendre) |
+| D27 | 2026-10-24 | 5ᵉ interface `FileExporter` ; web : téléchargement | Sur Android, le téléchargement ne marche pas en WebView : partage natif au jalon 3 | Lien de téléchargement dans les écrans |
+| D28 | 2026-10-24 | CSV RFC 4180 (virgule, point décimal), BOM UTF-8, fichier `machimoto-pesees-AAAA-MM-JJ.csv` | Réimportable tel quel (sauvegarde) ; accents corrects dans Excel | Point-virgule + virgule décimale (Excel FR) |
+| D29 | 2026-10-25 | Graphique en SVG fait main, courbe seule ; réglages : période, moyenne mobile 7 j (mise en avant, pesées brutes estompées), axe depuis 0 | Lisible même avec un an de pesées ; aucune dépendance ajoutée. Styles points / barres retirés à la demande d'Azaameth | Bibliothèque de graphiques (≈ 100 Ko) ; choix du style |
  
 ## ⚠️ Risques
  
@@ -466,3 +470,5 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 2.1 | D20 validée ; bornes du poids passées à 0 – 5 000 kg (D21). |
 | 2026-10-24 | 2.2 | `WebDataStore` (Firestore, cache mémoire) + `SyncTracker` (réseau + écritures en attente) ; `PeseeRepository` chiffre/déchiffre (D22, D23) ; indicateur de synchro. Test émulateur : document brut illisible. Logs `PERMISSION_DENIED` coupés dans les tests. |
 | 2026-10-24 | 2.3 | `core/vault` (création, déverrouillage, verrouillage, changement de phrase) + écrans (`VaultGate`, `VaultSettings`) ; verrouillage auto 5 min (D12). `test:rules` sur son propre émulateur (port 8181), compatible avec `npm run emulators`. Reste : réglage du délai dans les paramètres (avec 2.4). |
+| 2026-10-24 | 2.4 | Écrans : journal (saisie, historique, modifier, supprimer), graphique réglable (D29), export CSV (D28), paramètres (délai de verrouillage D12). Interfaces `PreferencesStore` et `FileExporter` (D26, D27). 68 tests unitaires. |
+| 2026-10-25 | 2.4 | Graphique simplifié (courbe seule, D29 révisée), lisible avec beaucoup de points ; outils de dev (données fictives). Besoin de restitution (tendance, projection…) à préciser dans une issue. |

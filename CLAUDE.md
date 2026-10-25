@@ -112,7 +112,8 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 
 ## 6. Points ouverts à clarifier en premier
 
-1. Prochain : bloc **2.4** (écrans métier). Sous `<VaultGate>`, `useUnlockedVault().key` + `useServices().data` + uid → `new PeseeRepository(...)`. Ajouter le réglage du délai de verrouillage (D12).
+1. Prochain : bloc **2.5** (tests hors ligne et conflits dans le navigateur), puis tag `v0.2.0`.
+2. Architecture : 5 interfaces dans `Services` depuis le 2.4 (`AuthService`, `KeyStore`, `DataStore`, `PreferencesStore`, `FileExporter` — D26, D27).
 
 Réglés le 2026-10-24 : OS (Arch, Flatpak), cadrage 0.2, D6 conflits, D12 verrouillage auto, D13 KeyStore Android — voir le Registre de `docs/plan-projet.md`.
 
