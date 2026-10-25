@@ -1,6 +1,13 @@
 export { InvalidPeseeError, decodePesee, encodePesee } from './codec'
 export { PeseeRepository, type PeseeInput } from './repository'
 export { toCsv } from './csv'
+export {
+  lireCsv,
+  planifierImport,
+  type LectureCsv,
+  type LigneIgnoree,
+  type PlanImport,
+} from './import-csv'
 export { PERIODS, filterByPeriod, type Period } from './periodes'
 export {
   NOTE_MAX,
