@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.0",
   "description": "Professeur Machimoto — suivi de poids chiffré (web + Android), synchronisé avec Firebase.",
-  "license": "AGPL-3.0-only",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "vite --config config/vite.config.ts",

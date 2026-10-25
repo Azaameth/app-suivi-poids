@@ -59,5 +59,5 @@ En développement, l'onglet « Export & réglages » propose de générer des do
 
 ## Licence
 
-[GNU AGPL v3](LICENSE) — Copyright © 2026 Azaameth. Toute version modifiée, redistribuée **ou
+[GNU AGPL v3 ou ultérieure](LICENSE) (`AGPL-3.0-or-later`) — Copyright © 2026 Azaameth. Toute version modifiée, redistribuée **ou
 hébergée** doit publier son code source sous la même licence.
