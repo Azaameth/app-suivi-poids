@@ -337,7 +337,7 @@ npm run test:emulateurs
    - Préférence enregistrée dans le `PreferencesStore` (propre à l'appareil), appliquée **instantanément** via `data-theme` sur `<html>`, sans rechargement.
    - Toutes les couleurs passent par les jetons CSS (`--bg`, `--fg`, `--accent`, `--highlight`…), redéfinis par thème. `theme-color` (barre du navigateur mobile) suit le thème.
 
-**Décisions proposées (à valider avec la PR #32)**
+**Décisions (validées avec la PR #32)**
 - D41 : thème à trois choix (Système / Clair / Sombre), « Système » par défaut, par appareil.
 - D42 : mise en évidence des notes par un jeton `--highlight` par thème, d'intensité équivalente ; info-bulle native (`<title>` SVG) pour commencer.
 
@@ -495,6 +495,9 @@ Déclenché sur un tag `v*` :
 | D38 | 2026-10-25 | `overrides` npm : `@grpc/grpc-js` ≥ 1.14.6 sous `@firebase/firestore` ; en-têtes HTTP de sécurité et de cache sur Hosting (sans `X-Frame-Options` pour l'instant) | Alertes `npm audit` (côté serveur Node, absentes du bundle web) sans rétrograder Firebase ; cache long des fichiers versionnés, `index.html` revalidé | `npm audit fix --force` (rétrograde Firebase en 9.x) |
 | D39 | 2026-10-25 | Navigation : bandeau du haut (nom, puce de synchro, avatar + menu : verrouiller, réglages, déconnexion), barre fixe en bas sur mobile / en haut dès 760 px (Tableau de bord · Historique · Réglages), bouton « + » et saisie du jour en fenêtre ; confirmations brèves (toasts) ; focus visible, cibles ≥ 44 px, `aria-current` | Usage à une main sur téléphone, actions fréquentes à portée (#27) | Onglets en haut, réglages et déconnexion dans le contenu |
 | D40 | 2026-10-25 | Écrans Historique et Réglages chargés à la demande (`React.lazy`) | Demandé en test (#29) ; gain mesuré négligeable (≈ 4 Ko sur ≈ 890) : le poids vient de Firebase, nécessaire au démarrage | Découpage de Firebase en fichier séparé (cache entre déploiements) |
+| D41 | 2026-10-25 | Thème à trois choix (Système · Clair · Sombre), « Système » par défaut, mémorisé par appareil | Confort de lecture selon l'environnement ; suit le réglage de l'appareil sans action (validé avec #32) | Thème sombre seul ; bascule clair / sombre sans « Système » |
+| D42 | 2026-10-25 | Pesées avec note mises en évidence sur le graphique par un jeton `--highlight` d'intensité équivalente dans chaque thème ; note en info-bulle native | Repérer d'un coup d'œil les jours commentés, sans couleur codée en dur (validé avec #32) | Jaune fixe ; liste des notes à part |
+| D43 | 2026-10-25 | Clé d'API web Firebase (`apiKey`) **publique par conception**, mais **restreinte** dans Google Cloud : référents `https://machimoto.web.app/*` et `https://machimoto.firebaseapp.com/*` ; API Identity Toolkit, Token Service et Cloud Firestore seulement. Alerte GitHub *secret scanning* #1 fermée en « won't fix » | La clé identifie le projet sans donner d'accès : la sécurité repose sur les règles Firestore (testées) et le chiffrement côté client. Vérifié le 2026-10-25 : sans référent → `403 API_KEY_HTTP_REFERRER_BLOCKED`. Android (jalon 3) : clé distincte, restreinte au paquet et à l'empreinte SHA-1 | Retirer la clé du repo (impossible côté web : elle est dans le bundle servi à tous) ; rotation de la clé (inutile : rien n'a fuité au sens d'un secret) |
  
 ## ⚠️ Risques
  
@@ -539,3 +542,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 0.1 | Coché (#30) : environnement opérationnel via VS Code Flatpak (D9). Écarts notés dans `plan-installation-outils.md`. D1 à D5 datées du 2026-10-23. |
 | 2026-10-25 | Ergonomie | Bandeau profil, barre de navigation, bouton « + » et fenêtre de saisie du jour, toasts, accessibilité (D39) ; écrans secondaires à la demande (D40). |
 | 2026-10-25 | 2.7 | Plan des finitions proposé (icônes historique, barres, notes sur le graphique, thème clair / sombre) : à valider avec #32. |
+| 2026-10-25 | Sécurité | Alerte GitHub « Google API Key – Public leak » sur `src/firebase.config.ts` : clé web Firebase, publique par conception. Clé restreinte par référent et par API dans Google Cloud (vérifié : 403 hors référent), alerte fermée (D43). Relevé #28 : en-têtes personnalisés non appliqués à `/__/auth/*` → `X-Frame-Options` possible. |
