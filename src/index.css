@@ -133,6 +133,12 @@ label.inline {
   color: var(--danger);
 }
 
+/* Avertissement non bloquant (saisie improbable) : sobre, jamais alarmant. */
+.avertissement {
+  color: var(--fg);
+  cursor: help;
+}
+
 .history {
   list-style: none;
   padding: 0;
@@ -168,33 +174,117 @@ label.inline {
   font-size: 10px;
 }
 
-.chart .series {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2;
+/* Repères de mois / trimestres / années : pointillés ténus en fond. */
+.chart .repere line {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.35;
 }
 
-.chart .dot {
-  fill: var(--accent);
+.chart .repere.annee line {
+  opacity: 0.7;
 }
 
-.chart .series.thin {
-  stroke-width: 1.25;
+.chart .repere text {
+  font-size: 9px;
 }
 
-/* Pesées brutes en fond quand la moyenne est affichée. */
-.chart .faded {
-  opacity: 0.3;
-}
-
-/* Zones de survol invisibles (info-bulles) quand les points sont trop serrés. */
-.chart .hit {
-  fill: transparent;
-}
-
-.chart .average {
+.chart .tendance {
   fill: none;
   stroke: var(--accent);
   stroke-width: 2.5;
   stroke-linejoin: round;
+}
+
+/* Pesées brutes : petits points discrets, faible contraste. */
+.chart .pesee {
+  fill: var(--fg);
+  opacity: 0.3;
+}
+
+.chart .projection {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.chart .cone {
+  fill: var(--accent);
+  opacity: 0.2;
+}
+
+/* Le cône à 99 % englobe celui à 95 % : plus pâle. */
+.chart .cone99 {
+  opacity: 0.09;
+}
+
+/* Tableau de bord : 2 × 2 tuiles, lisible dès 360 px. */
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tuile {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card);
+}
+
+.tuile h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: var(--muted);
+}
+
+.tuile .valeur {
+  margin: 0.25rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.tuile .hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+}
+
+.legende {
+  font-size: 0.8rem;
+}
+
+.legende span {
+  display: inline-block;
+  width: 1.2rem;
+  vertical-align: middle;
+}
+
+.legende .trait {
+  border-top: 2.5px solid var(--accent);
+}
+
+.legende .pointilles {
+  border-top: 2px dashed var(--accent);
+}
+
+.legende .zone {
+  height: 0.7rem;
+  background: var(--accent);
+  opacity: 0.29;
+}
+
+.legende .zone99 {
+  opacity: 0.09;
+}
+
+.legende .point {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--fg);
+  opacity: 0.3;
 }

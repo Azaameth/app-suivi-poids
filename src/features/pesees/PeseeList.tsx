@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { signalerImprobables } from '../../core/analyse'
 import type { Pesee } from '../../core/pesees'
 import { formatDay, formatWeight } from './format'
+import { messageAvis } from './plausibilite'
 
 /** Historique, de la plus récente à la plus ancienne. Suppression en deux temps. */
 export function PeseeList({
@@ -13,6 +15,10 @@ export function PeseeList({
   onRemove: (date: string) => void
 }) {
   const [confirming, setConfirming] = useState<string | null>(null)
+  const improbables = useMemo(
+    () => signalerImprobables([...pesees].sort((a, b) => a.date.localeCompare(b.date))),
+    [pesees],
+  )
 
   if (pesees.length === 0) {
     return <p className="hint">Aucune pesée pour l’instant. Ajoute la première ci-dessus.</p>
@@ -24,6 +30,16 @@ export function PeseeList({
         <li key={p.date}>
           <div>
             <strong>{formatWeight(p.poids)}</strong>{' '}
+            {improbables.has(p.date) && (
+              <span
+                className="avertissement"
+                role="img"
+                aria-label={`Saisie improbable : ${messageAvis(improbables.get(p.date)!)}`}
+                title={`Saisie improbable : ${messageAvis(improbables.get(p.date)!)}`}
+              >
+                ⚠️
+              </span>
+            )}{' '}
             <span className="hint">{formatDay(p.date)}</span>
             {p.note && <p className="note">{p.note}</p>}
           </div>

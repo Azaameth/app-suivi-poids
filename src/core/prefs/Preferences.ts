@@ -14,12 +14,10 @@ export const preferencesSchema = z.object({
   chart: z
     .object({
       period: z.enum(PERIODS).catch('90j'),
-      /** Moyenne mobile sur 7 jours. */
-      average: z.boolean().catch(true),
       /** Axe des poids qui part de 0 (sinon : zoom sur l'intervalle des valeurs). */
       fromZero: z.boolean().catch(false),
     })
-    .catch({ period: '90j', average: true, fromZero: false }),
+    .catch({ period: '90j', fromZero: false }),
 })
 
 export type Preferences = z.infer<typeof preferencesSchema>

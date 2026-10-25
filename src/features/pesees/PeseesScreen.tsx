@@ -2,18 +2,22 @@ import { useState } from 'react'
 import type { Pesee } from '../../core/pesees'
 import { DevTools } from '../dev/DevTools'
 import { SettingsPanel } from '../prefs/SettingsPanel'
+import { TableauDeBord } from '../tableau-de-bord/TableauDeBord'
 import { ExportPanel } from './ExportPanel'
 import { PeseeForm } from './PeseeForm'
 import { PeseeList } from './PeseeList'
 import { usePesees } from './usePesees'
-import { WeightChart } from './WeightChart'
 
-const TABS = { journal: 'Journal', graphique: 'Graphique', reglages: 'Export & réglages' } as const
+const TABS = {
+  tableau: 'Tableau de bord',
+  historique: 'Historique',
+  reglages: 'Export & réglages',
+} as const
 type Tab = keyof typeof TABS
 
 export function PeseesScreen() {
   const { state, repo } = usePesees()
-  const [tab, setTab] = useState<Tab>('journal')
+  const [tab, setTab] = useState<Tab>('tableau')
   const [editing, setEditing] = useState<Pesee | undefined>()
   const [removeError, setRemoveError] = useState(false)
 
@@ -42,7 +46,8 @@ export function PeseesScreen() {
             <p role="alert">Certaines pesées sont illisibles (donnée altérée) et sont masquées.</p>
           )}
           {removeError && <p role="alert">Le serveur a refusé la suppression.</p>}
-          {tab === 'journal' && (
+          {tab === 'tableau' && <TableauDeBord pesees={state.pesees} repo={repo} />}
+          {tab === 'historique' && (
             <>
               <PeseeForm
                 key={editing?.date ?? 'nouvelle'}
@@ -54,7 +59,6 @@ export function PeseesScreen() {
               <PeseeList pesees={state.pesees} onEdit={setEditing} onRemove={remove} />
             </>
           )}
-          {tab === 'graphique' && <WeightChart pesees={state.pesees} />}
           {tab === 'reglages' && <ExportPanel pesees={state.pesees} />}
           {import.meta.env.DEV && tab === 'reglages' && (
             <DevTools pesees={state.pesees} repo={repo} />

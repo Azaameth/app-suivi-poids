@@ -49,6 +49,17 @@ describe('PeseeRepository', () => {
     expect(updated).toMatchObject({ poids: 72.1, createdAt: 1_000, updatedAt: 6_000 })
   })
 
+  test('deux saisies le même jour → un seul document, avec la dernière valeur', async () => {
+    const { data, repo } = await setup()
+    await repo.save({ date: '2026-10-24', poids: 72.4 })
+    const [existing] = await nextPesees(repo, 1)
+    await repo.save({ date: '2026-10-24', poids: 71.8 }, existing)
+    const pesees = await nextPesees(repo, 1)
+    expect(pesees).toMatchObject([{ date: '2026-10-24', poids: 71.8 }])
+    const docs = await new Promise<unknown[]>((resolve) => data.watch('alice', PESEES, resolve))
+    expect(docs).toHaveLength(1)
+  })
+
   test('suppression', async () => {
     const { repo } = await setup()
     await repo.save({ date: '2026-10-24', poids: 72.4 })

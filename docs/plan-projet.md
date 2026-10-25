@@ -51,6 +51,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [x] |
 | 2.4 | Fonctionnel | Écrans métier | [x] |
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [ ] |
+| 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -61,6 +62,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 4.3 | Distribution | Workflow de release (tag → APK + Hosting) | [ ] |
 | 4.4 | Distribution | Première release + Obtainium | [ ] |
 | 5.1 | Maintenance | Dépendances, sauvegardes, surveillance | [ ] |
+| 6.1 | v1.1 | Profil (usage, cible, tolérance), objectif, couleurs liées à l'usage (`docs/spec-restitution.md`, v1.1) | [ ] |
  
 ---
  
@@ -301,6 +303,16 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
  
 > ℹ️ Sur le web, le cache est en mémoire : le hors ligne fonctionne tant que l'onglet reste ouvert. C'est voulu.
  
+## Bloc 2.6 — Tableau de bord (restitution v1)
+**Référence :** `docs/spec-restitution.md` (sections 3, 4.1 à 4.4, 5 sans objectif) et ses arbitrages du 25/10/2026.
+**Livrables**
+- `src/core/analyse/` : constantes, dates, tendance (moyenne mobile exponentielle), rythme (régression 28 j), variation 30 j, projection 4 semaines avec fourchette — fonctions pures
+- Onglet « Tableau de bord » : 4 tuiles (tendance, rythme, sur 30 jours, projection), graphique en ligne (pesées discrètes, tendance, projection en pointillés + cône), pesée du jour
+**Critères d'acceptation**
+- [x] Cas de test obligatoires de la spec (§ 7, partie v1) couverts
+- [x] États chargement / vide / erreur ; tuiles lisibles à 360 px
+- [x] Couleurs neutres ; le signe et le texte portent l'information
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0`.
  
 ---
@@ -436,7 +448,14 @@ Déclenché sur un tag `v*` :
 | D26 | 2026-10-24 | 4ᵉ interface `PreferencesStore` (délai de verrouillage, réglages du graphique) ; web : `localStorage`, propre à l'appareil | Rien de secret ; la règle d'or interdit `localStorage` hors `adapters/` | Firestore `meta/prefs` (synchro entre appareils, règles à étendre) |
 | D27 | 2026-10-24 | 5ᵉ interface `FileExporter` ; web : téléchargement | Sur Android, le téléchargement ne marche pas en WebView : partage natif au jalon 3 | Lien de téléchargement dans les écrans |
 | D28 | 2026-10-24 | CSV RFC 4180 (virgule, point décimal), BOM UTF-8, fichier `machimoto-pesees-AAAA-MM-JJ.csv` | Réimportable tel quel (sauvegarde) ; accents corrects dans Excel | Point-virgule + virgule décimale (Excel FR) |
-| D29 | 2026-10-25 | Graphique en SVG fait main, courbe seule ; réglages : période, moyenne mobile 7 j (mise en avant, pesées brutes estompées), axe depuis 0 | Lisible même avec un an de pesées ; aucune dépendance ajoutée. Styles points / barres retirés à la demande d'Azaameth | Bibliothèque de graphiques (≈ 100 Ko) ; choix du style |
+| D29 | 2026-10-25 | Graphique en SVG fait main, en ligne uniquement : pesées en points discrets, tendance (D30) en trait principal, projection (D31) ; réglages : période (7 j / 30 j / 90 j / 1 an / Tout), axe depuis 0 | Lisible même avec un an de pesées ; aucune dépendance. Styles points / barres et moyenne 7 j retirés (#24) | Bibliothèque de graphiques (≈ 100 Ko) ; choix du style ; moyenne 7 j |
+| D30 | 2026-10-25 | Tendance = moyenne mobile exponentielle, facteur 0,1, ajustée aux jours manquants | Plus réactive et plus robuste que la moyenne sur 7 jours (#24) | Moyenne mobile 7 j |
+| D31 | 2026-10-25 | Rythme = régression linéaire sur 28 jours ; projection de la tendance à 4 semaines avec fourchette (± 2 erreurs-types), masquée si moins de 14 pesées ou si le rythme est stable (< 0,1 kg/sem) | Éviter la fausse précision (#24) | Projection sans fourchette |
+| D32 | 2026-10-25 | Profil v1.1 : usage (perdre / gagner / maintenir), cible chiffrée, tolérance de 0,5 à 3 kg (défaut 1 kg) | Couvrir les trois usages (#24) | Objectif « perdre » seul |
+| D33 | 2026-10-25 | Couleurs neutres tant qu'aucun usage n'est défini ; jamais la couleur seule | Une baisse n'est pas forcément un progrès (#24) | Vert = baisse, rouge = hausse |
+| D34 | 2026-10-25 | Onglets : Tableau de bord · Historique (date au choix, modifier, supprimer) · Export & réglages | La spec ne couvre ni l'historique ni l'export | Une seule page |
+| D35 | 2026-10-25 | Saisie improbable signalée par ⚠️, jamais bloquée : écart de plus de 3 kg à la tendance des pesées antérieures (si la dernière date de moins de 30 jours), ou poids hors 20 – 300 kg | Repérer les fautes de frappe (87,4 au lieu de 78,4) sans empêcher une saisie réelle ; bornes 20 – 300 kg de la spec reprises comme avertissement | Blocage de la saisie ; bornes strictes |
+| D36 | 2026-10-25 | Fourchettes de projection par la loi de Student (n − 2 ddl) à 95 % (tuile + cône) et 99 % (cône pâle autour), au lieu du facteur fixe 2 (`T_FOURCHETTE`) ; cônes sur la tendance, pas sur les pesées futures | Avec 14 à 28 pesées, le facteur 2 sous-estime l'incertitude (~10 %) ; deux niveaux montrent la zone probable et la zone extrême | Facteur 2 et 2,6 ; intervalle de prédiction des pesées (trop large, bruité) |
  
 ## ⚠️ Risques
  
@@ -472,3 +491,7 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 2.3 | `core/vault` (création, déverrouillage, verrouillage, changement de phrase) + écrans (`VaultGate`, `VaultSettings`) ; verrouillage auto 5 min (D12). `test:rules` sur son propre émulateur (port 8181), compatible avec `npm run emulators`. Reste : réglage du délai dans les paramètres (avec 2.4). |
 | 2026-10-24 | 2.4 | Écrans : journal (saisie, historique, modifier, supprimer), graphique réglable (D29), export CSV (D28), paramètres (délai de verrouillage D12). Interfaces `PreferencesStore` et `FileExporter` (D26, D27). 68 tests unitaires. |
 | 2026-10-25 | 2.4 | Graphique simplifié (courbe seule, D29 révisée), lisible avec beaucoup de points ; outils de dev (données fictives). Besoin de restitution (tendance, projection…) à préciser dans une issue. |
+| 2026-10-25 | 2.6 | Spec de restitution (#24) versée dans `docs/`, arbitrages notés. `core/analyse` testé d'abord (cas obligatoires § 7), puis tableau de bord. Périodes 7 j → Tout ; moyenne 7 j remplacée par la tendance. 88 tests unitaires. |
+| 2026-10-25 | 2.6 | Avertissement de saisie improbable (D35) : à la frappe dans le formulaire, ⚠️ dans l'historique. `core/analyse/plausibilite.ts`, testé. |
+| 2026-10-25 | 2.6 | Graphique : tendance en courbe lissée monotone (sans dépassement) ; repères verticaux en pointillés ténus (mois ≤ 4 mois, trimestres ≤ 2 ans, années au-delà, 1ᵉʳ janvier marqué). |
+| 2026-10-25 | 2.6 | Cônes à 95 % et 99 % (Student, D36) ; scénario de dev « baisse régulière » (la projection n'apparaît qu'avec ≥ 14 pesées sur 28 j et un rythme ≥ 0,1 kg/sem, D31). |

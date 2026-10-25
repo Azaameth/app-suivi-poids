@@ -43,7 +43,7 @@ test('premier lancement : création du coffre, verrouillage, déverrouillage', a
   fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
   fireEvent.click(screen.getByRole('button', { name: '🔒 Verrouiller' }))
   await screen.findByRole('heading', { name: 'Coffre verrouillé' })
-  expect(screen.queryByRole('heading', { name: 'Nouvelle pesée' })).toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Pesée du jour' })).toBeNull()
 
   fill('Phrase secrète', 'pas la bonne phrase')
   fireEvent.click(screen.getByRole('button', { name: 'Déverrouiller' }))
@@ -53,7 +53,7 @@ test('premier lancement : création du coffre, verrouillage, déverrouillage', a
 
   fill('Phrase secrète', PHRASE)
   fireEvent.click(screen.getByRole('button', { name: 'Déverrouiller' }))
-  await screen.findByRole('heading', { name: 'Nouvelle pesée' }, { timeout: 5000 })
+  await screen.findByRole('heading', { name: 'Pesée du jour' }, { timeout: 5000 })
 }, 15_000)
 
 test('création refusée si la confirmation diffère', async () => {
