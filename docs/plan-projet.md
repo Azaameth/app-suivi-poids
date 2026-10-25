@@ -54,6 +54,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
 | 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [x] |
 | 2.8 | Fonctionnel | Ouverture aux proches : suggestions dans l'appli, version visible, installation (manifeste web), suppression du compte | [x] |
+| 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [ ] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -376,6 +377,21 @@ npm run test:emulateurs
 - [x] La suppression du compte efface toutes les données Firestore de l'utilisateur et son compte Auth (test sous émulateur)
 - [x] Les données d'un proche restent illisibles et inaccessibles pour les autres (tests de règles existants)
 
+## Bloc 2.10 — Machimoto dans les parcours (demandé le 2026-10-25)
+**Objectif :** donner vie à la mascotte aux moments clés, sans alourdir les écrans de données.
+
+**Livrables**
+- **Expressions** (variantes SVG du même dessin) : content (défaut), ravi (étapes réussies), pensif (attente, chargement), triste (départ, erreur).
+- **Accueil (onboarding)** : connexion → création de la phrase → code de secours, avec Machimoto qui guide (bulle de texte courte à chaque étape) ; ton chaleureux, sans jargon.
+- **Départ (offboarding)** : « Supprimer mon compte » et déconnexion avec Machimoto triste (« À bientôt ? »), rappel d'exporter ses données avant suppression.
+- **Écrans sans graphique** : historique vide, période sans assez de pesées, chargement, erreurs (hors ligne, coffre), fenêtre des suggestions.
+- **Onglet du navigateur** : favicon Machimoto (fait au bloc mascotte, #36).
+
+**Critères d'acceptation**
+- [ ] Une expression par situation, jamais culpabilisante (D33)
+- [ ] Images décoratives (`alt=""`), le texte porte l'information ; lisibles en thème clair et sombre
+- [ ] Aucun Machimoto sur le tableau de bord rempli (le graphique reste le héros)
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
 ---
@@ -578,3 +594,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.7 | Finitions : icônes ✏️ / 🗑️ (fond rouge), navigation intégrée au bandeau (zone collante unique, espacée), notes mises en évidence sur le graphique (`--highlight` équilibré : 4,55 / 5,09:1), thème Système · Clair · Sombre (D41, D42). `X-Frame-Options: DENY` ajouté (#28, sans risque pour `/__/auth/*`). |
 | 2026-10-25 | 2.8 | Plan « Ouverture aux proches » (inscription ouverte, suggestions dans l'appli, version, manifeste web, suppression du compte) ; cadrage 0.2 révisé ; IMC reportée en v1.1 avec la taille, sexe non collecté (minimisation). À valider avec #33. |
 | 2026-10-25 | 2.8 | Ouverture aux proches : 🗨️ suggestions (règles + tests), version 0.2.1 dans le menu, manifeste web et icônes (192 / 512 / maskable / Apple 180, générées avec `rsvg-convert`), suppression du compte (D44 à D47). Bug évité : `lireIds` appelait `stop` avant son affectation avec l'implémentation mémoire. |
+| 2026-10-25 | 2.10 | Bloc proposé par Azaameth : Machimoto (content, triste…) dans l'accueil, le départ et les écrans sans graphique ; favicon déjà dans #36. |
