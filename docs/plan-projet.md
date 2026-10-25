@@ -50,7 +50,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.2 | Fonctionnel | DataStore web + état de la synchro | [x] |
 | 2.3 | Fonctionnel | Déverrouillage et gestion de la phrase secrète | [x] |
 | 2.4 | Fonctionnel | Écrans métier | [x] |
-| 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [ ] |
+| 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [x] |
 | 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
@@ -296,10 +296,12 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 ## Bloc 2.5 — Tests hors ligne et conflits (navigateur)
 | Scénario | Résultat attendu | OK |
 |---|---|---|
-| DevTools → Offline, puis création et modification | Écritures en attente, interface à jour | [ ] |
-| Retour en ligne | Synchro automatique, indicateur à jour | [ ] |
-| Deux onglets modifient le même document | Règle de conflit appliquée (D6 : dernière écriture gagnante) | [ ] |
-| Session expirée pendant le hors ligne | Reconnexion demandée sans perte des écritures en attente | [ ] |
+| DevTools → Offline, puis création et modification | Écritures en attente, interface à jour | [x] |
+| Retour en ligne | Synchro automatique, indicateur à jour | [x] |
+| Deux onglets modifient le même document | Règle de conflit appliquée (D6 : dernière écriture gagnante) | [x] |
+| Session expirée pendant le hors ligne | Reconnexion demandée sans perte des écritures en attente | [x] |
+
+> ✅ Les 4 scénarios sont automatisés sous émulateur (`tests/rules/hors-ligne.test.ts`, `session.test.ts`) avec le vrai SDK coupé du réseau (`disableNetwork`). Vérification manuelle dans le navigateur : checklist de la PR du bloc 2.5.
  
 > ℹ️ Sur le web, le cache est en mémoire : le hors ligne fonctionne tant que l'onglet reste ouvert. C'est voulu.
  
@@ -456,6 +458,7 @@ Déclenché sur un tag `v*` :
 | D34 | 2026-10-25 | Onglets : Tableau de bord · Historique (date au choix, modifier, supprimer) · Export & réglages | La spec ne couvre ni l'historique ni l'export | Une seule page |
 | D35 | 2026-10-25 | Saisie improbable signalée par ⚠️, jamais bloquée : écart de plus de 3 kg à la tendance des pesées antérieures (si la dernière date de moins de 30 jours), ou poids hors 20 – 300 kg | Repérer les fautes de frappe (87,4 au lieu de 78,4) sans empêcher une saisie réelle ; bornes 20 – 300 kg de la spec reprises comme avertissement | Blocage de la saisie ; bornes strictes |
 | D36 | 2026-10-25 | Fourchettes de projection par la loi de Student (n − 2 ddl) à 95 % (tuile + cône) et 99 % (cône pâle autour), au lieu du facteur fixe 2 (`T_FOURCHETTE`) ; cônes sur la tendance, pas sur les pesées futures | Avec 14 à 28 pesées, le facteur 2 sous-estime l'incertitude (~10 %) ; deux niveaux montrent la zone probable et la zone extrême | Facteur 2 et 2,6 ; intervalle de prédiction des pesées (trop large, bruité) |
+| D37 | 2026-10-25 | Règles : la mise à jour d'une pesée remplace tout le document, `createdAt` compris (plus d'immuabilité) | Trouvé par le test de conflit du 2.5 : une saisie hors ligne sur un jour rempli ailleurs était refusée au retour du réseau, contrairement à D6 | `createdAt` immuable côté serveur |
  
 ## ⚠️ Risques
  
@@ -495,3 +498,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.6 | Avertissement de saisie improbable (D35) : à la frappe dans le formulaire, ⚠️ dans l'historique. `core/analyse/plausibilite.ts`, testé. |
 | 2026-10-25 | 2.6 | Graphique : tendance en courbe lissée monotone (sans dépassement) ; repères verticaux en pointillés ténus (mois ≤ 4 mois, trimestres ≤ 2 ans, années au-delà, 1ᵉʳ janvier marqué). |
 | 2026-10-25 | 2.6 | Cônes à 95 % et 99 % (Student, D36) ; scénario de dev « baisse régulière » (la projection n'apparaît qu'avec ≥ 14 pesées sur 28 j et un rythme ≥ 0,1 kg/sem, D31). |
+| 2026-10-25 | 2.5 | Hors ligne et conflits automatisés sous émulateur (SDK coupé du réseau, deux appareils, session perdue puis retrouvée). Bug trouvé et corrigé : règle `createdAt` immuable qui cassait D6 (D37). Indicateur : nombre de modifications en attente. Fin du jalon 2 → `v0.2.0`. |

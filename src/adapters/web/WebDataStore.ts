@@ -49,7 +49,7 @@ export class WebDataStore implements DataStore {
     )
   }
 
-  watchSyncState(listener: (state: SyncState) => void) {
+  watchSyncState(listener: (state: SyncState, pendingWrites: number) => void) {
     return this.sync.watch(listener)
   }
 }

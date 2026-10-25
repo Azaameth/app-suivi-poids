@@ -7,7 +7,8 @@ export class MemoryDataStore implements DataStore {
   private collections = new Map<string, Map<string, DocData>>()
   private listeners = new Map<string, Set<Listener>>()
   private syncState: SyncState = 'online'
-  private syncListeners = new Set<(state: SyncState) => void>()
+  private pendingWrites = 0
+  private syncListeners = new Set<(state: SyncState, pendingWrites: number) => void>()
 
   async get(uid: string, collection: string, id: string) {
     const doc = this.collection(uid, collection).get(id)
@@ -35,18 +36,19 @@ export class MemoryDataStore implements DataStore {
     }
   }
 
-  watchSyncState(listener: (state: SyncState) => void) {
+  watchSyncState(listener: (state: SyncState, pendingWrites: number) => void) {
     this.syncListeners.add(listener)
-    listener(this.syncState)
+    listener(this.syncState, this.pendingWrites)
     return () => {
       this.syncListeners.delete(listener)
     }
   }
 
   /** Pour les tests : simule un changement d'état de synchro. */
-  setSyncState(state: SyncState) {
+  setSyncState(state: SyncState, pendingWrites = 0) {
     this.syncState = state
-    this.syncListeners.forEach((listener) => listener(state))
+    this.pendingWrites = pendingWrites
+    this.syncListeners.forEach((listener) => listener(state, pendingWrites))
   }
 
   private collection(uid: string, collection: string) {

@@ -112,7 +112,7 @@ Vérifications de chaque bloc : voir `docs/plan-projet.md` (commandes prêtes à
 
 ## 6. Points ouverts à clarifier en premier
 
-1. Prochain : bloc **2.5** (tests hors ligne et conflits dans le navigateur), puis tag `v0.2.0`. Restitution : `docs/spec-restitution.md` (v1 faite au 2.6, v1.1 = bloc 6.1 ; question Q1 ouverte).
+1. Jalon 2 terminé (2.1 → 2.6) → tag `v0.2.0` après merge du 2.5. Prochain : **jalon 3 (APK)**, bloc 3.1 Capacitor ; prérequis : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb). Restitution : `docs/spec-restitution.md` (v1 faite au 2.6, v1.1 = bloc 6.1 ; question Q1 ouverte).
 2. Architecture : 5 interfaces dans `Services` depuis le 2.4 (`AuthService`, `KeyStore`, `DataStore`, `PreferencesStore`, `FileExporter` — D26, D27).
 
 Réglés le 2026-10-24 : OS (Arch, Flatpak), cadrage 0.2, D6 conflits, D12 verrouillage auto, D13 KeyStore Android — voir le Registre de `docs/plan-projet.md`.

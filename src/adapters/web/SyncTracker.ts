@@ -11,7 +11,7 @@ export type NetworkTarget = Pick<Window, 'addEventListener'> & { navigator: { on
 export class SyncTracker {
   private pending = 0
   private online: boolean
-  private listeners = new Set<(state: SyncState) => void>()
+  private listeners = new Set<(state: SyncState, pendingWrites: number) => void>()
 
   constructor(target: NetworkTarget = window) {
     this.online = target.navigator.onLine
@@ -34,9 +34,13 @@ export class SyncTracker {
     })
   }
 
-  watch(listener: (state: SyncState) => void) {
+  get pendingWrites(): number {
+    return this.pending
+  }
+
+  watch(listener: (state: SyncState, pendingWrites: number) => void) {
     this.listeners.add(listener)
-    listener(this.state)
+    listener(this.state, this.pending)
     return () => {
       this.listeners.delete(listener)
     }
@@ -49,6 +53,6 @@ export class SyncTracker {
 
   private notify() {
     const state = this.state
-    this.listeners.forEach((listener) => listener(state))
+    this.listeners.forEach((listener) => listener(state, this.pending))
   }
 }
