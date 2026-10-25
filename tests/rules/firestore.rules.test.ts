@@ -138,10 +138,11 @@ describe('users/{uid}/pesees/{date}', () => {
     await assertFails(setDoc(pesee('demain'), { ...nouvelle, date: 'demain' }))
   })
 
-  test('mise à jour : updatedAt avance, createdAt est immuable', async () => {
+  test('mise à jour : remplacement complet accepté, createdAt compris (D6, D37)', async () => {
     const existante = doc(alice(), 'users/alice/pesees/2026-10-24')
     await assertSucceeds(setDoc(existante, { ...validPesee, updatedAt: validPesee.updatedAt + 1 }))
-    await assertFails(setDoc(existante, { ...validPesee, createdAt: 1, updatedAt: 2 }))
+    await assertSucceeds(setDoc(existante, { ...validPesee, createdAt: 1, updatedAt: 2 }))
+    await assertFails(setDoc(existante, { ...validPesee, createdAt: 5, updatedAt: 2 }))
   })
 })
 

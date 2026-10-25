@@ -33,6 +33,8 @@ test('indicateur de synchro visible une fois connecté', async () => {
   expect((await screen.findByRole('status')).textContent).toMatch(/En ligne/)
   act(() => (services.data as MemoryDataStore).setSyncState('offline'))
   expect(screen.getByRole('status').textContent).toMatch(/Hors ligne/)
+  act(() => (services.data as MemoryDataStore).setSyncState('offline', 2))
+  expect(screen.getByRole('status').textContent).toMatch(/Hors ligne : 2 modifications en attente/)
 })
 
 test('premier lancement : création du coffre, verrouillage, déverrouillage', async () => {

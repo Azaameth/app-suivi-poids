@@ -18,11 +18,11 @@ service cloud.firestore {
       }
 
       // Pesées : une par jour, identifiant = date (D16). Miroir de core/pesees/model.ts.
+      // La dernière écriture remplace le document entier, createdAt compris (D6, D37) : un
+      // appareil revenu en ligne ne connaît pas forcément le createdAt d'une saisie faite ailleurs.
       match /pesees/{date} {
         allow read, delete: if isOwner();
-        allow create: if isOwner() && isValidPesee(date, request.resource.data);
-        allow update: if isOwner() && isValidPesee(date, request.resource.data)
-          && request.resource.data.createdAt == resource.data.createdAt;
+        allow create, update: if isOwner() && isValidPesee(date, request.resource.data);
       }
 
       function isEncrypted(value) {

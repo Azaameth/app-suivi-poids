@@ -30,6 +30,9 @@ export interface DataStore {
     onChange: (docs: StoredDoc[]) => void,
     onError?: (error: Error) => void,
   ): Unsubscribe
-  /** Appelé immédiatement avec l'état courant, puis à chaque changement. */
-  watchSyncState(listener: (state: SyncState) => void): Unsubscribe
+  /**
+   * Appelé immédiatement avec l'état courant, puis à chaque changement. `pendingWrites` :
+   * écritures appliquées localement mais pas encore confirmées par le serveur.
+   */
+  watchSyncState(listener: (state: SyncState, pendingWrites: number) => void): Unsubscribe
 }

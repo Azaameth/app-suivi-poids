@@ -18,6 +18,19 @@ test('online → pending pendant une écriture → online', async () => {
   expect(states).toEqual(['online', 'pending', 'online'])
 })
 
+test('compte les écritures en attente', async () => {
+  const tracker = new SyncTracker(fakeWindow(false))
+  const vus: number[] = []
+  tracker.watch((_, pending) => vus.push(pending))
+  let confirm!: () => void
+  const a = tracker.track(new Promise<void>((resolve) => (confirm = resolve)))
+  void tracker.track(new Promise(() => {}))
+  expect(tracker.pendingWrites).toBe(2)
+  confirm()
+  await a
+  expect(vus).toEqual([0, 1, 2, 1])
+})
+
 test('hors ligne prime sur les écritures en attente', () => {
   const target = fakeWindow(true)
   const tracker = new SyncTracker(target)
