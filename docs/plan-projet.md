@@ -37,7 +37,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
  
 | Bloc | Jalon | Contenu | Fait |
 |---|---|---|---|
-| 0.1 | Prérequis | Environnement installé (plan d'installation, jalons 1 et 2) | [ ] |
+| 0.1 | Prérequis | Environnement installé (plan d'installation, jalons 1 et 2) | [x] |
 | 0.2 | Prérequis | Cadrage fonctionnel minimal | [x] |
 | 1.1 | Socle web | Initialisation du repo et de l'outillage | [x] |
 | 1.2 | Socle web | Projet Firebase + émulateurs | [x] |
@@ -425,11 +425,11 @@ Déclenché sur un tag `v*` :
  
 | # | Date | Décision | Raison | Alternatives écartées |
 |---|---|---|---|---|
-| D1 | | Capacitor plutôt que Flutter ou natif | Un seul code web + APK, effort modéré | Flutter, Kotlin |
-| D2 | | Firebase (Spark) | Gratuit, synchro + hors ligne intégrés, pas de mise en pause pour inactivité | Supabase |
-| D3 | | Clé de données encapsulée par PBKDF2 | Accès web + Android, récupération après réinstallation | Clé uniquement dans le Keystore |
-| D4 | | Cache web en mémoire | Pas de données persistées dans le navigateur | Cache IndexedDB |
-| D5 | | Distribution par GitHub Releases + Obtainium | Gratuit, pas de Play Store | Play Store (25 $) |
+| D1 | 2026-10-23 | Capacitor plutôt que Flutter ou natif | Un seul code web + APK, effort modéré | Flutter, Kotlin |
+| D2 | 2026-10-23 | Firebase (Spark) | Gratuit, synchro + hors ligne intégrés, pas de mise en pause pour inactivité | Supabase |
+| D3 | 2026-10-23 | Clé de données encapsulée par PBKDF2 | Accès web + Android, récupération après réinstallation | Clé uniquement dans le Keystore |
+| D4 | 2026-10-23 | Cache web en mémoire | Pas de données persistées dans le navigateur | Cache IndexedDB |
+| D5 | 2026-10-23 | Distribution par GitHub Releases + Obtainium | Gratuit, pas de Play Store | Play Store (25 $) |
 | D6 | 2026-10-24 | Conflits : dernière écriture gagnante, au niveau du document du jour | Un document par jour, usage mono-utilisateur (#3) | Fusion champ par champ, résolution manuelle |
 | D7 | 2026-10-24 | Configs dans `config/`, règles et index Firestore dans `firebase/` | Racine lisible | Tout à la racine (arborescence cible) |
 | D8 | 2026-10-24 | Dev contre un projet `demo-suivi-poids` | Le SDK ne parle qu'aux émulateurs : la prod est inaccessible par construction | Projet réel dès le 1.2 |
@@ -504,3 +504,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.6 | Cônes à 95 % et 99 % (Student, D36) ; scénario de dev « baisse régulière » (la projection n'apparaît qu'avec ≥ 14 pesées sur 28 j et un rythme ≥ 0,1 kg/sem, D31). |
 | 2026-10-25 | 2.5 | Hors ligne et conflits automatisés sous émulateur (SDK coupé du réseau, deux appareils, session perdue puis retrouvée). Bug trouvé et corrigé : règle `createdAt` immuable qui cassait D6 (D37). Indicateur : nombre de modifications en attente. Fin du jalon 2 → `v0.2.0`. |
 | 2026-10-25 | Polish | Audit : README racine, CLAUDE.md et docs à jour, arborescence réelle dans le plan ; dates unifiées (`core/analyse/dates`), `stats.ts` → `periodes.ts` + `csv.ts`, constantes mortes retirées, `platform.ts` explicite ; `tests/rules` → `tests/emulateurs` (`npm run test:emulateurs`) ; 0 vulnérabilité en prod (D38) ; favicon et méta-données ; en-têtes Hosting. |
+| 2026-10-25 | 0.1 | Coché (#30) : environnement opérationnel via VS Code Flatpak (D9). Écarts notés dans `plan-installation-outils.md`. D1 à D5 datées du 2026-10-23. |
