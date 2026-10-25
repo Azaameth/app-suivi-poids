@@ -1,5 +1,6 @@
 export * from './constantes'
 export { ajouterJours, dateLocale, ecartJours } from './dates'
+export { evaluerPlausibilite, signalerImprobables, type AvisPlausibilite } from './plausibilite'
 export { calculerProjection } from './projection'
 export { calculerRythme, peseesDansFenetre } from './rythme'
 export { calculerTendance } from './tendance'

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import {
   InvalidPeseeError,
   NOTE_MAX,
@@ -8,7 +8,9 @@ import {
   type Pesee,
   type PeseeRepository,
 } from '../../core/pesees'
+import { evaluerPlausibilite } from '../../core/analyse'
 import { formatDay } from './format'
+import { messageAvis } from './plausibilite'
 
 /**
  * Saisie d'une pesée (une par jour). Une date déjà saisie remplace la pesée existante ;
@@ -35,6 +37,16 @@ export function PeseeForm({
   const [note, setNote] = useState(editing?.note ?? '')
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
   const existing = pesees.find((p) => p.date === date)
+  const chronologie = useMemo(
+    () => [...pesees].sort((a, b) => a.date.localeCompare(b.date)),
+    [pesees],
+  )
+  const saisi = Number(poids.replace(',', '.').trim())
+  // Avertit sans bloquer (D35) : comparaison à la tendance des pesées antérieures.
+  const avis =
+    poids.trim() !== '' && !Number.isNaN(saisi)
+      ? evaluerPlausibilite(saisi, date, chronologie)
+      : null
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -98,6 +110,11 @@ export function PeseeForm({
           onChange={(e) => setNote(e.target.value)}
         />
       </label>
+      {avis && (
+        <p className="avertissement" aria-live="polite">
+          ⚠️ Saisie improbable : {messageAvis(avis)} Vérifie avant d’enregistrer.
+        </p>
+      )}
       {existing && !editing && (
         <p className="hint">Une pesée existe déjà ce jour : elle sera remplacée.</p>
       )}

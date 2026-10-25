@@ -195,3 +195,34 @@ describe('outils de dev', () => {
     await screen.findByText(/Effacement : \d+ pesée\(s\), synchronisé/)
   }, 30_000)
 })
+
+describe('saisies improbables (avertir sans bloquer)', () => {
+  test('faute de frappe : avertissement pendant la frappe, enregistrement possible, ⚠️ dans l’historique', async () => {
+    const services = await start()
+    await seed(services, 10, () => 78.4)
+    tab('Historique')
+    await screen.findByRole('list', { name: 'Historique des pesées' })
+
+    fill('Date', dateLocale())
+    fill('Poids (kg)', '87,4')
+    expect(
+      screen.getByText(/Saisie improbable : 9,0 kg de plus que ta tendance \(78,4 kg\)/),
+    ).toBeTruthy()
+    fill('Poids (kg)', '78,9')
+    expect(screen.queryByText(/Saisie improbable/)).toBeNull()
+
+    fill('Poids (kg)', '87,4')
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await within(history()).findByText('87,4 kg')
+    expect(within(history()).getAllByRole('img', { name: /Saisie improbable/ })).toHaveLength(1)
+  }, 20_000)
+
+  test('valeur hors des habitudes : avertie même sans historique', async () => {
+    await start()
+    fill('Poids (kg)', '450')
+    expect(screen.getByText(/Valeur inhabituelle \(hors 20 – 300 kg\)/)).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Ajouter' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    )
+  }, 15_000)
+})

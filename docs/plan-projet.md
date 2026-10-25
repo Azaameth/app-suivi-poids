@@ -454,6 +454,7 @@ Déclenché sur un tag `v*` :
 | D32 | 2026-10-25 | Profil v1.1 : usage (perdre / gagner / maintenir), cible chiffrée, tolérance de 0,5 à 3 kg (défaut 1 kg) | Couvrir les trois usages (#24) | Objectif « perdre » seul |
 | D33 | 2026-10-25 | Couleurs neutres tant qu'aucun usage n'est défini ; jamais la couleur seule | Une baisse n'est pas forcément un progrès (#24) | Vert = baisse, rouge = hausse |
 | D34 | 2026-10-25 | Onglets : Tableau de bord · Historique (date au choix, modifier, supprimer) · Export & réglages | La spec ne couvre ni l'historique ni l'export | Une seule page |
+| D35 | 2026-10-25 | Saisie improbable signalée par ⚠️, jamais bloquée : écart de plus de 3 kg à la tendance des pesées antérieures (si la dernière date de moins de 30 jours), ou poids hors 20 – 300 kg | Repérer les fautes de frappe (87,4 au lieu de 78,4) sans empêcher une saisie réelle ; bornes 20 – 300 kg de la spec reprises comme avertissement | Blocage de la saisie ; bornes strictes |
  
 ## ⚠️ Risques
  
@@ -490,3 +491,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 2.4 | Écrans : journal (saisie, historique, modifier, supprimer), graphique réglable (D29), export CSV (D28), paramètres (délai de verrouillage D12). Interfaces `PreferencesStore` et `FileExporter` (D26, D27). 68 tests unitaires. |
 | 2026-10-25 | 2.4 | Graphique simplifié (courbe seule, D29 révisée), lisible avec beaucoup de points ; outils de dev (données fictives). Besoin de restitution (tendance, projection…) à préciser dans une issue. |
 | 2026-10-25 | 2.6 | Spec de restitution (#24) versée dans `docs/`, arbitrages notés. `core/analyse` testé d'abord (cas obligatoires § 7), puis tableau de bord. Périodes 7 j → Tout ; moyenne 7 j remplacée par la tendance. 88 tests unitaires. |
+| 2026-10-25 | 2.6 | Avertissement de saisie improbable (D35) : à la frappe dans le formulaire, ⚠️ dans l'historique. `core/analyse/plausibilite.ts`, testé. |

@@ -19,3 +19,10 @@ export const HORIZON_MAX_OBJECTIF_JOURS = 90
 export const TOLERANCE = { defaut: 1.0, min: 0.5, max: 3.0, pas: 0.5 } as const
 /** Variation affichée sur le tableau de bord. */
 export const JOURS_VARIATION = 30
+
+/** Plausibilité (D35) : avertir, jamais bloquer. Écart à la tendance au-delà duquel on prévient. */
+export const SEUIL_ECART_IMPROBABLE_KG = 3
+/** Au-delà de cet écart avec la pesée précédente, on ne compare plus à la tendance. */
+export const MAX_JOURS_REFERENCE = 30
+/** Valeurs habituelles (bornes proposées par la spec, Q2) : en dehors, on prévient. */
+export const POIDS_HABITUEL = { min: 20, max: 300 } as const

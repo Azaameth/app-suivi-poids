@@ -133,6 +133,12 @@ label.inline {
   color: var(--danger);
 }
 
+/* Avertissement non bloquant (saisie improbable) : sobre, jamais alarmant. */
+.avertissement {
+  color: var(--fg);
+  cursor: help;
+}
+
 .history {
   list-style: none;
   padding: 0;
