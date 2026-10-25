@@ -53,6 +53,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [x] |
 | 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
 | 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [x] |
+| 2.8 | Fonctionnel | Ouverture aux proches : suggestions dans l'appli, version visible, installation (manifeste web), suppression du compte | [ ] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -63,7 +64,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 4.3 | Distribution | Workflow de release (tag → APK + Hosting) | [ ] |
 | 4.4 | Distribution | Première release + Obtainium | [ ] |
 | 5.1 | Maintenance | Dépendances, sauvegardes, surveillance | [ ] |
-| 6.1 | v1.1 | Profil (usage, cible, tolérance), objectif, couleurs liées à l'usage (`docs/spec-restitution.md`, v1.1) | [ ] |
+| 6.1 | v1.1 | Profil (usage, cible, tolérance, **taille**), objectif, couleurs liées à l'usage, **repères d'IMC** (`docs/spec-restitution.md`, v1.1 ; D46) | [ ] |
  
 ---
  
@@ -140,7 +141,7 @@ app-suivi-poids/
 | Fonctionnalités de la v1 | 1. Saisir une pesée (date, poids, note facultative) · 2. Historique (modifier, supprimer) · 3. Graphique d'évolution (30 j / 90 j / 1 an / tout) · 4. Export CSV (sert aussi de sauvegarde) |
 | Données manipulées | Pesées ; plus tard un profil (taille, objectif) en v1.1 |
 | Données sensibles à chiffrer | `poids`, `note` (puis `taille`, `objectif` en v1.1) |
-| Utilisateurs / partage | Un seul utilisateur, aucun partage |
+| Utilisateurs / partage | ~~Un seul utilisateur~~ → **quelques proches**, comptes indépendants (inscription ouverte), **aucun partage** — révisé le 2026-10-25 (D44) |
 | Méthode de connexion | Google uniquement (en dev : comptes fictifs de l'émulateur Auth) |
 
 **Critères d'acceptation**
@@ -348,7 +349,34 @@ npm run test:emulateurs
 - [x] Le thème change instantanément, persiste au rechargement, et « Système » suit le réglage de l'appareil
 - [x] Contrastes lisibles dans les deux thèmes (texte ≥ 4,5:1, éléments graphiques ≥ 3:1) — `--highlight` : 4,55:1 (clair) et 5,09:1 (sombre) ; blanc sur rouge ≥ 5:1
 
-**🏁 Fin du jalon 2 :** tag `v0.2.0`.
+## Bloc 2.8 — Ouverture aux proches (décidé le 2026-10-25)
+**Objectif :** faire vivre l'appli auprès de quelques proches pour recueillir leurs suggestions, avant l'APK. La version web suffit (Android **et** iPhone).
+
+**Livrables**
+1. **Suggestions dans l'appli** (D45)
+   - Menu du profil → **« 💬 Suggérer une idée »** : fenêtre avec un texte (10 à 2 000 caractères) et un type (idée / problème).
+   - Stockage `users/{uid}/suggestions/{id}` : `{ type, texte, version, createdAt }`. **Non chiffré** (pour que Maxime puisse le lire) : l'écran prévient de ne pas y mettre d'information de santé.
+   - Règles : le propriétaire crée, relit et supprime ses suggestions ; forme et tailles validées ; tests sous émulateur.
+   - Lecture par Maxime dans la console Firebase ; un script pourra ensuite les transformer en issues GitHub.
+2. **Version visible** : numéro de version (`package.json`) affiché dans le menu du profil et joint à chaque suggestion.
+3. **Installation sur l'écran d'accueil** : manifeste web (`manifest.webmanifest` : nom, icônes PNG 192 / 512 + icône Apple 180, couleurs, `display: standalone`). Pas de service worker : le cache reste en mémoire (D4).
+4. **Accueil des nouveaux** : rappel renforcé à la création de la phrase secrète (« perte = données perdues »), conseil d'export CSV régulier dans les Réglages.
+5. **Supprimer mon compte et mes données** (Réglages, D47) : confirmation forte (saisie de « SUPPRIMER »), puis effacement des pesées, des suggestions, de `meta/keys`, et du compte Firebase Auth (reconnexion Google demandée si la session est ancienne).
+
+**Décisions (à valider avec la PR #33)**
+- D44 : appli ouverte aux proches, inscription libre par Google ; comptes indépendants et cloisonnés, aucun partage. Quotas Spark (50 000 lectures et 20 000 écritures par jour) très au-dessus de l'usage prévu.
+- D45 : suggestions stockées sous `users/{uid}/suggestions`, non chiffrées, avec avertissement ; création, lecture et suppression par leur auteur seulement.
+- D46 : minimisation des données — le profil v1.1 ne demandera que la **taille** (IMC adulte : mêmes seuils pour tous) ; sexe et âge seulement si une fonctionnalité les exige un jour (métabolisme de base, masse grasse), facultatifs et chiffrés.
+- D47 : `meta/keys` devient supprimable par son propriétaire, **uniquement** via le parcours « Supprimer mon compte » (confirmation forte) ; révise D25 (suppression interdite) pour permettre l'effacement complet.
+
+**Critères d'acceptation**
+- [ ] Une suggestion envoyée apparaît dans la console (émulateur puis prod), avec la version ; refusée si vide, trop longue ou pour un autre compte
+- [ ] La version s'affiche dans le menu
+- [ ] « Ajouter à l'écran d'accueil » installe l'appli avec son icône (Android et iPhone)
+- [ ] La suppression du compte efface toutes les données Firestore de l'utilisateur et son compte Auth
+- [ ] Les données d'un proche restent illisibles et inaccessibles pour les autres (tests de règles existants)
+
+**🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
 ---
  
@@ -544,3 +572,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.7 | Plan des finitions proposé (icônes historique, barres, notes sur le graphique, thème clair / sombre) : à valider avec #32. |
 | 2026-10-25 | Sécurité | Alerte GitHub « Google API Key – Public leak » sur `src/firebase.config.ts` : clé web Firebase, publique par conception. Clé restreinte par référent et par API dans Google Cloud (vérifié : 403 hors référent), alerte fermée (D43). Relevé #28 : en-têtes personnalisés non appliqués à `/__/auth/*` → `X-Frame-Options` possible. |
 | 2026-10-25 | 2.7 | Finitions : icônes ✏️ / 🗑️ (fond rouge), navigation intégrée au bandeau (zone collante unique, espacée), notes mises en évidence sur le graphique (`--highlight` équilibré : 4,55 / 5,09:1), thème Système · Clair · Sombre (D41, D42). `X-Frame-Options: DENY` ajouté (#28, sans risque pour `/__/auth/*`). |
+| 2026-10-25 | 2.8 | Plan « Ouverture aux proches » (inscription ouverte, suggestions dans l'appli, version, manifeste web, suppression du compte) ; cadrage 0.2 révisé ; IMC reportée en v1.1 avec la taille, sexe non collecté (minimisation). À valider avec #33. |
