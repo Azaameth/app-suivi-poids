@@ -125,7 +125,7 @@ describe('tableau de bord', () => {
     expect(within(tuile('Projection')).getByText(/^Dans 4 sem\. : \d+,\d kg$/)).toBeTruthy()
 
     const chart = screen.getByRole('img', { name: /Tendance du/ })
-    expect(chart.querySelector('polyline.tendance')).toBeTruthy()
+    expect(chart.querySelector('path.tendance')?.getAttribute('d')).toMatch(/^M.+C/)
     expect(chart.querySelector('polyline.projection')).toBeTruthy()
     expect(chart.querySelector('polygon.cone')).toBeTruthy()
     // Période par défaut 90 j : les 40 pesées sont visibles.

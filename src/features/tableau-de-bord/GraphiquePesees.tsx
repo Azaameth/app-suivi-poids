@@ -1,6 +1,7 @@
 import { PERIODS, dayToMs, filterByPeriod, type Pesee } from '../../core/pesees'
 import { usePreferences } from '../prefs/usePreferences'
 import { formatDay, formatShortDay, formatWeight } from '../pesees/format'
+import { courbeMonotone } from './courbe'
 import type { Analyse } from './useAnalyse'
 
 const PERIOD_LABELS = {
@@ -145,9 +146,9 @@ function Trace({
             <title>{`${formatDay(p.date)} : ${formatWeight(p.poids)}`}</title>
           </circle>
         ))}
-        <polyline
+        <path
           className="tendance"
-          points={tendance.map((p) => pt(p.date, p.tendance)).join(' ')}
+          d={courbeMonotone(tendance.map((p) => [x(p.date), y(p.tendance)]))}
         />
       </svg>
       <p className="legende hint">

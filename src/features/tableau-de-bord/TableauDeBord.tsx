@@ -1,5 +1,5 @@
 import type { Pesee, PeseeRepository } from '../../core/pesees'
-import { formatFixed, formatSigned, formatWeight } from '../pesees/format'
+import { formatFixed, formatSigned } from '../pesees/format'
 import { GraphiquePesees } from './GraphiquePesees'
 import { SaisiePesee } from './SaisiePesee'
 import { Tuile } from './Tuile'
@@ -28,7 +28,7 @@ export function TableauDeBord({ pesees, repo }: { pesees: Pesee[]; repo: PeseeRe
   return (
     <>
       <div className="tuiles">
-        <Tuile titre="Tendance" valeur={formatWeight(Math.round(actuelle.tendance * 10) / 10)} />
+        <Tuile titre="Tendance" valeur={`${formatFixed(actuelle.tendance)} kg`} />
         <Tuile
           titre="Rythme"
           valeur={rythme ? `${formatSigned(rythme.kgParSemaine, 2)} kg/sem` : '—'}
