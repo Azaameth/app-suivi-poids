@@ -24,12 +24,16 @@ function lireIds(data: DataStore, uid: string, collection: string): Promise<stri
  * Supprime le compte et toutes ses données (D47) : pesées, suggestions, `meta/keys`, puis le
  * compte d'authentification. Chaque effacement attend la confirmation du serveur.
  * À appeler en ligne uniquement ; l'interface demande une confirmation forte.
+ * Compte e-mail : le mot de passe est vérifié **avant** tout effacement, pour ne jamais
+ * laisser un compte vidé de ses données mais impossible à supprimer.
  */
 export async function supprimerCompte(
   services: Pick<Services, 'auth' | 'data' | 'keys'>,
   uid: string,
+  motDePasse?: string,
 ) {
   const { auth, data, keys } = services
+  if (motDePasse !== undefined) await auth.confirmerMotDePasse(motDePasse)
   for (const collection of [PESEES, SUGGESTIONS]) {
     const ids = await lireIds(data, uid, collection)
     await Promise.all(ids.map((id) => data.remove(uid, collection, id)))

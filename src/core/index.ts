@@ -1,4 +1,10 @@
 export type { AuthService, AuthUser, Credentials } from './auth/AuthService'
+export {
+  EmailDejaUtiliseError,
+  IdentifiantsInvalidesError,
+  MIN_MOT_DE_PASSE,
+  MotDePasseFaibleError,
+} from './auth/AuthService'
 export type { DataStore, DocData, StoredDoc, SyncState } from './data/DataStore'
 export type { FileExporter } from './files/FileExporter'
 export type { KeyStore } from './keys/KeyStore'

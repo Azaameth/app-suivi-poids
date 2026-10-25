@@ -778,3 +778,23 @@ label.inline {
 .hors-ligne {
   margin: 0.75rem 0;
 }
+
+/* Connexion par e-mail (bloc 2.13) : formulaire aligné à gauche dans l'accueil centré. */
+.connexion-email {
+  width: min(100%, 22rem);
+  text-align: left;
+}
+
+.connexion-email h3 {
+  margin: 0.5rem 0 0.75rem;
+  font-size: 1rem;
+}
+
+.connexion-email input {
+  width: 100%;
+}
+
+.connexion-email .row {
+  justify-content: center;
+  margin-top: 0.75rem;
+}

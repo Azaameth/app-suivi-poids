@@ -58,6 +58,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [x] |
 | 2.11 | Fonctionnel | Démarrage hors ligne : copie locale chiffrée (option « Garder mes données sur cet appareil ») | [x] |
 | 2.12 | Fonctionnel | Import CSV (reprise de pesées existantes, #39) | [x] |
+| 2.13 | Fonctionnel | Connexion par e-mail et mot de passe (en plus de Google) | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -446,6 +447,21 @@ npm run test:emulateurs
 - [x] Rien n'est écrit avant confirmation ; une pesée existante n'est remplacée que sur demande
 - [x] Pesées importées stockées chiffrées (test UI)
 
+## Bloc 2.13 — Connexion par e-mail (demandé le 2026-10-25)
+**Objectif :** permettre aux proches sans compte Google d'utiliser l'appli (révise D15, D53).
+
+**Livrables**
+- Écran de connexion : « Se connecter avec Google » ou « Utiliser un e-mail » (se connecter, créer un compte, mot de passe oublié).
+- `AuthService` : `Credentials` e-mail, `reinitialiserMotDePasse`, `confirmerMotDePasse` ; `AuthUser.fournisseur`.
+- Mot de passe (connexion, ≥ 8 caractères) bien distinct de la phrase secrète (chiffrement) : expliqué à la création.
+- Suppression d'un compte e-mail : mot de passe vérifié **avant** tout effacement.
+- Fournisseur « Adresse e-mail/Mot de passe » activé dans la console Firebase (fait par Azaameth).
+
+**Critères d'acceptation**
+- [x] Création, connexion, mauvais mot de passe refusé, réinitialisation à message neutre (tests UI)
+- [x] Codes d'erreur réels de Firebase Auth traduits (test sous émulateur)
+- [x] Suppression : mauvais mot de passe → rien n'est effacé
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
 ---
@@ -620,6 +636,7 @@ Déclenché sur un tag `v*` :
 | D50 | 2026-10-25 | Import CSV : une pesée par jour (la dernière ligne du fichier gagne), pesées existantes différentes conservées sauf demande explicite, saisies improbables signalées sans bloquer | Reprendre un historique sans risque d'écraser une saisie par erreur ; cohérent avec D16 et D35 | Remplacement systématique ; moyenne des pesées du même jour ; refus des lignes improbables |
 | D51 | 2026-10-25 | Build web : Firebase, React et Zod dans des fichiers séparés (codeSplitting Rolldown) ; seuil d'avertissement de taille à 700 kB ; révise D40 [à valider par Azaameth] | Une mise à jour de l'appli ne fait plus retélécharger les bibliothèques (cache d'un an, D38) : code de l'appli ≈ 41 kB au lieu de 884 kB ; plus d'avertissement au build | Fichier unique (D40) ; découpage plus fin de Firebase (impossible proprement) |
 | D52 | 2026-10-25 | Durcissement : CSP en mode Report-Only sur Hosting (sources Firebase listées), notes CSV commençant par = + - @ préfixées d'une apostrophe à l'export (retirée au réimport), texte des suggestions traité comme donnée par Claude | Défense en profondeur sans risque de casser la connexion Google : la CSP passera en mode bloquant après une semaine sans violation dans la console | CSP bloquante d'emblée ; échapper les notes à l'import seulement |
+| D53 | 2026-10-25 | Connexion par e-mail et mot de passe en plus de Google ; message d'erreur indistinct (e-mail ou mot de passe), réinitialisation sans révéler l'existence du compte ; pas de vérification d'e-mail obligatoire ; révise D15 | Ouvrir l'appli aux proches sans compte Google ; les données restent protégées par la phrase secrète, indépendante du mot de passe | Lien magique par e-mail (Firebase Dynamic Links arrêté : compliqué sur Android) ; vérification d'e-mail bloquante ; Google seul (D15) |
  
 ## ⚠️ Risques
  
@@ -677,3 +694,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | Audit | Audit de santé : 0 vulnérabilité en prod (5 modérées dans firebase-tools, outil de dev, acceptées), dépendances à jour sauf TypeScript 7 (majeure, à part), aucun code mort ; build découpé (D51, à valider) ; Dependabot, modèle de PR, SECURITY.md ; README complet et CONTRIBUTING (poste neuf Windows/macOS/Linux) ; CLAUDE.md, plan (socle, arborescence, risques) et index des docs remis à jour. |
 | 2026-10-25 | 4.5 | Bloc ajouté à la demande d'Azaameth : vérification développeur Android, obligatoire en 2027 pour installer un APK hors Play Store sans le parcours avancé ; compte à distribution limitée (20 appareils) visé. |
 | 2026-10-25 | Sécurité | Revue « injection » : pas d'injection possible côté Firestore (pas de requête texte, chemin = date validée par Zod et par les règles), pas de XSS (React, aucun innerHTML) ; durcissement : CSP Report-Only, injection de formule CSV neutralisée, consigne anti-injection dans trier-suggestions (D52). |
+| 2026-10-25 | 2.13 | Connexion par e-mail (création, connexion, mot de passe oublié), suppression d'un compte e-mail avec mot de passe vérifié avant effacement ; codes Firebase traduits et vérifiés sous émulateur (D53). |

@@ -26,7 +26,7 @@
 | Domaine | Choix |
 |---|---|
 | Front | Vite + React + TypeScript, Zod |
-| Backend | Firebase **plan Spark** (Auth Google + Firestore), `europe-west1`, projet `machimoto` |
+| Backend | Firebase **plan Spark** (Auth Google ou e-mail, D53 + Firestore), `europe-west1`, projet `machimoto` |
 | Chiffrement | Web Crypto, AES-GCM 256 sur `poids` / `note` ; clé de données encapsulée par PBKDF2-SHA256 (600 000 itérations) |
 | Architecture | 5 interfaces dans `Services` : `AuthService`, `KeyStore`, `DataStore`, `PreferencesStore`, `FileExporter` ; adaptateurs `web/` puis `native/` ; choix dans `src/platform.ts` |
 | Cache | Web : IndexedDB chiffré si « Garder mes données sur cet appareil » (défaut, D49), sinon mémoire ; effacé à la déconnexion. Android : cache natif Firestore |
