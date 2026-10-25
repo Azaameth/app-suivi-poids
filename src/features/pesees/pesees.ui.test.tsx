@@ -103,7 +103,7 @@ describe('historique', () => {
 describe('tableau de bord', () => {
   test('état vide : invitation et saisie du jour, ni tuiles ni graphique', async () => {
     await start()
-    expect(screen.getByText(/Saisis ta première pesée/)).toBeTruthy()
+    expect(await screen.findByText(/Saisis ta première pesée/)).toBeTruthy()
     expect(screen.queryByRole('region', { name: 'Tendance' })).toBeNull()
     expect(screen.queryByRole('img')).toBeNull()
   }, 15_000)
