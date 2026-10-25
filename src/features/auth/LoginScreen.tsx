@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useServices } from '../../context/ServicesContext'
+import { Mascotte } from '../commun/Mascotte'
 
 export function LoginScreen() {
   const { auth } = useServices()
@@ -19,8 +20,9 @@ export function LoginScreen() {
   }
 
   return (
-    <section>
-      <p>Connecte-toi pour retrouver tes pesées.</p>
+    <section className="accueil">
+      <Mascotte taille={160} />
+      <p>Bonjour ! Connecte-toi pour retrouver tes pesées.</p>
       <button type="button" onClick={signIn} disabled={pending}>
         {pending ? 'Connexion…' : 'Se connecter avec Google'}
       </button>
