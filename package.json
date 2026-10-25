@@ -20,7 +20,7 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "verify": "npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run test:outils && npm run build && node scripts/empreinte.mjs marquer verify",
     "deploy": "npm run verify && npm run test:emulateurs && firebase deploy --project machimoto --only hosting,firestore:rules",
-    "test:outils": "node --test .claude/hooks/ scripts/"
+    "test:outils": "node --test \".claude/hooks/*.test.mjs\" \"scripts/*.test.mjs\""
   },
   "dependencies": {
     "firebase": "^13.1.0",
