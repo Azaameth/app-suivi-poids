@@ -67,6 +67,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 4.2 | Distribution | CI sur les pull requests | [ ] |
 | 4.3 | Distribution | Workflow de release (tag → APK + Hosting) | [ ] |
 | 4.4 | Distribution | Première release + Obtainium | [ ] |
+| 4.5 | Distribution | Vérification développeur Android (installation sans avertissement « développeur non vérifié ») | [ ] |
 | 5.1 | Maintenance | Dépendances, sauvegardes, surveillance | [ ] |
 | 6.1 | v1.1 | Profil (usage, cible, tolérance, **taille**), objectif, couleurs liées à l'usage, **repères d'IMC** (`docs/spec-restitution.md`, v1.1 ; D46) | [ ] |
  
@@ -535,6 +536,21 @@ Déclenché sur un tag `v*` :
 - Tag `v1.0.0`
 - Obtainium configuré sur le repo
 - Test de mise à jour : tag `v1.0.1`, puis vérifier qu'Obtainium propose la mise à jour et que les données sont conservées
+## Bloc 4.5 — Vérification développeur Android (ajouté le 2026-10-25)
+**Contexte :** depuis le 30/09/2026 (Brésil, Indonésie, Singapour, Thaïlande), puis partout à partir de 2027, les appareils Android certifiés n'installent sans détour que les applis de **développeurs vérifiés**, Play Store ou non. Sinon : ADB, ou le « parcours avancé » (option développeur, attente de 24 h, redémarrage), dissuasif pour les proches.
+
+**Livrables**
+- Compte **Android Developer Console** à **distribution limitée** (gratuit, sans pièce d'identité, jusqu'à 20 appareils) : suffisant pour Maxime et ses proches. Le passer en compte vérifié complet seulement si l'usage dépasse 20 appareils.
+- Enregistrement du package `io.github.azaameth.machimoto` avec la **clé de signature de release** (bloc 4.1) : même clé pour toute la vie de l'appli.
+- Procédure d'ajout d'un appareil de proche, documentée dans `CONTRIBUTING.md`.
+
+**Critères d'acceptation**
+- [ ] APK de release installé sur le Pixel 7 Pro via Obtainium sans avertissement « développeur non vérifié »
+- [ ] Mise à jour (`v1.0.1`) installée sans avertissement
+- [ ] Un appareil de proche ajouté et installé
+
+**Dépendances :** bloc 4.1 (clé de release). Inscription du compte : geste de Maxime (identité Google), suivi dans une issue `pour-maxime`.
+
 **🏁 Fin du jalon 4 :** `v1.0.0` publiée.
  
 ---
@@ -658,3 +674,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.10 | Expressions ravi, pensif, triste (variantes du SVG) et bulle « Machimoto dit » : accueil en 2 étapes (phrase puis code de secours), chargements et erreurs, listes vides, suggestions, départ (déconnexion confirmée, avec alerte si des saisies sont en attente ; suppression du compte). Texte de création du coffre corrigé (le code de secours existe depuis 2.9). |
 | 2026-10-25 | 2.12 | Import CSV avec aperçu (nouvelles, différentes, ignorées, improbables) ; lecture tolérante (; / tabulation / virgule, dates ISO ou jj/mm/aaaa, virgule décimale) ; D50. Pour reprendre les pesées d'Azaameth (#39). |
 | 2026-10-25 | Audit | Audit de santé : 0 vulnérabilité en prod (5 modérées dans firebase-tools, outil de dev, acceptées), dépendances à jour sauf TypeScript 7 (majeure, à part), aucun code mort ; build découpé (D51, à valider) ; Dependabot, modèle de PR, SECURITY.md ; README complet et CONTRIBUTING (poste neuf Windows/macOS/Linux) ; CLAUDE.md, plan (socle, arborescence, risques) et index des docs remis à jour. |
+| 2026-10-25 | 4.5 | Bloc ajouté à la demande d'Azaameth : vérification développeur Android, obligatoire en 2027 pour installer un APK hors Play Store sans le parcours avancé ; compte à distribution limitée (20 appareils) visé. |
