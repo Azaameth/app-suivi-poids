@@ -74,30 +74,33 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
  
 **Versions :** tags `vMAJEUR.MINEUR.CORRECTIF`. Le `versionCode` Android se calcule à partir du tag (`v1.2.3` → `10203`).
  
-**Arborescence cible :**
+**Arborescence** (réelle, mise à jour le 2026-10-25 ; configs regroupées, D7) :
 ```
-<nom-app>/
-├── .github/workflows/        # ci.yml, release.yml
+app-suivi-poids/
+├── .github/workflows/        # ci.yml (release.yml au jalon 4)
 ├── android/                  # généré par Capacitor (jalon 3)
-├── docs/                     # plan-projet.md, plan-installation-outils.md
+├── config/                   # ESLint, Prettier, Vite/Vitest, tsconfig
+├── docs/                     # plan-projet.md, plan-installation-outils.md, spec-restitution.md
+├── firebase/                 # firestore.rules, firestore.indexes.json, firebase.tests.json
+├── scripts/                  # check-secrets.mjs (pre-commit + CI)
 ├── src/
 │   ├── core/                 # interfaces + logique métier (aucune API de plateforme)
-│   │   ├── auth/AuthService.ts
-│   │   ├── keys/KeyStore.ts
-│   │   ├── data/DataStore.ts
-│   │   └── crypto/           # AES-GCM, PBKDF2, encapsulation de la clé
+│   │   ├── auth/ data/ keys/ prefs/ files/   # les 5 interfaces de Services
+│   │   ├── crypto/           # AES-GCM, PBKDF2, encapsulation de la clé
+│   │   ├── vault/            # coffre : phrase secrète, déverrouillage
+│   │   ├── pesees/           # modèle, chiffrement des champs, dépôt, périodes, CSV
+│   │   └── analyse/          # tendance, rythme, variation, projection, plausibilité
 │   ├── adapters/
-│   │   ├── web/              # versions web (SDK JS Firebase, clé en mémoire)
+│   │   ├── web/              # Firebase JS SDK, localStorage (préférences), téléchargement
+│   │   ├── memory/           # implémentations en mémoire (tests ; clé en mémoire sur le web)
 │   │   └── native/           # versions Capacitor (jalon 3)
+│   ├── context/              # contexte React des services
+│   ├── features/             # écrans : auth, vault, tableau-de-bord, pesees, prefs, sync, dev, commun
 │   ├── platform.ts           # choix des adaptateurs selon la plateforme
-│   ├── features/             # écrans et composants par fonctionnalité
 │   └── main.tsx
-├── tests/
-│   └── rules/                # tests des règles Firestore
+├── tests/emulateurs/         # règles, stockage, hors ligne, session (npm run test:emulateurs)
 ├── firebase.json
-├── firestore.rules
-├── firestore.indexes.json
-├── capacitor.config.ts
+├── capacitor.config.ts       # jalon 3
 ├── .node-version
 └── .gitignore
 ```
@@ -216,14 +219,14 @@ npm test -- --run src/core/crypto
 ## Bloc 1.5 — Règles Firestore + tests
 **Livrables**
 - `firestore.rules` : refus par défaut ; un utilisateur n'accède qu'à `users/{uid}/**` si `request.auth.uid == uid`
-- Tests avec `@firebase/rules-unit-testing` dans `tests/rules/`
+- Tests avec `@firebase/rules-unit-testing` dans `tests/emulateurs/`
 **Critères d'acceptation**
 - [x] Un utilisateur non connecté est refusé partout
 - [x] L'utilisateur A ne peut ni lire ni écrire les données de l'utilisateur B
 - [x] L'utilisateur A peut lire et écrire ses propres données
 **✅ Vérification**
 ```bash
-firebase emulators:exec --only firestore "npm test -- --run tests/rules"
+npm run test:emulateurs
 ```
  
 ## Bloc 1.6 — Authentification web
@@ -301,7 +304,7 @@ firebase emulators:exec --only firestore "npm test -- --run tests/rules"
 | Deux onglets modifient le même document | Règle de conflit appliquée (D6 : dernière écriture gagnante) | [x] |
 | Session expirée pendant le hors ligne | Reconnexion demandée sans perte des écritures en attente | [x] |
 
-> ✅ Les 4 scénarios sont automatisés sous émulateur (`tests/rules/hors-ligne.test.ts`, `session.test.ts`) avec le vrai SDK coupé du réseau (`disableNetwork`). Vérification manuelle dans le navigateur : checklist de la PR du bloc 2.5.
+> ✅ Les 4 scénarios sont automatisés sous émulateur (`tests/emulateurs/hors-ligne.test.ts`, `session.test.ts`) avec le vrai SDK coupé du réseau (`disableNetwork`). Vérification manuelle dans le navigateur : checklist de la PR du bloc 2.5.
  
 > ℹ️ Sur le web, le cache est en mémoire : le hors ligne fonctionne tant que l'onglet reste ouvert. C'est voulu.
  
@@ -459,6 +462,7 @@ Déclenché sur un tag `v*` :
 | D35 | 2026-10-25 | Saisie improbable signalée par ⚠️, jamais bloquée : écart de plus de 3 kg à la tendance des pesées antérieures (si la dernière date de moins de 30 jours), ou poids hors 20 – 300 kg | Repérer les fautes de frappe (87,4 au lieu de 78,4) sans empêcher une saisie réelle ; bornes 20 – 300 kg de la spec reprises comme avertissement | Blocage de la saisie ; bornes strictes |
 | D36 | 2026-10-25 | Fourchettes de projection par la loi de Student (n − 2 ddl) à 95 % (tuile + cône) et 99 % (cône pâle autour), au lieu du facteur fixe 2 (`T_FOURCHETTE`) ; cônes sur la tendance, pas sur les pesées futures | Avec 14 à 28 pesées, le facteur 2 sous-estime l'incertitude (~10 %) ; deux niveaux montrent la zone probable et la zone extrême | Facteur 2 et 2,6 ; intervalle de prédiction des pesées (trop large, bruité) |
 | D37 | 2026-10-25 | Règles : la mise à jour d'une pesée remplace tout le document, `createdAt` compris (plus d'immuabilité) | Trouvé par le test de conflit du 2.5 : une saisie hors ligne sur un jour rempli ailleurs était refusée au retour du réseau, contrairement à D6 | `createdAt` immuable côté serveur |
+| D38 | 2026-10-25 | `overrides` npm : `@grpc/grpc-js` ≥ 1.14.6 sous `@firebase/firestore` ; en-têtes HTTP de sécurité et de cache sur Hosting (sans `X-Frame-Options` pour l'instant) | Alertes `npm audit` (côté serveur Node, absentes du bundle web) sans rétrograder Firebase ; cache long des fichiers versionnés, `index.html` revalidé | `npm audit fix --force` (rétrograde Firebase en 9.x) |
  
 ## ⚠️ Risques
  
@@ -499,3 +503,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.6 | Graphique : tendance en courbe lissée monotone (sans dépassement) ; repères verticaux en pointillés ténus (mois ≤ 4 mois, trimestres ≤ 2 ans, années au-delà, 1ᵉʳ janvier marqué). |
 | 2026-10-25 | 2.6 | Cônes à 95 % et 99 % (Student, D36) ; scénario de dev « baisse régulière » (la projection n'apparaît qu'avec ≥ 14 pesées sur 28 j et un rythme ≥ 0,1 kg/sem, D31). |
 | 2026-10-25 | 2.5 | Hors ligne et conflits automatisés sous émulateur (SDK coupé du réseau, deux appareils, session perdue puis retrouvée). Bug trouvé et corrigé : règle `createdAt` immuable qui cassait D6 (D37). Indicateur : nombre de modifications en attente. Fin du jalon 2 → `v0.2.0`. |
+| 2026-10-25 | Polish | Audit : README racine, CLAUDE.md et docs à jour, arborescence réelle dans le plan ; dates unifiées (`core/analyse/dates`), `stats.ts` → `periodes.ts` + `csv.ts`, constantes mortes retirées, `platform.ts` explicite ; `tests/rules` → `tests/emulateurs` (`npm run test:emulateurs`) ; 0 vulnérabilité en prod (D38) ; favicon et méta-données ; en-têtes Hosting. |

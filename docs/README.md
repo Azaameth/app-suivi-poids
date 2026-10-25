@@ -1,6 +1,9 @@
-# Documents de pilotage
+# Documentation
 
-À copier ici :
+| Document | Contenu |
+|---|---|
+| [`plan-projet.md`](plan-projet.md) | **Source de vérité** : blocs et critères (📍 Suivi), 🗂️ Registre des décisions, 📝 Journal, arborescence |
+| [`plan-installation-outils.md`](plan-installation-outils.md) | Environnement de dev (Arch Linux) ; écart assumé : VS Code en Flatpak (D9) |
+| [`spec-restitution.md`](spec-restitution.md) | Tableau de bord : tendance, rythme, projection ; arbitrages du 25/10/2026 en fin de document |
 
-- `plan-projet.md` — source de vérité du projet (blocs, critères, décisions)
-- `plan-installation-outils.md` — environnement de dev
+Le fichier [`../CLAUDE.md`](../CLAUDE.md) résume l'état du projet pour les sessions de Claude Code.

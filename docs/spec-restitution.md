@@ -58,7 +58,7 @@ users/{uid}/meta/profil
 
 - `tolerance` : valeur par défaut **1,0 kg**, réglable **par pas de 0,5 kg**, de **0,5 à 3,0 kg**. Le choix revient à l'utilisateur.
 - Tant que `usage` vaut `null`, on applique l'affichage v1 neutre.
-> Mettre à jour `firestore.rules` et `tests/rules/` : mêmes règles que le reste de `users/{uid}/**`, avec validation de forme (champs attendus, `tolerance` dans les bornes).
+> Mettre à jour `firebase/firestore.rules` et `tests/emulateurs/` : mêmes règles que le reste de `users/{uid}/**`, avec validation de forme (champs attendus, `tolerance` dans les bornes).
 
 ---
 

@@ -1,12 +1,12 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-// Tests des règles Firestore : à lancer via `npm run test:rules` (démarre l'émulateur).
+// Tests sous émulateurs (règles, stockage, hors ligne, session) : `npm run test:emulateurs`.
 export default defineConfig({
   root: fileURLToPath(new URL('..', import.meta.url)),
   test: {
     environment: 'node',
-    include: ['tests/rules/**/*.test.ts'],
+    include: ['tests/emulateurs/**/*.test.ts'],
     fileParallelism: false,
   },
 })

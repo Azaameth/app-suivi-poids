@@ -23,7 +23,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
 
-      # Requis par l'émulateur Firestore.
+      # Requis par les émulateurs Firebase (Auth, Firestore).
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -40,5 +40,5 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-      - run: npm run test:rules
+      - run: npm run test:emulateurs
       - run: npm run build

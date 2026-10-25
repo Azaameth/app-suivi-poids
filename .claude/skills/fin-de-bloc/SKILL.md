@@ -7,8 +7,8 @@ description: Clôturer un bloc du plan projet — lancer toutes les vérificatio
 
 1. Vérifications (s'arrêter et montrer la sortie au premier échec) :
    - `npm run verify` (secrets, lint, types, tests unitaires, build)
-   - `npm run test:rules` si `firebase/firestore.rules` ou `tests/rules/` ont changé
-     (nécessite Java 21 dans le PATH, voir CLAUDE.md §9)
+   - `npm run test:emulateurs` (règles, stockage, hors ligne, session ; nécessite Java 21,
+     voir CLAUDE.md)
    - les commandes de vérification propres au bloc dans `docs/plan-projet.md`
 2. `git status` : aucun fichier de la liste « Sécurité » de CLAUDE.md §3 ne doit être suivi.
 3. Rappeler à Maxime de cocher le bloc dans `docs/plan-projet.md` (📍 Suivi).
