@@ -54,6 +54,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
 | 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [x] |
 | 2.8 | Fonctionnel | Ouverture aux proches : suggestions dans l'appli, version visible, installation (manifeste web), suppression du compte | [x] |
+| 2.9 | Fonctionnel | Code de secours (phrase oubliée) | [x] |
 | 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [ ] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
@@ -377,6 +378,21 @@ npm run test:emulateurs
 - [x] La suppression du compte efface toutes les données Firestore de l'utilisateur et son compte Auth (test sous émulateur)
 - [x] Les données d'un proche restent illisibles et inaccessibles pour les autres (tests de règles existants)
 
+## Bloc 2.9 — Code de secours (décidé le 2026-10-25)
+**Objectif :** un garde-fou en cas de phrase secrète oubliée, sans casser le chiffrement « zéro connaissance ».
+
+**Livrables**
+- Code de secours aléatoire (160 bits, base32 Crockford, 8 groupes de 4), affiché **une seule fois** à la création du coffre (téléchargeable en .txt, confirmation « rangé en lieu sûr »).
+- `meta/keys.secours` : la même clé de données encapsulée par le code (PBKDF2, 600 000 itérations) ; règles et tests.
+- « J'ai oublié ma phrase » (coffre verrouillé) : code + nouvelle phrase ; les données restent intactes, le code reste valable.
+- Réglages → Code de secours : état, création (comptes antérieurs) ou régénération, phrase actuelle exigée ; l'ancien code devient inutilisable.
+- Changer de phrase conserve le code.
+
+**Critères d'acceptation**
+- [x] Récupération par le code : nouvelle phrase, pesées lisibles (tests unitaires et sous émulateur)
+- [x] Mauvais code refusé ; compte sans code : message clair, création possible
+- [x] Le code n'est jamais stocké (seule son encapsulation l'est)
+
 ## Bloc 2.10 — Machimoto dans les parcours (demandé le 2026-10-25)
 **Objectif :** donner vie à la mascotte aux moments clés, sans alourdir les écrans de données.
 
@@ -546,6 +562,7 @@ Déclenché sur un tag `v*` :
 | D45 | 2026-10-25 | Suggestions dans l'appli (🗨️ du bandeau) sous `users/{uid}/suggestions`, non chiffrées avec avertissement, version jointe ; création, lecture et suppression par l'auteur, pas de modification | Proches sans compte GitHub ; lecture par Maxime dans la console | Lien `mailto:` ; issues GitHub |
 | D46 | 2026-10-25 | Minimisation : le profil v1.1 ne demandera que la taille (IMC adulte, mêmes seuils pour tous) ; sexe et âge seulement si une fonctionnalité les exige, facultatifs et chiffrés | RGPD et esprit de l'appli : ne collecter que l'utile | Collecter sexe et âge d'emblée |
 | D47 | 2026-10-25 | `meta/keys` supprimable par son propriétaire, uniquement via « Supprimer mon compte » (saisie de « SUPPRIMER », réseau obligatoire) ; révise D25 | Permettre l'effacement complet d'un compte | Suppression interdite (D25) |
+| D48 | 2026-10-25 | Code de secours aléatoire (160 bits) encapsulant la même clé de données que la phrase (meta/keys.secours), affiché une fois ; récupération = code + nouvelle phrase ; régénérable (phrase exigée) | Garde-fou contre l'oubli de la phrase sans porte dérobée : seul le détenteur du code peut récupérer ; complète D3 et D25 | Indice de phrase ; copie de la clé chez un tiers ; réinitialisation par e-mail (impossible sans que le serveur détienne la clé) |
  
 ## ⚠️ Risques
  
@@ -594,4 +611,5 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.7 | Finitions : icônes ✏️ / 🗑️ (fond rouge), navigation intégrée au bandeau (zone collante unique, espacée), notes mises en évidence sur le graphique (`--highlight` équilibré : 4,55 / 5,09:1), thème Système · Clair · Sombre (D41, D42). `X-Frame-Options: DENY` ajouté (#28, sans risque pour `/__/auth/*`). |
 | 2026-10-25 | 2.8 | Plan « Ouverture aux proches » (inscription ouverte, suggestions dans l'appli, version, manifeste web, suppression du compte) ; cadrage 0.2 révisé ; IMC reportée en v1.1 avec la taille, sexe non collecté (minimisation). À valider avec #33. |
 | 2026-10-25 | 2.8 | Ouverture aux proches : 🗨️ suggestions (règles + tests), version 0.2.1 dans le menu, manifeste web et icônes (192 / 512 / maskable / Apple 180, générées avec `rsvg-convert`), suppression du compte (D44 à D47). Bug évité : `lireIds` appelait `stop` avant son affectation avec l'implémentation mémoire. |
+| 2026-10-25 | 2.9 | Code de secours : génération Crockford, encapsulation dans meta/keys.secours, écrans (affichage unique, phrase oubliée, Réglages), règles et tests. Menu : 🚪 Se déconnecter. |
 | 2026-10-25 | 2.10 | Bloc proposé par Azaameth : Machimoto (content, triste…) dans l'accueil, le départ et les écrans sans graphique ; favicon déjà dans #36. |

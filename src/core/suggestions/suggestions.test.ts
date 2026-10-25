@@ -35,7 +35,7 @@ describe('supprimer mon compte (D47)', () => {
   test('efface pesées, suggestions, meta/keys, la clé en mémoire et le compte', async () => {
     const services = createMemoryServices()
     await services.auth.signIn({ method: 'google' })
-    const key = await new Vault(services.data, services.keys, 'alice').setup(
+    const { key } = await new Vault(services.data, services.keys, 'alice').setup(
       'cheval agrafe batterie',
     )
     await new PeseeRepository(services.data, 'alice', key).save({ date: '2026-10-25', poids: 75 })

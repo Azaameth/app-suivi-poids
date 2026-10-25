@@ -3,7 +3,9 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 export interface Field {
   name: string
   label: string
-  autoComplete: 'current-password' | 'new-password'
+  autoComplete: 'current-password' | 'new-password' | 'off'
+  /** Texte visible (code de secours) plutôt que masqué. */
+  visible?: boolean
 }
 
 /**
@@ -47,10 +49,17 @@ export function PassphraseForm({
   return (
     <form onSubmit={handleSubmit}>
       {children}
-      {fields.map(({ name, label, autoComplete }) => (
+      {fields.map(({ name, label, autoComplete, visible }) => (
         <p key={name}>
           <label>
-            {label} <input name={name} type="password" autoComplete={autoComplete} required />
+            {label}{' '}
+            <input
+              name={name}
+              type={visible ? 'text' : 'password'}
+              autoComplete={autoComplete}
+              spellCheck={false}
+              required
+            />
           </label>
         </p>
       ))}

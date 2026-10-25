@@ -71,7 +71,7 @@ export function ProfileMenu({
             </button>
           )}
           <button type="button" onClick={run(() => void auth.signOut())}>
-            Se déconnecter
+            🚪 Se déconnecter
           </button>
         </div>
       )}

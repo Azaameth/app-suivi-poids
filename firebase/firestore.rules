@@ -38,12 +38,21 @@ service cloud.firestore {
           && value.matches('^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$');
       }
 
+      // Clé encapsulée par la phrase et, facultatif, par le code de secours (D48).
+      function isValidEnveloppe(e) {
+        return isEncrypted(e.wrappedKey)
+          && e.salt is string && e.salt.size() > 0
+          && e.iterations is int && e.iterations >= 600000;
+      }
+
       function isValidKeyMeta(data) {
-        return data.keys().hasOnly(['wrappedKey', 'salt', 'iterations', 'version'])
-          && isEncrypted(data.wrappedKey)
-          && data.salt is string && data.salt.size() > 0
-          && data.iterations is int && data.iterations >= 600000
-          && data.version is int;
+        return data.keys().hasOnly(['wrappedKey', 'salt', 'iterations', 'version', 'secours'])
+          && isValidEnveloppe(data)
+          && data.version is int
+          && (!('secours' in data)
+            || (data.secours is map
+              && data.secours.keys().hasOnly(['wrappedKey', 'salt', 'iterations'])
+              && isValidEnveloppe(data.secours)));
       }
 
       function isValidSuggestion(data) {
