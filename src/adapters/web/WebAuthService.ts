@@ -8,7 +8,7 @@ import {
   type User,
 } from 'firebase/auth'
 import type { AuthService, AuthUser, Credentials } from '../../core'
-import { auth } from './firebase'
+import { auth, viderCacheLocal } from './firebase'
 
 function toAuthUser(user: User | null): AuthUser | null {
   return user && { uid: user.uid, email: user.email, displayName: user.displayName }
@@ -40,6 +40,8 @@ export class WebAuthService implements AuthService {
 
   async signOut() {
     await signOut(auth)
+    // La copie locale (D49) ne survit pas à la déconnexion.
+    await viderCacheLocal()
   }
 
   async deleteAccount() {
@@ -53,5 +55,6 @@ export class WebAuthService implements AuthService {
       await reauthenticateWithPopup(user, new GoogleAuthProvider())
       await deleteUser(user)
     }
+    await viderCacheLocal()
   }
 }

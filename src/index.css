@@ -696,3 +696,7 @@ label.inline {
   background: var(--fg);
   opacity: 0.3;
 }
+
+.hors-ligne {
+  margin: 0.75rem 0;
+}

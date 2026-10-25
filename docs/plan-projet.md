@@ -56,6 +56,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.8 | Fonctionnel | Ouverture aux proches : suggestions dans l'appli, version visible, installation (manifeste web), suppression du compte | [x] |
 | 2.9 | Fonctionnel | Code de secours (phrase oubliée) | [x] |
 | 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [ ] |
+| 2.11 | Fonctionnel | Démarrage hors ligne : copie locale chiffrée (option « Garder mes données sur cet appareil ») | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -408,6 +409,20 @@ npm run test:emulateurs
 - [ ] Images décoratives (`alt=""`), le texte porte l'information ; lisibles en thème clair et sombre
 - [ ] Aucun Machimoto sur le tableau de bord rempli (le graphique reste le héros)
 
+## Bloc 2.11 — Démarrage hors ligne (décidé le 2026-10-25)
+**Objectif :** ouvrir l'appli et saisir sans réseau, ou quand le serveur est injoignable alors que le navigateur se croit en ligne, sans affaiblir le chiffrement (révise D4, D49).
+
+**Livrables**
+- Cache Firestore **persistant** (IndexedDB, plusieurs onglets) quand l'option est active : il ne contient que ce que voit le serveur (pesées chiffrées, dates, clé encapsulée) ; la clé de données et la phrase restent en mémoire.
+- Réglages → « Garder mes données sur cet appareil (hors ligne) », **activé par défaut** ; pris en compte au chargement suivant (bouton « Recharger maintenant »). Désactivée : cache mémoire seul et copie existante effacée.
+- Copie locale **effacée** à la déconnexion et à la suppression du compte.
+- Sans réseau, la lecture du coffre et des pesées retombe sur la copie locale : déverrouillage avec la phrase, saisies en attente envoyées au retour du réseau (même au rechargement de la page).
+
+**Critères d'acceptation**
+- [x] Option activée par défaut, modifiable dans les Réglages (tests UI)
+- [x] Déconnexion et suppression du compte effacent la copie locale
+- [x] Aucune donnée en clair ni clé de données dans IndexedDB (seuls les documents du serveur y sont)
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
 ---
@@ -518,7 +533,7 @@ Déclenché sur un tag `v*` :
 | D1 | 2026-10-23 | Capacitor plutôt que Flutter ou natif | Un seul code web + APK, effort modéré | Flutter, Kotlin |
 | D2 | 2026-10-23 | Firebase (Spark) | Gratuit, synchro + hors ligne intégrés, pas de mise en pause pour inactivité | Supabase |
 | D3 | 2026-10-23 | Clé de données encapsulée par PBKDF2 | Accès web + Android, récupération après réinstallation | Clé uniquement dans le Keystore |
-| D4 | 2026-10-23 | Cache web en mémoire | Pas de données persistées dans le navigateur | Cache IndexedDB |
+| D4 | 2026-10-23 | Cache web en mémoire (révisé par D49) | Pas de données persistées dans le navigateur | Cache IndexedDB |
 | D5 | 2026-10-23 | Distribution par GitHub Releases + Obtainium | Gratuit, pas de Play Store | Play Store (25 $) |
 | D6 | 2026-10-24 | Conflits : dernière écriture gagnante, au niveau du document du jour | Un document par jour, usage mono-utilisateur (#3) | Fusion champ par champ, résolution manuelle |
 | D7 | 2026-10-24 | Configs dans `config/`, règles et index Firestore dans `firebase/` | Racine lisible | Tout à la racine (arborescence cible) |
@@ -563,6 +578,7 @@ Déclenché sur un tag `v*` :
 | D46 | 2026-10-25 | Minimisation : le profil v1.1 ne demandera que la taille (IMC adulte, mêmes seuils pour tous) ; sexe et âge seulement si une fonctionnalité les exige, facultatifs et chiffrés | RGPD et esprit de l'appli : ne collecter que l'utile | Collecter sexe et âge d'emblée |
 | D47 | 2026-10-25 | `meta/keys` supprimable par son propriétaire, uniquement via « Supprimer mon compte » (saisie de « SUPPRIMER », réseau obligatoire) ; révise D25 | Permettre l'effacement complet d'un compte | Suppression interdite (D25) |
 | D48 | 2026-10-25 | Code de secours aléatoire (160 bits) encapsulant la même clé de données que la phrase (meta/keys.secours), affiché une fois ; récupération = code + nouvelle phrase ; régénérable (phrase exigée) | Garde-fou contre l'oubli de la phrase sans porte dérobée : seul le détenteur du code peut récupérer ; complète D3 et D25 | Indice de phrase ; copie de la clé chez un tiers ; réinitialisation par e-mail (impossible sans que le serveur détienne la clé) |
+| D49 | 2026-10-25 | Cache Firestore persistant (IndexedDB) sur le web si « Garder mes données sur cet appareil » (activé par défaut), effacé à la déconnexion et à la suppression du compte ; révise D4 | Démarrer et saisir hors ligne, y compris serveur injoignable ; la copie ne contient que ce que voit le serveur (données chiffrées, dates, clé encapsulée) | Cache mémoire seul (D4) ; option désactivée par défaut |
  
 ## ⚠️ Risques
  
@@ -613,3 +629,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.8 | Ouverture aux proches : 🗨️ suggestions (règles + tests), version 0.2.1 dans le menu, manifeste web et icônes (192 / 512 / maskable / Apple 180, générées avec `rsvg-convert`), suppression du compte (D44 à D47). Bug évité : `lireIds` appelait `stop` avant son affectation avec l'implémentation mémoire. |
 | 2026-10-25 | 2.9 | Code de secours : génération Crockford, encapsulation dans meta/keys.secours, écrans (affichage unique, phrase oubliée, Réglages), règles et tests. Menu : 🚪 Se déconnecter. |
 | 2026-10-25 | 2.10 | Bloc proposé par Azaameth : Machimoto (content, triste…) dans l'accueil, le départ et les écrans sans graphique ; favicon déjà dans #36. |
+| 2026-10-25 | 2.11 | Démarrage hors ligne : cache Firestore persistant en option (activée par défaut), effacé à la déconnexion ; révise D4 (D49). Compromis validé par Azaameth. |

@@ -95,3 +95,20 @@ describe('fenêtres (focus)', () => {
     expect(document.activeElement).toBe(note)
   }, 15_000)
 })
+
+describe('démarrage hors ligne (bloc 2.11)', () => {
+  test('« Garder mes données sur cet appareil » : actif par défaut, changement appliqué au rechargement', async () => {
+    const services = await start()
+    expect(services.prefs.get().horsLigne).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Réglages' }))
+    const option = (await screen.findByLabelText(
+      'Garder mes données sur cet appareil (hors ligne)',
+    )) as HTMLInputElement
+    expect(option.checked).toBe(true)
+    expect(screen.queryByText(/prochain chargement/)).toBeNull()
+    fireEvent.click(option)
+    expect(services.prefs.get().horsLigne).toBe(false)
+    expect(screen.getByText(/Pris en compte au prochain chargement/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Recharger maintenant' })).toBeTruthy()
+  }, 15_000)
+})
