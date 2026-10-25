@@ -11,11 +11,6 @@ export const MIN_PESEES_RYTHME = 14
 export const SEUIL_STABLE_KG_SEMAINE = 0.1
 /** 4 semaines. */
 export const HORIZON_PROJECTION_JOURS = 28
-/**
- * Largeur de la fourchette : remplacée par les quantiles de Student à 95 % et 99 % selon le
- * nombre de pesées (D36, voir student.ts). Valeur de la spec conservée pour mémoire.
- */
-export const T_FOURCHETTE = 2
 /** [À VALIDER] v1.1 : au-delà, pas de date d'objectif affichée (question Q1). */
 export const HORIZON_MAX_OBJECTIF_JOURS = 90
 /** v1.1 : tolérance de la zone « maintenir », en kg. */

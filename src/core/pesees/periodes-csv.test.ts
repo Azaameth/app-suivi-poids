@@ -1,5 +1,6 @@
+import { dateLocale } from '../analyse'
 import { describe, expect, test } from 'vitest'
-import { filterByPeriod, localDate, toCsv, type Pesee } from '.'
+import { filterByPeriod, toCsv, type Pesee } from '.'
 import { parsePreferences } from '../prefs/Preferences'
 
 const p = (date: string, poids: number, note?: string): Pesee => ({
@@ -11,8 +12,8 @@ const p = (date: string, poids: number, note?: string): Pesee => ({
 })
 
 describe('statistiques', () => {
-  test('localDate utilise le fuseau local, pas UTC', () => {
-    expect(localDate(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05')
+  test('dateLocale utilise le fuseau local, pas UTC', () => {
+    expect(dateLocale(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05')
   })
 
   test('filtre par période, du plus ancien au plus récent', () => {

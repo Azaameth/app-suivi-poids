@@ -1,6 +1,7 @@
 export { InvalidPeseeError, decodePesee, encodePesee } from './codec'
 export { PeseeRepository, type PeseeInput } from './repository'
-export { PERIODS, dayToMs, filterByPeriod, localDate, toCsv, type Period } from './stats'
+export { toCsv } from './csv'
+export { PERIODS, filterByPeriod, type Period } from './periodes'
 export {
   NOTE_MAX,
   PESEES,

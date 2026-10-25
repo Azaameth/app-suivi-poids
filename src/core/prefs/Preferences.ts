@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PERIODS } from '../pesees/stats'
+import { PERIODS } from '../pesees/periodes'
 import type { Unsubscribe } from '../types'
 
 export const AUTO_LOCK_CHOICES = [1, 2, 5, 10, 15, 30] as const

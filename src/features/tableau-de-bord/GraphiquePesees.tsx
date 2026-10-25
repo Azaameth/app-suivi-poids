@@ -1,6 +1,7 @@
-import { PERIODS, dayToMs, filterByPeriod, type Pesee } from '../../core/pesees'
+import { jourEnMs } from '../../core/analyse'
+import { PERIODS, filterByPeriod, type Pesee } from '../../core/pesees'
 import { usePreferences } from '../prefs/usePreferences'
-import { formatDay, formatShortDay, formatWeight } from '../pesees/format'
+import { formatDay, formatShortDay, formatWeight } from '../commun/format'
 import { courbeMonotone } from './courbe'
 import { reperesTemporels } from './reperes'
 import type { Analyse } from './useAnalyse'
@@ -74,7 +75,7 @@ function Trace({
   const derniere = analyse.tendance.at(-1)!
 
   const fin = projection.at(-1)?.date ?? visibles.at(-1)!.date
-  const [xMin, xMax] = [dayToMs(debut), dayToMs(fin)]
+  const [xMin, xMax] = [jourEnMs(debut), jourEnMs(fin)]
   const valeurs = [
     ...visibles.map((p) => p.poids),
     ...tendance.map((p) => p.tendance),
@@ -88,7 +89,7 @@ function Trace({
 
   const plotW = W - M.left - M.right
   const plotH = H - M.top - M.bottom
-  const x = (day: string) => M.left + ((dayToMs(day) - xMin) / (xMax - xMin || 1)) * plotW
+  const x = (day: string) => M.left + ((jourEnMs(day) - xMin) / (xMax - xMin || 1)) * plotW
   const y = (kg: number) => M.top + (1 - (kg - yMin) / (yMax - yMin)) * plotH
   const pt = (day: string, kg: number) => `${x(day).toFixed(1)},${y(kg).toFixed(1)}`
   const dateTicks = [0, 1 / 3, 2 / 3, 1].map((f) =>

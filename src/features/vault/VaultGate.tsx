@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { WrongPassphraseError } from '../../core/crypto'
-import {
-  MIN_PASSPHRASE_LENGTH,
-  Vault,
-  VaultAlreadyExistsError,
-  WeakPassphraseError,
-} from '../../core/vault'
+import { MIN_PASSPHRASE_LENGTH, Vault, VaultAlreadyExistsError } from '../../core/vault'
 import { useServices } from '../../context/ServicesContext'
 import { usePreferences } from '../prefs/usePreferences'
+import { HORS_LIGNE, messageErreur } from './messages'
 import { PassphraseForm } from './PassphraseForm'
 import { useAutoLock } from './useAutoLock'
 import { VaultContext, type UnlockedVault } from './VaultContext'
@@ -19,21 +14,13 @@ type State =
   | { kind: 'locked' }
   | { kind: 'unlocked'; key: CryptoKey }
 
-const OFFLINE = 'Connexion au serveur impossible. Vérifie le réseau puis réessaie.'
-
-function errorMessage(error: unknown): string {
-  if (error instanceof WrongPassphraseError) return 'Phrase secrète incorrecte.'
-  if (error instanceof WeakPassphraseError) return error.message
-  return OFFLINE
-}
-
 async function readState(vault: Vault): Promise<State> {
   try {
     const status = await vault.status()
     const key = status === 'unlocked' ? await vault.key() : null
     return key ? { kind: 'unlocked', key } : { kind: status === 'setup' ? 'setup' : 'locked' }
   } catch {
-    return { kind: 'error', message: OFFLINE }
+    return { kind: 'error', message: HORS_LIGNE }
   }
 }
 
@@ -113,7 +100,7 @@ export function VaultGate({
               setState({ kind: 'unlocked', key: await vault.setup(phrase) })
             } catch (error) {
               if (error instanceof VaultAlreadyExistsError) return void refresh()
-              return errorMessage(error)
+              return messageErreur(error)
             }
           }}
         >
@@ -140,7 +127,7 @@ export function VaultGate({
             try {
               setState({ kind: 'unlocked', key: await vault.unlock(phrase) })
             } catch (error) {
-              return errorMessage(error)
+              return messageErreur(error)
             }
           }}
         >

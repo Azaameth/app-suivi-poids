@@ -24,13 +24,13 @@ Tu accompagnes l'utilisateur pas à pas dans cette installation.
 | Bloc | Jalon | Contenu | Fait |
 |---|---|---|---|
 | 0 | Préparation | Mise à jour du système, base-devel, assistant AUR | [ ] |
-| 1.1 | Socle web | Git, GitHub CLI, clé SSH | [ ] |
-| 1.2 | Socle web | Node.js (via fnm) | [ ] |
-| 1.3 | Socle web | Java 21 (émulateurs Firebase) | [ ] |
-| 1.4 | Socle web | Firebase CLI | [ ] |
-| 1.5 | Socle web | VS Code et extensions | [ ] |
+| 1.1 | Socle web | Git, GitHub CLI, clé SSH | [x] |
+| 1.2 | Socle web | Node.js (via fnm) | [x] |
+| 1.3 | Socle web | Java 21 (émulateurs Firebase) | [x] |
+| 1.4 | Socle web | Firebase CLI | [x] |
+| 1.5 | Socle web | VS Code et extensions | [x] |
 | 1.6 | Socle web | Navigateur de test (Chromium) | [ ] |
-| 2 | Fonctionnel | Rien de nouveau côté système (vérification seulement) | [ ] |
+| 2 | Fonctionnel | Rien de nouveau côté système (vérification seulement) | [x] |
 | 3.1 | APK | KVM (accélération de l'émulateur) | [ ] |
 | 3.2 | APK | Android Studio + SDK | [ ] |
 | 3.3 | APK | Variables d'environnement Android | [ ] |
@@ -38,6 +38,13 @@ Tu accompagnes l'utilisateur pas à pas dans cette installation.
 | 4.1 | Distribution | Keystore de signature + GitHub Secrets | [ ] |
 | 4.2 | Distribution | Obtainium sur le téléphone | [ ] |
  
+> **Écarts constatés le 2026-10-25 (VS Code en Flatpak, D9)** — les cases cochées le sont par équivalence :
+> - 1.1 : `gh` en binaire dans `~/.local/bin` ; push en HTTPS via `gh auth setup-git` (pas de clé SSH).
+> - 1.2 / 1.3 : Node 26 et Java 21 via les extensions SDK du Flatpak (pas fnm ni `jdk21-openjdk`).
+> - 1.4 : Firebase CLI en dépendance du projet (`npx firebase`), connectée au compte perso.
+> - 1.5 : VS Code en Flatpak (`com.visualstudio.code`).
+> - **Non fait :** bloc 0 (`paru` absent : nécessaire au bloc 3.2 pour Android Studio) et 1.6 (Chromium absent ; Firefox et le navigateur de VS Code servent aux tests ; Chromium sera utile au jalon 3 pour `chrome://inspect`).
+
 ---
  
 ## Bloc 0 — Préparation du système
