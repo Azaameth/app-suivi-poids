@@ -14,6 +14,23 @@ export default defineConfig({
   base: './',
   // Version affichée dans le menu et jointe aux suggestions (bloc 2.8).
   define: { __APP_VERSION__: JSON.stringify(version) },
+  build: {
+    // Le SDK Firestore pèse ~630 kB (~190 kB compressé) à lui seul et ne se découpe pas.
+    chunkSizeWarningLimit: 700,
+    rolldownOptions: {
+      output: {
+        // Bibliothèques dans leurs propres fichiers : une mise à jour de l'appli ne fait pas
+        // retélécharger Firebase ni React (cache navigateur), et plus d'avertissement de taille.
+        codeSplitting: {
+          groups: [
+            { name: 'firebase', test: /node_modules[\\/]@?firebase/ },
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: 'zod', test: /node_modules[\\/]zod[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
