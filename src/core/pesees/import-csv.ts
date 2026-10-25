@@ -102,7 +102,9 @@ export function lireCsv(texte: string): LectureCsv {
     if (poids <= POIDS_MIN || poids > POIDS_MAX) {
       return void ignorees.push({ ligne, raison: `poids hors bornes (${poidsBrut})` })
     }
-    const note = noteBrute.slice(0, NOTE_MAX) || undefined
+    // Apostrophe ajoutée par l'export devant une note qui ressemble à une formule.
+    const sansProtection = /^'[=+\-@\t\r]/.test(noteBrute) ? noteBrute.slice(1) : noteBrute
+    const note = sansProtection.slice(0, NOTE_MAX) || undefined
     if (parDate.has(date)) doublons.add(date)
     parDate.set(date, note ? { date, poids, note } : { date, poids })
   })

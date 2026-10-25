@@ -15,7 +15,7 @@ Tu accompagnes l'utilisateur pas à pas dans cette installation.
 4. Ne fais pas sauter un jalon. Les outils Android (jalon 3) ne s'installent pas avant d'en avoir besoin.
 5. À la fin de chaque bloc, rappelle à l'utilisateur de cocher la case correspondante dans ce fichier.
 6. Arch est une distribution en publication continue (rolling release) : si un nom de paquet a changé, vérifie avec `pacman -Ss <nom>` ou sur la page AUR avant de proposer une autre solution.
-**Contexte projet :** Vite + React + TypeScript, Firebase (Auth + Firestore, plan Spark), chiffrement AES-GCM avec phrase secrète PBKDF2, 3 interfaces (`AuthService`, `KeyStore`, `DataStore`) avec des adaptateurs web puis natifs, Capacitor pour l'APK, repo GitHub public, GitHub Actions et Releases, Obtainium.
+**Contexte projet :** Vite + React + TypeScript, Firebase (Auth + Firestore, plan Spark), chiffrement AES-GCM avec phrase secrète PBKDF2, 5 interfaces (`AuthService`, `KeyStore`, `DataStore`, `PreferencesStore`, `FileExporter`) avec des adaptateurs web puis natifs, Capacitor pour l'APK, repo GitHub public, GitHub Actions et Releases, Obtainium.
  
 ---
  

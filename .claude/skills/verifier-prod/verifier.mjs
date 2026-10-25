@@ -58,6 +58,10 @@ ok(racine.h('x-content-type-options') === 'nosniff', 'nosniff sur /')
 ok(racine.h('x-frame-options') === 'DENY', 'X-Frame-Options: DENY sur /')
 ok(!!racine.h('referrer-policy'), `Referrer-Policy sur / (${racine.h('referrer-policy')})`)
 ok(!!racine.h('permissions-policy'), 'Permissions-Policy sur /')
+ok(
+  !!(racine.h('content-security-policy') ?? racine.h('content-security-policy-report-only')),
+  'Content-Security-Policy (ou Report-Only) sur /',
+)
 ok(racine.h('cache-control') === 'no-cache', 'index.html revalidé (no-cache)')
 for (const chemin of ['/__/auth/iframe', '/__/auth/handler']) {
   const r = await entetes(`${AUTH}${chemin}`)

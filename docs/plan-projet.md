@@ -21,11 +21,11 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
  
 | Domaine | Choix |
 |---|---|
-| Front | Vite + React + TypeScript |
+| Front | Vite + React + TypeScript, Zod |
 | Backend | Firebase, plan Spark (Auth + Firestore) |
-| Chiffrement | AES-GCM sur les champs sensibles ; clé de données encapsulée par une clé dérivée de la phrase secrète (PBKDF2) |
-| Architecture | 3 interfaces : `AuthService`, `KeyStore`, `DataStore`. Une version web et une version native (adaptateurs) |
-| Cache local | Web : en mémoire uniquement. Android : cache natif Firestore |
+| Chiffrement | AES-GCM sur les champs sensibles ; clé de données encapsulée par une clé dérivée de la phrase secrète (PBKDF2) et par un code de secours (D48) |
+| Architecture | 5 interfaces : `AuthService`, `KeyStore`, `DataStore`, `PreferencesStore` (D26), `FileExporter` (D27). Une version web et une version native (adaptateurs) |
+| Cache local | Web : IndexedDB (données chiffrées) si « Garder mes données sur cet appareil », sinon mémoire (D49). Android : cache natif Firestore |
 | Mobile | Capacitor (Android) + plugins `@capacitor-firebase/*`, stockage sécurisé dans le Keystore |
 | Hébergement web | Firebase Hosting |
 | CI/CD | GitHub Actions (repo public) |
@@ -58,6 +58,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [x] |
 | 2.11 | Fonctionnel | Démarrage hors ligne : copie locale chiffrée (option « Garder mes données sur cet appareil ») | [x] |
 | 2.12 | Fonctionnel | Import CSV (reprise de pesées existantes, #39) | [x] |
+| 2.13 | Fonctionnel | Connexion par e-mail et mot de passe (en plus de Google) | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -67,6 +68,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 4.2 | Distribution | CI sur les pull requests | [ ] |
 | 4.3 | Distribution | Workflow de release (tag → APK + Hosting) | [ ] |
 | 4.4 | Distribution | Première release + Obtainium | [ ] |
+| 4.5 | Distribution | Vérification développeur Android (installation sans avertissement « développeur non vérifié ») | [ ] |
 | 5.1 | Maintenance | Dépendances, sauvegardes, surveillance | [ ] |
 | 6.1 | v1.1 | Profil (usage, cible, tolérance, **taille**), objectif, couleurs liées à l'usage, **repères d'IMC** (`docs/spec-restitution.md`, v1.1 ; D46) | [ ] |
  
@@ -83,30 +85,38 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 **Arborescence** (réelle, mise à jour le 2026-10-25 ; configs regroupées, D7) :
 ```
 app-suivi-poids/
-├── .github/workflows/        # ci.yml (release.yml au jalon 4)
+├── .claude/                  # outillage de Claude Code : hooks, skills (voir CLAUDE.md § 6)
+├── .github/                  # workflows/ci.yml (release.yml au jalon 4), dependabot.yml, modèle de PR
+├── .githooks/                # pre-commit : check-secrets
 ├── android/                  # généré par Capacitor (jalon 3)
 ├── config/                   # ESLint, Prettier, Vite/Vitest, tsconfig
 ├── docs/                     # plan-projet.md, plan-installation-outils.md, spec-restitution.md
 ├── firebase/                 # firestore.rules, firestore.indexes.json, firebase.tests.json
-├── scripts/                  # check-secrets.mjs (pre-commit + CI)
+├── public/                   # favicon, icônes, manifeste web
+├── scripts/                  # check-secrets.mjs, plan.mjs (mise à jour du plan), empreinte.mjs
 ├── src/
 │   ├── core/                 # interfaces + logique métier (aucune API de plateforme)
 │   │   ├── auth/ data/ keys/ prefs/ files/   # les 5 interfaces de Services
 │   │   ├── crypto/           # AES-GCM, PBKDF2, encapsulation de la clé
 │   │   ├── vault/            # coffre : phrase secrète, déverrouillage
-│   │   ├── pesees/           # modèle, chiffrement des champs, dépôt, périodes, CSV
-│   │   └── analyse/          # tendance, rythme, variation, projection, plausibilité
+│   │   ├── pesees/           # modèle, chiffrement des champs, dépôt, périodes, export et import CSV
+│   │   ├── analyse/          # tendance, rythme, variation, projection, plausibilité
+│   │   ├── suggestions/      # suggestions des proches (D45)
+│   │   └── compte/           # suppression du compte (D47)
 │   ├── adapters/
 │   │   ├── web/              # Firebase JS SDK, localStorage (préférences), téléchargement
-│   │   ├── memory/           # implémentations en mémoire (tests ; clé en mémoire sur le web)
+│   │   ├── memory/           # implémentations en mémoire (tests)
 │   │   └── native/           # versions Capacitor (jalon 3)
 │   ├── context/              # contexte React des services
-│   ├── features/             # écrans : auth, vault, tableau-de-bord, pesees, prefs, sync, dev, commun
+│   ├── features/             # écrans : auth, vault, tableau-de-bord, pesees, prefs, shell, suggestions, compte, sync, dev, commun
+│   ├── assets/               # Professeur Machimoto (SVG, 4 expressions)
+│   ├── test/                 # appHarness : parcours communs des tests d'interface
 │   ├── platform.ts           # choix des adaptateurs selon la plateforme
 │   └── main.tsx
 ├── tests/emulateurs/         # règles, stockage, hors ligne, session (npm run test:emulateurs)
 ├── firebase.json
 ├── capacitor.config.ts       # jalon 3
+├── README.md, CONTRIBUTING.md, SECURITY.md, CLAUDE.md, LICENSE
 ├── .node-version
 └── .gitignore
 ```
@@ -312,7 +322,7 @@ npm run test:emulateurs
 
 > ✅ Les 4 scénarios sont automatisés sous émulateur (`tests/emulateurs/hors-ligne.test.ts`, `session.test.ts`) avec le vrai SDK coupé du réseau (`disableNetwork`). Vérification manuelle dans le navigateur : checklist de la PR du bloc 2.5.
  
-> ℹ️ Sur le web, le cache est en mémoire : le hors ligne fonctionne tant que l'onglet reste ouvert. C'est voulu.
+> ℹ️ Sur le web, le cache est en mémoire : le hors ligne fonctionne tant que l'onglet reste ouvert. C'est voulu. *(Révisé par le bloc 2.11 : copie locale chiffrée, D49.)*
  
 ## Bloc 2.6 — Tableau de bord (restitution v1)
 **Référence :** `docs/spec-restitution.md` (sections 3, 4.1 à 4.4, 5 sans objectif) et ses arbitrages du 25/10/2026.
@@ -437,6 +447,21 @@ npm run test:emulateurs
 - [x] Rien n'est écrit avant confirmation ; une pesée existante n'est remplacée que sur demande
 - [x] Pesées importées stockées chiffrées (test UI)
 
+## Bloc 2.13 — Connexion par e-mail (demandé le 2026-10-25)
+**Objectif :** permettre aux proches sans compte Google d'utiliser l'appli (révise D15, D53).
+
+**Livrables**
+- Écran de connexion : « Se connecter avec Google » ou « Utiliser un e-mail » (se connecter, créer un compte, mot de passe oublié).
+- `AuthService` : `Credentials` e-mail, `reinitialiserMotDePasse`, `confirmerMotDePasse` ; `AuthUser.fournisseur`.
+- Mot de passe (connexion, ≥ 8 caractères) bien distinct de la phrase secrète (chiffrement) : expliqué à la création.
+- Suppression d'un compte e-mail : mot de passe vérifié **avant** tout effacement.
+- Fournisseur « Adresse e-mail/Mot de passe » activé dans la console Firebase (fait par Azaameth).
+
+**Critères d'acceptation**
+- [x] Création, connexion, mauvais mot de passe refusé, réinitialisation à message neutre (tests UI)
+- [x] Codes d'erreur réels de Firebase Auth traduits (test sous émulateur)
+- [x] Suppression : mauvais mot de passe → rien n'est effacé
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
 ---
@@ -527,6 +552,21 @@ Déclenché sur un tag `v*` :
 - Tag `v1.0.0`
 - Obtainium configuré sur le repo
 - Test de mise à jour : tag `v1.0.1`, puis vérifier qu'Obtainium propose la mise à jour et que les données sont conservées
+## Bloc 4.5 — Vérification développeur Android (ajouté le 2026-10-25)
+**Contexte :** depuis le 30/09/2026 (Brésil, Indonésie, Singapour, Thaïlande), puis partout à partir de 2027, les appareils Android certifiés n'installent sans détour que les applis de **développeurs vérifiés**, Play Store ou non. Sinon : ADB, ou le « parcours avancé » (option développeur, attente de 24 h, redémarrage), dissuasif pour les proches.
+
+**Livrables**
+- Compte **Android Developer Console** à **distribution limitée** (gratuit, sans pièce d'identité, jusqu'à 20 appareils) : suffisant pour Maxime et ses proches. Le passer en compte vérifié complet seulement si l'usage dépasse 20 appareils.
+- Enregistrement du package `io.github.azaameth.machimoto` avec la **clé de signature de release** (bloc 4.1) : même clé pour toute la vie de l'appli.
+- Procédure d'ajout d'un appareil de proche, documentée dans `CONTRIBUTING.md`.
+
+**Critères d'acceptation**
+- [ ] APK de release installé sur le Pixel 7 Pro via Obtainium sans avertissement « développeur non vérifié »
+- [ ] Mise à jour (`v1.0.1`) installée sans avertissement
+- [ ] Un appareil de proche ajouté et installé
+
+**Dépendances :** bloc 4.1 (clé de release). Inscription du compte : geste de Maxime (identité Google), suivi dans une issue `pour-maxime`.
+
 **🏁 Fin du jalon 4 :** `v1.0.0` publiée.
  
 ---
@@ -594,16 +634,20 @@ Déclenché sur un tag `v*` :
 | D48 | 2026-10-25 | Code de secours aléatoire (160 bits) encapsulant la même clé de données que la phrase (meta/keys.secours), affiché une fois ; récupération = code + nouvelle phrase ; régénérable (phrase exigée) | Garde-fou contre l'oubli de la phrase sans porte dérobée : seul le détenteur du code peut récupérer ; complète D3 et D25 | Indice de phrase ; copie de la clé chez un tiers ; réinitialisation par e-mail (impossible sans que le serveur détienne la clé) |
 | D49 | 2026-10-25 | Cache Firestore persistant (IndexedDB) sur le web si « Garder mes données sur cet appareil » (activé par défaut), effacé à la déconnexion et à la suppression du compte ; révise D4 | Démarrer et saisir hors ligne, y compris serveur injoignable ; la copie ne contient que ce que voit le serveur (données chiffrées, dates, clé encapsulée) | Cache mémoire seul (D4) ; option désactivée par défaut |
 | D50 | 2026-10-25 | Import CSV : une pesée par jour (la dernière ligne du fichier gagne), pesées existantes différentes conservées sauf demande explicite, saisies improbables signalées sans bloquer | Reprendre un historique sans risque d'écraser une saisie par erreur ; cohérent avec D16 et D35 | Remplacement systématique ; moyenne des pesées du même jour ; refus des lignes improbables |
+| D51 | 2026-10-25 | Build web : Firebase, React et Zod dans des fichiers séparés (codeSplitting Rolldown) ; seuil d'avertissement de taille à 700 kB ; révise D40 [à valider par Azaameth] | Une mise à jour de l'appli ne fait plus retélécharger les bibliothèques (cache d'un an, D38) : code de l'appli ≈ 41 kB au lieu de 884 kB ; plus d'avertissement au build | Fichier unique (D40) ; découpage plus fin de Firebase (impossible proprement) |
+| D52 | 2026-10-25 | Durcissement : CSP en mode Report-Only sur Hosting (sources Firebase listées), notes CSV commençant par = + - @ préfixées d'une apostrophe à l'export (retirée au réimport), texte des suggestions traité comme donnée par Claude | Défense en profondeur sans risque de casser la connexion Google : la CSP passera en mode bloquant après une semaine sans violation dans la console | CSP bloquante d'emblée ; échapper les notes à l'import seulement |
+| D53 | 2026-10-25 | Connexion par e-mail et mot de passe en plus de Google ; message d'erreur indistinct (e-mail ou mot de passe), réinitialisation sans révéler l'existence du compte ; pas de vérification d'e-mail obligatoire ; révise D15 | Ouvrir l'appli aux proches sans compte Google ; les données restent protégées par la phrase secrète, indépendante du mot de passe | Lien magique par e-mail (Firebase Dynamic Links arrêté : compliqué sur Android) ; vérification d'e-mail bloquante ; Google seul (D15) |
  
 ## ⚠️ Risques
  
 | Risque | Impact | Parade |
 |---|---|---|
-| Perte de la phrase secrète | Données chiffrées perdues | Gestionnaire de mots de passe ; avertissement clair à la création |
+| Perte de la phrase secrète | Données chiffrées perdues | Code de secours (D48) ; gestionnaire de mots de passe ; export CSV régulier |
 | Perte du keystore de release | Plus de mise à jour possible | Double sauvegarde hors de la machine |
 | Fuite d'un secret dans le repo public | Compromission | `.gitignore`, revue avant commit, secret scanning de GitHub activé |
 | Règles Firestore trop permissives | Fuite de données | Tests de règles obligatoires dans la CI |
 | Boucle de lectures Firestore | Quota épuisé | Rester en Spark, écouter les changements plutôt que relire en boucle |
+| Alertes `npm audit` dans `firebase-tools` (outil de dev, 5 « modérées » au 2026-10-25) | Aucun en production : rien n'est livré dans le bundle | 0 vulnérabilité en prod vérifiée à chaque audit ; Dependabot mensuel ; ne pas rétrograder la CLI |
  
 ## ❓ Questions ouvertes
  
@@ -647,3 +691,7 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.11 | Démarrage hors ligne : cache Firestore persistant en option (activée par défaut), effacé à la déconnexion ; révise D4 (D49). Compromis validé par Azaameth. |
 | 2026-10-25 | 2.10 | Expressions ravi, pensif, triste (variantes du SVG) et bulle « Machimoto dit » : accueil en 2 étapes (phrase puis code de secours), chargements et erreurs, listes vides, suggestions, départ (déconnexion confirmée, avec alerte si des saisies sont en attente ; suppression du compte). Texte de création du coffre corrigé (le code de secours existe depuis 2.9). |
 | 2026-10-25 | 2.12 | Import CSV avec aperçu (nouvelles, différentes, ignorées, improbables) ; lecture tolérante (; / tabulation / virgule, dates ISO ou jj/mm/aaaa, virgule décimale) ; D50. Pour reprendre les pesées d'Azaameth (#39). |
+| 2026-10-25 | Audit | Audit de santé : 0 vulnérabilité en prod (5 modérées dans firebase-tools, outil de dev, acceptées), dépendances à jour sauf TypeScript 7 (majeure, à part), aucun code mort ; build découpé (D51, à valider) ; Dependabot, modèle de PR, SECURITY.md ; README complet et CONTRIBUTING (poste neuf Windows/macOS/Linux) ; CLAUDE.md, plan (socle, arborescence, risques) et index des docs remis à jour. |
+| 2026-10-25 | 4.5 | Bloc ajouté à la demande d'Azaameth : vérification développeur Android, obligatoire en 2027 pour installer un APK hors Play Store sans le parcours avancé ; compte à distribution limitée (20 appareils) visé. |
+| 2026-10-25 | Sécurité | Revue « injection » : pas d'injection possible côté Firestore (pas de requête texte, chemin = date validée par Zod et par les règles), pas de XSS (React, aucun innerHTML) ; durcissement : CSP Report-Only, injection de formule CSV neutralisée, consigne anti-injection dans trier-suggestions (D52). |
+| 2026-10-25 | 2.13 | Connexion par e-mail (création, connexion, mot de passe oublié), suppression d'un compte e-mail avec mot de passe vérifié avant effacement ; codes Firebase traduits et vérifiés sous émulateur (D53). |

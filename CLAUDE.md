@@ -4,6 +4,7 @@
 > - `docs/plan-projet.md` → **source de vérité** (blocs, critères, 🗂️ Registre des décisions, 📝 Journal, arborescence)
 > - `docs/plan-installation-outils.md` → environnement de dev
 > - `docs/spec-restitution.md` → tableau de bord (tendance, rythme, projection) et ses arbitrages
+> - `README.md` (présentation) et `CONTRIBUTING.md` (poste neuf, workflow, déploiement) → pour les humains
 >
 > En cas de contradiction entre ce fichier et `docs/plan-projet.md`, **le plan projet gagne**.
 
@@ -25,7 +26,7 @@
 | Domaine | Choix |
 |---|---|
 | Front | Vite + React + TypeScript, Zod |
-| Backend | Firebase **plan Spark** (Auth Google + Firestore), `europe-west1`, projet `machimoto` |
+| Backend | Firebase **plan Spark** (Auth Google ou e-mail, D53 + Firestore), `europe-west1`, projet `machimoto` |
 | Chiffrement | Web Crypto, AES-GCM 256 sur `poids` / `note` ; clé de données encapsulée par PBKDF2-SHA256 (600 000 itérations) |
 | Architecture | 5 interfaces dans `Services` : `AuthService`, `KeyStore`, `DataStore`, `PreferencesStore`, `FileExporter` ; adaptateurs `web/` puis `native/` ; choix dans `src/platform.ts` |
 | Cache | Web : IndexedDB chiffré si « Garder mes données sur cet appareil » (défaut, D49), sinon mémoire ; effacé à la déconnexion. Android : cache natif Firestore |
@@ -61,7 +62,7 @@
 - `users/{uid}/meta/keys` → `{ wrappedKey, salt, iterations, version, secours? }`, jamais écrasé (D25) ; `secours` = même clé encapsulée par le **code de secours** (D48), le code lui-même n'est jamais stocké.
 
 ### Firebase
-- Règles en **liste explicite** (D19) : `meta/keys` et `pesees/{date}` ; tout le reste refusé.
+- Règles en **liste explicite** (D19) : `meta/keys`, `pesees/{date}`, `suggestions/{id}` (D45) ; tout le reste refusé.
 - Dev et tests **uniquement sur émulateurs** (projet `demo-suivi-poids`, D8, D18).
 - **Déploiement : par Maxime uniquement** (`npm run deploy`, interdit à Claude dans `.claude/settings.json`).
 - Rester en Spark ; `onSnapshot` plutôt que des relectures.
@@ -77,9 +78,9 @@
 ## 4. Où on en est (2026-10-25)
 
 - **Jalon 1** (socle web) : terminé, tag `v0.1.0`.
-- **Jalon 2** (fonctionnel, blocs 2.1 → 2.6) : terminé ; tag `v0.2.0` à poser après merge du 2.5.
-- Restitution : v1 faite (2.6) ; v1.1 (profil, objectif) = bloc 6.1, question Q1 ouverte (#24).
-- **Prochain :** passe d'ergonomie des écrans (navigation, barre profil), puis **jalon 3 (APK)** : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb) puis bloc 3.1 Capacitor.
+- **Jalon 2** (fonctionnel, blocs 2.1 → 2.12) : terminé et en production ; tags `v0.2.0`, `v0.2.1`. Les blocs 2.9 à 2.12 (code de secours, Machimoto, hors ligne, import CSV) attendent un tag `v0.3.0` (à proposer à Maxime).
+- Restitution : v1 faite (2.6) ; v1.1 (profil, objectif, IMC) = bloc 6.1, question Q1 ouverte (#24) ; infobulles d'explication proposées (#44).
+- **Prochain :** passe d'ergonomie des écrans, puis **jalon 3 (APK)** : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb) puis bloc 3.1 Capacitor.
 
 ---
 
@@ -88,11 +89,11 @@
 | Commande | Rôle |
 |---|---|
 | `npm run dev` + `npm run emulators` | Appli en dev contre les émulateurs (UI : http://localhost:4000) |
-| `npm run verify` | Secrets, lint, types, tests unitaires, build |
+| `npm run verify` | Secrets, lint, types, tests unitaires, tests des outils, build |
 | `npm run test:emulateurs` | Règles, stockage, hors ligne, session (son propre émulateur, ports 8181 / 9199) |
 | `npm run deploy` | Maxime uniquement : verify + test:emulateurs + Hosting et règles |
 
-En dev, l'onglet « Export & réglages » propose des **outils de dev** (données fictives, absents du build de prod).
+En dev, l'onglet « Réglages » propose des **outils de dev** (données fictives, absents du build de prod).
 
 ---
 

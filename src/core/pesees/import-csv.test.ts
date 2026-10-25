@@ -46,6 +46,15 @@ describe('lireCsv', () => {
     expect(lireCsv('2026-09-22,137,7\n').pesees).toEqual([{ date: '2026-09-22', poids: 137.7 }])
   })
 
+  test('injection de formule : neutralisée à l’export, note intacte au réimport', () => {
+    const notes = ['=HYPERLINK("http://x","clic")', '+1 kg', '-0,5', '@SOMME(A1)', 'normal']
+    const csv = toCsv(notes.map((note, i) => pesee(`2026-10-0${i + 1}`, 80, note)))
+    for (const ligne of csv.split('\r\n').slice(1, -1)) {
+      expect(ligne.split(',').slice(2).join(',')).not.toMatch(/^"?[=+\-@]/)
+    }
+    expect(lireCsv(csv).pesees.map((p) => p.note)).toEqual(notes)
+  })
+
   test('export de l’appli : une note numérique reste une note', () => {
     expect(lireCsv(toCsv([pesee('2026-10-01', 81, '5')])).pesees).toEqual([
       { date: '2026-10-01', poids: 81, note: '5' },

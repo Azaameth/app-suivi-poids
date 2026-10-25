@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { SyncState } from '../../core'
+import { IdentifiantsInvalidesError, type SyncState } from '../../core'
 import { supprimerCompte } from '../../core/compte/supprimerCompte'
 import { useServices } from '../../context/ServicesContext'
 import { Icone } from '../commun/Icones'
@@ -14,6 +14,8 @@ export function SupprimerCompte() {
   const { uid } = useUnlockedVault()
   const [ouvert, setOuvert] = useState(false)
   const [saisie, setSaisie] = useState('')
+  const [motDePasse, setMotDePasse] = useState('')
+  const compteEmail = services.auth.currentUser()?.fournisseur === 'email'
   const [enCours, setEnCours] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
   const [sync, setSync] = useState<SyncState>('online')
@@ -24,10 +26,14 @@ export function SupprimerCompte() {
     setEnCours(true)
     setErreur(null)
     try {
-      await supprimerCompte(services, uid)
+      await supprimerCompte(services, uid, compteEmail ? motDePasse : undefined)
       // La déconnexion qui suit ramène à l'écran de connexion.
-    } catch {
-      setErreur('Suppression interrompue. Vérifie le réseau puis réessaie : rien n’est perdu.')
+    } catch (error) {
+      setErreur(
+        error instanceof IdentifiantsInvalidesError
+          ? 'Mot de passe incorrect : rien n’a été effacé.'
+          : 'Suppression interrompue. Vérifie le réseau puis réessaie : rien n’est perdu.',
+      )
       setEnCours(false)
     }
   }
@@ -61,11 +67,22 @@ export function SupprimerCompte() {
               spellCheck={false}
             />
           </label>
+          {compteEmail && (
+            <label>
+              Mot de passe du compte
+              <input
+                type="password"
+                value={motDePasse}
+                onChange={(e) => setMotDePasse(e.target.value)}
+                autoComplete="current-password"
+              />
+            </label>
+          )}
           <div className="row">
             <button
               type="button"
               className="danger-plein"
-              disabled={saisie !== MOT || enCours || horsLigne}
+              disabled={saisie !== MOT || enCours || horsLigne || (compteEmail && !motDePasse)}
               onClick={confirmer}
             >
               {enCours ? 'Suppression…' : 'Supprimer définitivement'}
