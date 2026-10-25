@@ -85,19 +85,23 @@ describe('WebDataStore + PeseeRepository (émulateur, règles actives)', () => {
   test('coffre : meta/keys créé par Vault accepté par les règles, puis déverrouillable', async () => {
     const store = storeFor('alice')
     const phrase = 'cheval agrafe batterie'
-    await new Vault(store, new MemoryKeyStore(), 'alice').setup(phrase)
+    const { codeSecours } = await new Vault(store, new MemoryKeyStore(), 'alice').setup(phrase)
     // Autre appareil (coffre neuf) : retrouve la clé et ne peut pas écraser meta/keys.
     const ailleurs = new Vault(storeFor('alice'), new MemoryKeyStore(), 'alice')
     expect(await ailleurs.status()).toBe('locked')
     await expect(ailleurs.setup('une autre phrase longue')).rejects.toThrow(/existe déjà/)
     await ailleurs.unlock(phrase)
     expect(await ailleurs.status()).toBe('unlocked')
+    // Phrase oubliée sur cet appareil : le code de secours (D48) passe les règles.
+    await ailleurs.lock()
+    await ailleurs.recuperer(codeSecours, 'une toute nouvelle phrase')
+    expect(await ailleurs.status()).toBe('unlocked')
   })
 
   test('suggestion réelle acceptée ; supprimer mon compte vide le serveur (D45, D47)', async () => {
     const store = storeFor('alice')
     const keys = new MemoryKeyStore()
-    const key = await new Vault(store, keys, 'alice').setup('cheval agrafe batterie')
+    const { key } = await new Vault(store, keys, 'alice').setup('cheval agrafe batterie')
     await (
       await new PeseeRepository(store, 'alice', key).save({ date: '2026-10-25', poids: 75 })
     ).synced

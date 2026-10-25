@@ -11,13 +11,21 @@ export const MIN_PBKDF2_ITERATIONS = 600_000
 export const SALT_LENGTH = 16
 export const KEY_META_VERSION = 1
 
-/** Document Firestore `users/{uid}/meta/keys`. Ne contient rien de secret en clair. */
-export interface KeyMeta {
-  /** Clé de données chiffrée par la clé dérivée de la phrase secrète (format v1:iv:data). */
+/** La clé de données encapsulée par une clé dérivée d'un secret (PBKDF2), format v1:iv:data. */
+export interface Enveloppe {
   wrappedKey: string
   salt: string
   iterations: number
+}
+
+/**
+ * Document Firestore `users/{uid}/meta/keys`. Ne contient rien de secret en clair.
+ * La même clé de données y est encapsulée par la phrase secrète et, si créé, par le code de
+ * secours (`secours`, D48).
+ */
+export interface KeyMeta extends Enveloppe {
   version: number
+  secours?: Enveloppe
 }
 
 export class WrongPassphraseError extends Error {
@@ -57,9 +65,10 @@ export async function deriveWrappingKey(
   )
 }
 
-async function wrap(dataKey: CryptoKey, passphrase: string): Promise<KeyMeta> {
+/** Encapsule la clé de données (extractible) par une clé dérivée de `secret`. Sel neuf. */
+export async function envelopper(dataKey: CryptoKey, secret: string): Promise<Enveloppe> {
   const salt = randomBytes(SALT_LENGTH)
-  const wrappingKey = await deriveWrappingKey(passphrase, salt, PBKDF2_ITERATIONS)
+  const wrappingKey = await deriveWrappingKey(secret, salt, PBKDF2_ITERATIONS)
   const iv = randomBytes(IV_LENGTH)
   const data = new Uint8Array(
     await crypto.subtle.wrapKey('raw', dataKey, wrappingKey, { name: 'AES-GCM', iv }),
@@ -68,16 +77,51 @@ async function wrap(dataKey: CryptoKey, passphrase: string): Promise<KeyMeta> {
     wrappedKey: formatEnvelope({ iv, data }),
     salt: toBase64(salt),
     iterations: PBKDF2_ITERATIONS,
-    version: KEY_META_VERSION,
   }
 }
 
-/** Premier usage : crée la clé de données et ses méta-données à enregistrer. */
+/** Décapsule ; `mauvaisSecret` est levée si le secret ne correspond pas (GCM échoue). */
+export async function desenvelopper(
+  secret: string,
+  enveloppe: Enveloppe,
+  { extractable = false, mauvaisSecret = () => new WrongPassphraseError() } = {},
+): Promise<CryptoKey> {
+  if (!Number.isInteger(enveloppe.iterations) || enveloppe.iterations < MIN_PBKDF2_ITERATIONS) {
+    throw new Error(`Nombre d'itérations PBKDF2 insuffisant : ${enveloppe.iterations}`)
+  }
+  const { iv, data } = parseEnvelope(enveloppe.wrappedKey)
+  const wrappingKey = await deriveWrappingKey(
+    secret,
+    fromBase64(enveloppe.salt),
+    enveloppe.iterations,
+  )
+  try {
+    return await crypto.subtle.unwrapKey(
+      'raw',
+      data,
+      wrappingKey,
+      { name: 'AES-GCM', iv },
+      DATA_KEY_ALGO,
+      extractable,
+      ['encrypt', 'decrypt'],
+    )
+  } catch (error) {
+    if (error instanceof DecryptionError) throw error
+    throw mauvaisSecret()
+  }
+}
+
+/**
+ * Premier usage : crée la clé de données et ses méta-données à enregistrer, encapsulée par la
+ * phrase et, si fourni, par le code de secours.
+ */
 export async function createKeyMeta(
   passphrase: string,
+  codeSecours?: string,
 ): Promise<{ key: CryptoKey; meta: KeyMeta }> {
   const generated = await generateDataKey()
-  const meta = await wrap(generated, passphrase)
+  const meta: KeyMeta = { ...(await envelopper(generated, passphrase)), version: KEY_META_VERSION }
+  if (codeSecours !== undefined) meta.secours = await envelopper(generated, codeSecours)
   // On renvoie une version non extractible pour l'usage courant.
   return { key: await unlockDataKey(passphrase, meta), meta }
 }
@@ -94,33 +138,18 @@ export async function unlockDataKey(
   if (meta.version !== KEY_META_VERSION) {
     throw new Error(`Version de méta-données de clé non supportée : ${meta.version}`)
   }
-  if (!Number.isInteger(meta.iterations) || meta.iterations < MIN_PBKDF2_ITERATIONS) {
-    throw new Error(`Nombre d'itérations PBKDF2 insuffisant : ${meta.iterations}`)
-  }
-  const { iv, data } = parseEnvelope(meta.wrappedKey)
-  const wrappingKey = await deriveWrappingKey(passphrase, fromBase64(meta.salt), meta.iterations)
-  try {
-    return await crypto.subtle.unwrapKey(
-      'raw',
-      data,
-      wrappingKey,
-      { name: 'AES-GCM', iv },
-      DATA_KEY_ALGO,
-      extractable,
-      ['encrypt', 'decrypt'],
-    )
-  } catch (error) {
-    if (error instanceof DecryptionError) throw error
-    throw new WrongPassphraseError()
-  }
+  return desenvelopper(passphrase, meta, { extractable })
 }
 
-/** Change la phrase secrète : seule l'encapsulation change, les données restent lisibles. */
+/**
+ * Change la phrase secrète : seule l'encapsulation par la phrase change (le code de secours
+ * reste valable), les données restent lisibles.
+ */
 export async function changePassphrase(
   oldPassphrase: string,
   newPassphrase: string,
   meta: KeyMeta,
 ): Promise<KeyMeta> {
   const key = await unlockDataKey(oldPassphrase, meta, { extractable: true })
-  return wrap(key, newPassphrase)
+  return { ...meta, ...(await envelopper(key, newPassphrase)) }
 }

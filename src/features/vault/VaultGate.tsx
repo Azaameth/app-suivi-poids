@@ -3,6 +3,7 @@ import { MIN_PASSPHRASE_LENGTH, Vault, VaultAlreadyExistsError } from '../../cor
 import { useServices } from '../../context/ServicesContext'
 import { usePreferences } from '../prefs/usePreferences'
 import { HORS_LIGNE, messageErreur } from './messages'
+import { CodeSecours } from './CodeSecours'
 import { PassphraseForm } from './PassphraseForm'
 import { useAutoLock } from './useAutoLock'
 import { VaultContext, type UnlockedVault } from './VaultContext'
@@ -12,6 +13,8 @@ type State =
   | { kind: 'error'; message: string }
   | { kind: 'setup' }
   | { kind: 'locked' }
+  | { kind: 'oubli' }
+  | { kind: 'code'; key: CryptoKey; code: string }
   | { kind: 'unlocked'; key: CryptoKey }
 
 async function readState(vault: Vault): Promise<State> {
@@ -71,6 +74,8 @@ export function VaultGate({
             key: state.key,
             lock,
             changePassphrase: (oldP, newP) => vault.changePassphrase(oldP, newP),
+            aCodeSecours: () => vault.aCodeSecours(),
+            creerCodeSecours: (phrase) => vault.creerCodeSecours(phrase),
           }
         : null,
     [state, lock, vault, uid],
@@ -102,7 +107,8 @@ export function VaultGate({
             onSubmit={async ({ phrase, confirmation }) => {
               if (phrase !== confirmation) return 'Les deux phrases ne correspondent pas.'
               try {
-                setState({ kind: 'unlocked', key: await vault.setup(phrase) })
+                const { key, codeSecours } = await vault.setup(phrase)
+                setState({ kind: 'code', key, code: codeSecours })
               } catch (error) {
                 if (error instanceof VaultAlreadyExistsError) return void refresh()
                 return messageErreur(error)
@@ -141,7 +147,50 @@ export function VaultGate({
             }}
           >
             <h2>Coffre verrouillé</h2>
+            <p>
+              <button type="button" className="lien" onClick={() => setState({ kind: 'oubli' })}>
+                J’ai oublié ma phrase
+              </button>
+            </p>
           </PassphraseForm>
+        )
+      case 'oubli':
+        return (
+          <PassphraseForm
+            fields={[
+              { name: 'code', label: 'Code de secours', autoComplete: 'off', visible: true },
+              { name: 'nouvelle', label: 'Nouvelle phrase secrète', autoComplete: 'new-password' },
+              { name: 'confirmation', label: 'Confirmation', autoComplete: 'new-password' },
+            ]}
+            submitLabel="Choisir cette phrase"
+            busyLabel="Vérification…"
+            onSubmit={async ({ code, nouvelle, confirmation }) => {
+              if (nouvelle !== confirmation) return 'Les deux phrases ne correspondent pas.'
+              try {
+                setState({ kind: 'unlocked', key: await vault.recuperer(code, nouvelle) })
+              } catch (error) {
+                return messageErreur(error)
+              }
+            }}
+          >
+            <h2>Phrase oubliée</h2>
+            <p>
+              Saisis le code de secours affiché à la création de ton coffre, puis choisis une
+              nouvelle phrase. Tes pesées restent intactes.
+            </p>
+            <p>
+              <button type="button" className="lien" onClick={() => setState({ kind: 'locked' })}>
+                Retour
+              </button>
+            </p>
+          </PassphraseForm>
+        )
+      case 'code':
+        return (
+          <CodeSecours
+            code={state.code}
+            onContinuer={() => setState({ kind: 'unlocked', key: state.key })}
+          />
         )
       case 'unlocked':
         return (

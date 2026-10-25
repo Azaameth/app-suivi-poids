@@ -31,7 +31,13 @@ describe('Vault', () => {
     const { data, vault } = setup()
     await vault.setup(PHRASE)
     const meta = await data.get('alice', META, KEYS_DOC)
-    expect(Object.keys(meta!).sort()).toEqual(['iterations', 'salt', 'version', 'wrappedKey'])
+    expect(Object.keys(meta!).sort()).toEqual([
+      'iterations',
+      'salt',
+      'secours',
+      'version',
+      'wrappedKey',
+    ])
     expect(JSON.stringify(meta)).not.toContain(PHRASE)
   })
 
@@ -47,7 +53,7 @@ describe('Vault', () => {
 
   test('changement de phrase : les pesées existantes restent lisibles', async () => {
     const { data, vault } = setup()
-    const key = await vault.setup(PHRASE)
+    const { key } = await vault.setup(PHRASE)
     await new PeseeRepository(data, 'alice', key).save({ date: '2026-10-24', poids: 72.4 })
 
     await vault.changePassphrase(PHRASE, NOUVELLE)

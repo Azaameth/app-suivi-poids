@@ -1,5 +1,14 @@
 import { z } from 'zod'
-import { changePassphrase, createKeyMeta, unlockDataKey, type KeyMeta } from '../crypto'
+import {
+  ajouterCodeSecours,
+  changePassphrase,
+  createKeyMeta,
+  genererCodeSecours,
+  normaliserCode,
+  remplacerPhraseAvecCode,
+  unlockDataKey,
+  type KeyMeta,
+} from '../crypto'
 import type { DataStore } from '../data/DataStore'
 import type { KeyStore } from '../keys/KeyStore'
 
@@ -26,14 +35,14 @@ export class WeakPassphraseError extends Error {
   }
 }
 
-const keyMetaSchema = z
-  .object({
-    wrappedKey: z.string(),
-    salt: z.string(),
-    iterations: z.number().int(),
-    version: z.number().int(),
-  })
+const enveloppeSchema = z
+  .object({ wrappedKey: z.string(), salt: z.string(), iterations: z.number().int() })
   .strict()
+
+const keyMetaSchema = enveloppeSchema.extend({
+  version: z.number().int(),
+  secours: enveloppeSchema.optional(),
+})
 
 function checkStrength(passphrase: string) {
   if ([...passphrase.normalize('NFC')].length < MIN_PASSPHRASE_LENGTH) {
@@ -68,17 +77,51 @@ export class Vault {
   }
 
   /**
-   * Premier lancement : crée la clé de données et l'enregistre, encapsulée, sur le serveur.
+   * Premier lancement : crée la clé de données et l'enregistre, encapsulée par la phrase et par
+   * un code de secours (D48), sur le serveur. Le code n'est renvoyé qu'ici : à afficher une fois.
    * Attend la confirmation du serveur : aucune pesée ne doit être chiffrée avec une clé perdue.
    */
-  async setup(passphrase: string): Promise<CryptoKey> {
+  async setup(passphrase: string): Promise<{ key: CryptoKey; codeSecours: string }> {
     checkStrength(passphrase)
     // Écraser meta/keys rendrait illisibles toutes les données existantes.
     if (await this.readMeta()) throw new VaultAlreadyExistsError()
-    const { key, meta } = await createKeyMeta(passphrase)
+    const codeSecours = genererCodeSecours()
+    const { key, meta } = await createKeyMeta(passphrase, normaliserCode(codeSecours))
     await this.data.set(this.uid, META, KEYS_DOC, { ...meta })
     await this.keys.save(key)
-    return key
+    return { key, codeSecours }
+  }
+
+  /** Un code de secours existe-t-il pour ce compte ? */
+  async aCodeSecours(): Promise<boolean> {
+    return Boolean((await this.readMeta())?.secours)
+  }
+
+  /**
+   * Crée ou régénère le code de secours (l'ancien devient inutile). La phrase actuelle est
+   * exigée : la clé en mémoire n'est pas extractible, et c'est une action sensible.
+   */
+  async creerCodeSecours(passphrase: string): Promise<string> {
+    const meta = await this.readMeta()
+    if (!meta) throw new Error('Aucune phrase secrète n’a encore été créée')
+    const codeSecours = genererCodeSecours()
+    await this.data.set(this.uid, META, KEYS_DOC, {
+      ...(await ajouterCodeSecours(passphrase, meta, codeSecours)),
+    })
+    return codeSecours
+  }
+
+  /**
+   * Phrase oubliée : le code de secours permet d'en choisir une nouvelle, sans toucher aux
+   * données. Le code reste valable. Lève WrongRecoveryCodeError / NoRecoveryCodeError.
+   */
+  async recuperer(codeSecours: string, nouvellePhrase: string): Promise<CryptoKey> {
+    checkStrength(nouvellePhrase)
+    const meta = await this.readMeta()
+    if (!meta) throw new Error('Aucune phrase secrète n’a encore été créée')
+    const newMeta = await remplacerPhraseAvecCode(codeSecours, nouvellePhrase, meta)
+    await this.data.set(this.uid, META, KEYS_DOC, { ...newMeta })
+    return this.unlock(nouvellePhrase)
   }
 
   /** Lève WrongPassphraseError si la phrase est incorrecte. */

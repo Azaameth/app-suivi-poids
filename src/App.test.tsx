@@ -15,7 +15,7 @@ test('connexion Google puis déconnexion', async () => {
   renderApp()
   fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
   expect(await screen.findByRole('button', { name: 'Profil de Test' })).toBeTruthy()
-  menuProfil('Se déconnecter')
+  menuProfil('🚪 Se déconnecter')
   expect(await screen.findByRole('button', { name: 'Se connecter avec Google' })).toBeTruthy()
 })
 
@@ -78,7 +78,7 @@ test('la déconnexion verrouille le coffre', async () => {
   const services = renderApp()
   await signIn()
   await createVault()
-  menuProfil('Se déconnecter')
+  menuProfil('🚪 Se déconnecter')
   await screen.findByRole('button', { name: 'Se connecter avec Google' })
   expect(await services.keys.load()).toBeNull()
   await signIn()
