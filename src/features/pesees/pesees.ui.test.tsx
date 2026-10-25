@@ -151,6 +151,8 @@ describe('tableau de bord', () => {
     expect(chart.querySelectorAll('.repere line').length).toBeGreaterThan(0)
     // Période par défaut 90 j : les 40 pesées sont visibles.
     expect(chart.querySelectorAll('circle.pesee')).toHaveLength(40)
+    // Tableau de bord rempli : le graphique reste le héros, pas de Machimoto (bloc 2.10).
+    expect(document.querySelector('main img.mascotte')).toBeNull()
 
     await tab('7 j')
     expect(screen.getByRole('img').querySelectorAll('circle.pesee')).toHaveLength(7)

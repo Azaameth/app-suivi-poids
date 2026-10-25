@@ -3,6 +3,7 @@ import { MIN_PASSPHRASE_LENGTH, Vault, VaultAlreadyExistsError } from '../../cor
 import { useServices } from '../../context/ServicesContext'
 import { usePreferences } from '../prefs/usePreferences'
 import { HORS_LIGNE, messageErreur } from './messages'
+import { MachimotoDit } from '../commun/Mascotte'
 import { CodeSecours } from './CodeSecours'
 import { PassphraseForm } from './PassphraseForm'
 import { useAutoLock } from './useAutoLock'
@@ -85,11 +86,17 @@ export function VaultGate({
   const contenu = () => {
     switch (state.kind) {
       case 'loading':
-        return <p>Chargement du coffre…</p>
+        return (
+          <MachimotoDit expression="pensif">
+            <p>Chargement du coffre…</p>
+          </MachimotoDit>
+        )
       case 'error':
         return (
           <section>
-            <p role="alert">{state.message}</p>
+            <MachimotoDit expression="triste">
+              <p role="alert">{state.message}</p>
+            </MachimotoDit>
             <button type="button" onClick={refresh}>
               Réessayer
             </button>
@@ -99,8 +106,16 @@ export function VaultGate({
         return (
           <PassphraseForm
             fields={[
-              { name: 'phrase', label: 'Phrase secrète', autoComplete: 'new-password' },
-              { name: 'confirmation', label: 'Confirmation', autoComplete: 'new-password' },
+              {
+                name: 'phrase',
+                label: 'Phrase secrète',
+                autoComplete: 'new-password',
+              },
+              {
+                name: 'confirmation',
+                label: 'Confirmation',
+                autoComplete: 'new-password',
+              },
             ]}
             submitLabel="Créer mon coffre"
             busyLabel="Création…"
@@ -115,16 +130,21 @@ export function VaultGate({
               }
             }}
           >
+            <p className="etape">Étape 1 sur 2</p>
             <h2>Choisis ta phrase secrète</h2>
+            <MachimotoDit>
+              <p>
+                Bienvenue ! Ta phrase chiffre tes pesées : personne d’autre, ni Google ni Firebase,
+                ne peut les lire.
+              </p>
+            </MachimotoDit>
             <p>
-              Elle chiffre tes pesées : personne d’autre, ni Google ni Firebase, ne peut les lire.
-              Au moins {MIN_PASSPHRASE_LENGTH} caractères ; une suite de mots est idéale.
+              Au moins {MIN_PASSPHRASE_LENGTH} caractères ; une suite de mots est idéale. Range-la
+              dans un gestionnaire de mots de passe.
             </p>
             <p>
-              <strong>
-                ⚠️ Si tu la perds, tes données sont perdues : aucune récupération possible.
-              </strong>{' '}
-              Range-la dans un gestionnaire de mots de passe.
+              <strong>⚠️ Sans ta phrase ni ton code de secours, tes données sont perdues.</strong>{' '}
+              Le code t’est donné à l’étape suivante.
             </p>
             <p className="hint">
               Conseil : exporte tes pesées de temps en temps (Réglages → Export CSV), c’est ta
@@ -135,7 +155,13 @@ export function VaultGate({
       case 'locked':
         return (
           <PassphraseForm
-            fields={[{ name: 'phrase', label: 'Phrase secrète', autoComplete: 'current-password' }]}
+            fields={[
+              {
+                name: 'phrase',
+                label: 'Phrase secrète',
+                autoComplete: 'current-password',
+              },
+            ]}
             submitLabel="Déverrouiller"
             busyLabel="Déverrouillage…"
             onSubmit={async ({ phrase }) => {
@@ -147,6 +173,9 @@ export function VaultGate({
             }}
           >
             <h2>Coffre verrouillé</h2>
+            <MachimotoDit taille={48}>
+              <p>Re-bonjour ! Ta phrase secrète, et on reprend.</p>
+            </MachimotoDit>
             <p>
               <button type="button" className="lien" onClick={() => setState({ kind: 'oubli' })}>
                 J’ai oublié ma phrase
@@ -158,26 +187,44 @@ export function VaultGate({
         return (
           <PassphraseForm
             fields={[
-              { name: 'code', label: 'Code de secours', autoComplete: 'off', visible: true },
-              { name: 'nouvelle', label: 'Nouvelle phrase secrète', autoComplete: 'new-password' },
-              { name: 'confirmation', label: 'Confirmation', autoComplete: 'new-password' },
+              {
+                name: 'code',
+                label: 'Code de secours',
+                autoComplete: 'off',
+                visible: true,
+              },
+              {
+                name: 'nouvelle',
+                label: 'Nouvelle phrase secrète',
+                autoComplete: 'new-password',
+              },
+              {
+                name: 'confirmation',
+                label: 'Confirmation',
+                autoComplete: 'new-password',
+              },
             ]}
             submitLabel="Choisir cette phrase"
             busyLabel="Vérification…"
             onSubmit={async ({ code, nouvelle, confirmation }) => {
               if (nouvelle !== confirmation) return 'Les deux phrases ne correspondent pas.'
               try {
-                setState({ kind: 'unlocked', key: await vault.recuperer(code, nouvelle) })
+                setState({
+                  kind: 'unlocked',
+                  key: await vault.recuperer(code, nouvelle),
+                })
               } catch (error) {
                 return messageErreur(error)
               }
             }}
           >
             <h2>Phrase oubliée</h2>
-            <p>
-              Saisis le code de secours affiché à la création de ton coffre, puis choisis une
-              nouvelle phrase. Tes pesées restent intactes.
-            </p>
+            <MachimotoDit expression="pensif">
+              <p>
+                Pas de panique : saisis le code de secours affiché à la création de ton coffre, puis
+                choisis une nouvelle phrase. Tes pesées restent intactes.
+              </p>
+            </MachimotoDit>
             <p>
               <button type="button" className="lien" onClick={() => setState({ kind: 'locked' })}>
                 Retour
@@ -188,6 +235,7 @@ export function VaultGate({
       case 'code':
         return (
           <CodeSecours
+            etape
             code={state.code}
             onContinuer={() => setState({ kind: 'unlocked', key: state.key })}
           />

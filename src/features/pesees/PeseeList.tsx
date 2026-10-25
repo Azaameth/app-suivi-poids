@@ -3,6 +3,7 @@ import { signalerImprobables } from '../../core/analyse'
 import type { Pesee } from '../../core/pesees'
 import { formatDay, formatWeight } from '../commun/format'
 import { Icone } from '../commun/Icones'
+import { MachimotoDit } from '../commun/Mascotte'
 import { messageAvis } from '../commun/plausibilite'
 
 /** Historique, de la plus récente à la plus ancienne. Suppression en deux temps. */
@@ -22,7 +23,11 @@ export function PeseeList({
   )
 
   if (pesees.length === 0) {
-    return <p className="hint">Aucune pesée pour l’instant. Ajoute la première ci-dessus.</p>
+    return (
+      <MachimotoDit taille={48}>
+        <p>Aucune pesée pour l’instant. Ajoute la première ci-dessus.</p>
+      </MachimotoDit>
+    )
   }
 
   return (

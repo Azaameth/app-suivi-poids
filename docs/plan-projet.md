@@ -55,7 +55,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [x] |
 | 2.8 | Fonctionnel | Ouverture aux proches : suggestions dans l'appli, version visible, installation (manifeste web), suppression du compte | [x] |
 | 2.9 | Fonctionnel | Code de secours (phrase oubliée) | [x] |
-| 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [ ] |
+| 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [x] |
 | 2.11 | Fonctionnel | Démarrage hors ligne : copie locale chiffrée (option « Garder mes données sur cet appareil ») | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
@@ -405,9 +405,9 @@ npm run test:emulateurs
 - **Onglet du navigateur** : favicon Machimoto (fait au bloc mascotte, #36).
 
 **Critères d'acceptation**
-- [ ] Une expression par situation, jamais culpabilisante (D33)
-- [ ] Images décoratives (`alt=""`), le texte porte l'information ; lisibles en thème clair et sombre
-- [ ] Aucun Machimoto sur le tableau de bord rempli (le graphique reste le héros)
+- [x] Une expression par situation, jamais culpabilisante (D33)
+- [x] Images décoratives (`alt=""`), le texte porte l'information ; lisibles en thème clair et sombre
+- [x] Aucun Machimoto sur le tableau de bord rempli (le graphique reste le héros)
 
 ## Bloc 2.11 — Démarrage hors ligne (décidé le 2026-10-25)
 **Objectif :** ouvrir l'appli et saisir sans réseau, ou quand le serveur est injoignable alors que le navigateur se croit en ligne, sans affaiblir le chiffrement (révise D4, D49).
@@ -630,3 +630,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.9 | Code de secours : génération Crockford, encapsulation dans meta/keys.secours, écrans (affichage unique, phrase oubliée, Réglages), règles et tests. Menu : 🚪 Se déconnecter. |
 | 2026-10-25 | 2.10 | Bloc proposé par Azaameth : Machimoto (content, triste…) dans l'accueil, le départ et les écrans sans graphique ; favicon déjà dans #36. |
 | 2026-10-25 | 2.11 | Démarrage hors ligne : cache Firestore persistant en option (activée par défaut), effacé à la déconnexion ; révise D4 (D49). Compromis validé par Azaameth. |
+| 2026-10-25 | 2.10 | Expressions ravi, pensif, triste (variantes du SVG) et bulle « Machimoto dit » : accueil en 2 étapes (phrase puis code de secours), chargements et erreurs, listes vides, suggestions, départ (déconnexion confirmée, avec alerte si des saisies sont en attente ; suppression du compte). Texte de création du coffre corrigé (le code de secours existe depuis 2.9). |

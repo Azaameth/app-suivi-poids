@@ -96,6 +96,56 @@ main {
   flex: none;
 }
 
+/* Machimoto qui parle : bulle à gauche du texte, la pointe vers la mascotte. */
+.machimoto-dit {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0.5rem 0 1rem;
+  text-align: left;
+}
+
+.bulle-texte {
+  position: relative;
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.bulle-texte::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: calc(50% - 6px);
+  width: 12px;
+  height: 12px;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  transform: rotate(45deg);
+}
+
+.card .bulle-texte,
+.card .bulle-texte::before {
+  background: var(--bg);
+}
+
+.bulle-texte > p {
+  margin: 0;
+}
+
+.bulle-texte > p + p {
+  margin-top: 0.4rem;
+}
+
+.etape {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .accueil {
   display: flex;
   flex-direction: column;

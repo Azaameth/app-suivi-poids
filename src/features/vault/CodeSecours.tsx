@@ -1,11 +1,21 @@
 import { useState } from 'react'
 import { useServices } from '../../context/ServicesContext'
+import { MachimotoDit } from '../commun/Mascotte'
 
 /**
  * Affiche le code de secours une seule fois (D48) : à recopier ou télécharger, puis confirmer
  * l'avoir rangé avant de continuer.
  */
-export function CodeSecours({ code, onContinuer }: { code: string; onContinuer: () => void }) {
+export function CodeSecours({
+  code,
+  onContinuer,
+  etape = false,
+}: {
+  code: string
+  onContinuer: () => void
+  /** Dernière étape de la création du coffre (accueil), plutôt qu'une régénération. */
+  etape?: boolean
+}) {
   const { files } = useServices()
   const [range, setRange] = useState(false)
 
@@ -19,7 +29,11 @@ export function CodeSecours({ code, onContinuer }: { code: string; onContinuer: 
 
   return (
     <section className="card">
+      {etape && <p className="etape">Étape 2 sur 2</p>}
       <h2>Ton code de secours</h2>
+      <MachimotoDit expression="ravi">
+        <p>{etape ? 'Coffre créé, bravo ! Dernière étape, promis.' : 'Nouveau code prêt !'}</p>
+      </MachimotoDit>
       <p>
         Si tu oublies ta phrase secrète, ce code te permettra d’en choisir une nouvelle sans perdre
         tes pesées. <strong>Il ne sera plus jamais affiché.</strong>

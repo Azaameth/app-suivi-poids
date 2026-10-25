@@ -3,6 +3,7 @@ import type { SyncState } from '../../core'
 import { supprimerCompte } from '../../core/compte/supprimerCompte'
 import { useServices } from '../../context/ServicesContext'
 import { Icone } from '../commun/Icones'
+import { MachimotoDit } from '../commun/Mascotte'
 import { useUnlockedVault } from '../vault/VaultContext'
 
 const MOT = 'SUPPRIMER'
@@ -44,6 +45,13 @@ export function SupprimerCompte() {
         </button>
       ) : (
         <>
+          <MachimotoDit expression="triste">
+            <p>Tu pars pour de bon ? Ça me rend triste, mais c’est ton choix.</p>
+            <p>
+              Exporte d’abord tes pesées (Export CSV, en haut de cet écran) : une fois supprimées,
+              même moi je ne pourrai pas les retrouver.
+            </p>
+          </MachimotoDit>
           <label>
             Pour confirmer, tape {MOT}
             <input

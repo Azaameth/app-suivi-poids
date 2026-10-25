@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AuthUser } from '../../core'
 import { useServices } from '../../context/ServicesContext'
+import { MachimotoDit } from '../commun/Mascotte'
+import { usePreferences } from '../prefs/usePreferences'
+import { Modal } from './Modal'
 
 /**
- * Avatar (initiale du compte Google) et menu : identité, verrouillage, réglages, déconnexion.
- * Fermeture par Échap ou clic en dehors.
+ * Avatar (initiale du compte Google) et menu : identité, verrouillage, réglages, déconnexion
+ * (confirmée, bloc 2.10). Fermeture par Échap ou clic en dehors.
  */
 export function ProfileMenu({
   user,
@@ -17,6 +20,7 @@ export function ProfileMenu({
 }) {
   const { auth } = useServices()
   const [open, setOpen] = useState(false)
+  const [depart, setDepart] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   const name = user.displayName ?? user.email ?? 'Compte'
 
@@ -70,11 +74,47 @@ export function ProfileMenu({
               ⚙️ Réglages
             </button>
           )}
-          <button type="button" onClick={run(() => void auth.signOut())}>
+          <button type="button" onClick={run(() => setDepart(true))}>
             🚪 Se déconnecter
           </button>
         </div>
       )}
+      {depart && <Depart onPartir={() => void auth.signOut()} onRester={() => setDepart(false)} />}
     </div>
+  )
+}
+
+/** Confirmation de départ : Machimoto triste, et ce que la déconnexion efface. */
+function Depart({ onPartir, onRester }: { onPartir: () => void; onRester: () => void }) {
+  const { data } = useServices()
+  const [preferences] = usePreferences()
+  const [enAttente, setEnAttente] = useState(0)
+  useEffect(() => data.watchSyncState((_, pending) => setEnAttente(pending)), [data])
+
+  return (
+    <Modal title="Se déconnecter" onClose={onRester}>
+      <MachimotoDit expression="triste">
+        <p>Tu t’en vas déjà ? À bientôt, j’espère !</p>
+      </MachimotoDit>
+      <p className="hint">
+        Ta phrase secrète te sera redemandée à la prochaine connexion.
+        {preferences.horsLigne && ' La copie de tes données sur cet appareil sera effacée.'}
+      </p>
+      {enAttente > 0 && (
+        <p role="alert">
+          {enAttente} modification{enAttente > 1 ? 's' : ''} pas encore envoyée
+          {enAttente > 1 ? 's' : ''} : retrouve le réseau avant de partir, sinon elle
+          {enAttente > 1 ? 's seront perdues' : ' sera perdue'}.
+        </p>
+      )}
+      <div className="row">
+        <button type="button" className="principal" onClick={onPartir}>
+          🚪 Se déconnecter
+        </button>
+        <button type="button" onClick={onRester}>
+          Rester
+        </button>
+      </div>
+    </Modal>
   )
 }
