@@ -57,6 +57,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.9 | Fonctionnel | Code de secours (phrase oubliée) | [x] |
 | 2.10 | Fonctionnel | Machimoto dans les parcours : expressions, accueil, départ, écrans sans graphique | [x] |
 | 2.11 | Fonctionnel | Démarrage hors ligne : copie locale chiffrée (option « Garder mes données sur cet appareil ») | [x] |
+| 2.12 | Fonctionnel | Import CSV (reprise de pesées existantes, #39) | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -423,6 +424,19 @@ npm run test:emulateurs
 - [x] Déconnexion et suppression du compte effacent la copie locale
 - [x] Aucune donnée en clair ni clé de données dans IndexedDB (seuls les documents du serveur y sont)
 
+## Bloc 2.12 — Import CSV (demandé le 2026-10-25, #39)
+**Objectif :** reprendre des pesées existantes (autre appli, tableur, export de l'appli) dans son compte.
+
+**Livrables**
+- Réglages → Import CSV : date (`2026-10-25` ou `25/10/2026`), poids en kg (virgule ou point), note facultative ; séparateur `;`, tabulation ou `,` détecté ; l'export (D28) se réimporte tel quel.
+- Aperçu avant écriture : nouvelles, identiques, différentes (remplacement sur demande), doublons du fichier, lignes ignorées avec leur numéro, saisies improbables (D35).
+- Chaque pesée est chiffrée comme une saisie (`PeseeRepository.save`) ; fonctionne hors ligne.
+
+**Critères d'acceptation**
+- [x] Lecture testée : export de l'appli, format français, tabulation, virgule décimale non protégée, lignes illisibles
+- [x] Rien n'est écrit avant confirmation ; une pesée existante n'est remplacée que sur demande
+- [x] Pesées importées stockées chiffrées (test UI)
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
 ---
@@ -579,6 +593,7 @@ Déclenché sur un tag `v*` :
 | D47 | 2026-10-25 | `meta/keys` supprimable par son propriétaire, uniquement via « Supprimer mon compte » (saisie de « SUPPRIMER », réseau obligatoire) ; révise D25 | Permettre l'effacement complet d'un compte | Suppression interdite (D25) |
 | D48 | 2026-10-25 | Code de secours aléatoire (160 bits) encapsulant la même clé de données que la phrase (meta/keys.secours), affiché une fois ; récupération = code + nouvelle phrase ; régénérable (phrase exigée) | Garde-fou contre l'oubli de la phrase sans porte dérobée : seul le détenteur du code peut récupérer ; complète D3 et D25 | Indice de phrase ; copie de la clé chez un tiers ; réinitialisation par e-mail (impossible sans que le serveur détienne la clé) |
 | D49 | 2026-10-25 | Cache Firestore persistant (IndexedDB) sur le web si « Garder mes données sur cet appareil » (activé par défaut), effacé à la déconnexion et à la suppression du compte ; révise D4 | Démarrer et saisir hors ligne, y compris serveur injoignable ; la copie ne contient que ce que voit le serveur (données chiffrées, dates, clé encapsulée) | Cache mémoire seul (D4) ; option désactivée par défaut |
+| D50 | 2026-10-25 | Import CSV : une pesée par jour (la dernière ligne du fichier gagne), pesées existantes différentes conservées sauf demande explicite, saisies improbables signalées sans bloquer | Reprendre un historique sans risque d'écraser une saisie par erreur ; cohérent avec D16 et D35 | Remplacement systématique ; moyenne des pesées du même jour ; refus des lignes improbables |
  
 ## ⚠️ Risques
  
@@ -631,3 +646,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.10 | Bloc proposé par Azaameth : Machimoto (content, triste…) dans l'accueil, le départ et les écrans sans graphique ; favicon déjà dans #36. |
 | 2026-10-25 | 2.11 | Démarrage hors ligne : cache Firestore persistant en option (activée par défaut), effacé à la déconnexion ; révise D4 (D49). Compromis validé par Azaameth. |
 | 2026-10-25 | 2.10 | Expressions ravi, pensif, triste (variantes du SVG) et bulle « Machimoto dit » : accueil en 2 étapes (phrase puis code de secours), chargements et erreurs, listes vides, suggestions, départ (déconnexion confirmée, avec alerte si des saisies sont en attente ; suppression du compte). Texte de création du coffre corrigé (le code de secours existe depuis 2.9). |
+| 2026-10-25 | 2.12 | Import CSV avec aperçu (nouvelles, différentes, ignorées, improbables) ; lecture tolérante (; / tabulation / virgule, dates ISO ou jj/mm/aaaa, virgule décimale) ; D50. Pour reprendre les pesées d'Azaameth (#39). |

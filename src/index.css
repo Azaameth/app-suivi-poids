@@ -441,6 +441,34 @@ button {
   cursor: pointer;
 }
 
+/* Choix de fichier (import CSV) : un libellé qui ressemble à un bouton, le champ masqué. */
+label.bouton-fichier {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+label.bouton-fichier:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+label.bouton-fichier input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.apercu-import {
+  margin-top: 0.75rem;
+}
+
 button.principal {
   background: var(--accent);
   color: var(--bg);

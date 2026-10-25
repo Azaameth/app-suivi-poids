@@ -308,3 +308,33 @@ describe('saisies improbables (avertir sans bloquer)', () => {
     )
   }, 15_000)
 })
+
+describe('import CSV (#39)', () => {
+  test('aperçu (nouvelles, différentes, ignorées) puis import chiffré', async () => {
+    const services = await start()
+    await seed(services, 1, () => 80)
+    const today = dateLocale()
+    const hier = ajouterJours(today, -1)
+    await tab('Réglages')
+    const csv = `date;poids\n${hier};80,5\n${today};79,5\nn'importe quoi;12\n`
+    fireEvent.change(screen.getByLabelText('Choisir un fichier CSV'), {
+      target: { files: [new File([csv], 'pesees.csv', { type: 'text/csv' })] },
+    })
+    const apercu = await screen.findByLabelText('Aperçu de l’import')
+    expect(within(apercu).getByText(/2 pesée\(s\) reconnue\(s\)/)).toBeTruthy()
+    expect(within(apercu).getByText('1 nouvelle(s)')).toBeTruthy()
+    expect(within(apercu).getByText(/80 kg → 79,5 kg/)).toBeTruthy()
+    expect(within(apercu).getByText(/ligne 4 : date illisible/)).toBeTruthy()
+
+    // Par défaut, la pesée existante n'est pas remplacée.
+    fireEvent.click(within(apercu).getByRole('button', { name: 'Importer 1 pesée(s)' }))
+    await screen.findByText('1 pesée(s) importée(s) ✓')
+    const stored = await services.data.get('uid-test', PESEES, hier)
+    expect(String(stored?.poids)).toMatch(/^v1:/)
+
+    await tab('Historique')
+    const liste = history()
+    expect(within(liste).getByText(/80,5 kg/)).toBeTruthy()
+    expect(within(liste).getByText(/^80 kg/)).toBeTruthy()
+  }, 20_000)
+})
