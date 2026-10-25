@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { signalerImprobables } from '../../core/analyse'
 import type { Pesee } from '../../core/pesees'
-import { formatDay, formatWeight } from './format'
-import { messageAvis } from './plausibilite'
+import { formatDay, formatWeight } from '../commun/format'
+import { messageAvis } from '../commun/plausibilite'
 
 /** Historique, de la plus récente à la plus ancienne. Suppression en deux temps. */
 export function PeseeList({

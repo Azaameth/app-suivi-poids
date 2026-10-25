@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 
-/** 5 minutes d'inactivité (D12). */
-export const AUTO_LOCK_MS = 5 * 60 * 1000
-
 const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const
 
-/** Appelle `onIdle` après `timeoutMs` sans clic, frappe ni défilement. */
-export function useAutoLock(onIdle: () => void, timeoutMs = AUTO_LOCK_MS) {
+/**
+ * Appelle `onIdle` après `timeoutMs` sans clic, frappe ni défilement. Le délai vient des
+ * préférences (D12, 5 min par défaut).
+ */
+export function useAutoLock(onIdle: () => void, timeoutMs: number) {
   useEffect(() => {
     let timer = setTimeout(onIdle, timeoutMs)
     const reset = () => {

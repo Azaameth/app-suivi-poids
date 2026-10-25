@@ -9,16 +9,17 @@ export function dateLocale(date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-function versMs(jour: string): number {
+/** Jour `YYYY-MM-DD` → millisecondes à minuit UTC (axes, formatage ; jamais l'heure locale). */
+export function jourEnMs(jour: string): number {
   const [a, m, j] = jour.split('-').map(Number)
   return Date.UTC(a, m - 1, j)
 }
 
 /** Nombre de jours de `de` à `a` (négatif si `a` est avant `de`). */
 export function ecartJours(de: string, a: string): number {
-  return Math.round((versMs(a) - versMs(de)) / JOUR_MS)
+  return Math.round((jourEnMs(a) - jourEnMs(de)) / JOUR_MS)
 }
 
 export function ajouterJours(jour: string, n: number): string {
-  return new Date(versMs(jour) + n * JOUR_MS).toISOString().slice(0, 10)
+  return new Date(jourEnMs(jour) + n * JOUR_MS).toISOString().slice(0, 10)
 }

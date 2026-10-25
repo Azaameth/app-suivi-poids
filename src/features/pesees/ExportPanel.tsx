@@ -1,5 +1,6 @@
+import { dateLocale } from '../../core/analyse'
 import { useState } from 'react'
-import { localDate, toCsv, type Pesee } from '../../core/pesees'
+import { toCsv, type Pesee } from '../../core/pesees'
 import { useServices } from '../../context/ServicesContext'
 
 export function ExportPanel({ pesees }: { pesees: Pesee[] }) {
@@ -9,7 +10,7 @@ export function ExportPanel({ pesees }: { pesees: Pesee[] }) {
   async function exportCsv() {
     try {
       await files.exportText(
-        `machimoto-pesees-${localDate()}.csv`,
+        `machimoto-pesees-${dateLocale()}.csv`,
         toCsv(pesees),
         'text/csv;charset=utf-8',
       )

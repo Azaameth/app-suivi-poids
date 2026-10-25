@@ -1,4 +1,4 @@
-import { dayToMs } from '../../core/pesees'
+import { jourEnMs } from '../../core/analyse'
 
 const dateFormat = new Intl.DateTimeFormat('fr-FR', {
   weekday: 'short',
@@ -15,9 +15,9 @@ const shortDateFormat = new Intl.DateTimeFormat('fr-FR', {
 const weightFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 })
 
 /** `2026-10-24` → « sam. 24 oct. 2026 ». */
-export const formatDay = (day: string) => dateFormat.format(dayToMs(day))
+export const formatDay = (day: string) => dateFormat.format(jourEnMs(day))
 /** `2026-10-24` → « 24 oct. ». */
-export const formatShortDay = (day: string) => shortDateFormat.format(dayToMs(day))
+export const formatShortDay = (day: string) => shortDateFormat.format(jourEnMs(day))
 /** 72.4 → « 72,4 kg ». */
 export const formatWeight = (kg: number) => `${weightFormat.format(kg)} kg`
 

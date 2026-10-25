@@ -4,13 +4,12 @@ import {
   NOTE_MAX,
   POIDS_MAX,
   POIDS_MIN,
-  localDate,
   type Pesee,
   type PeseeRepository,
 } from '../../core/pesees'
-import { evaluerPlausibilite } from '../../core/analyse'
-import { formatDay } from './format'
-import { messageAvis } from './plausibilite'
+import { dateLocale, evaluerPlausibilite } from '../../core/analyse'
+import { formatDay } from '../commun/format'
+import { messageAvis } from '../commun/plausibilite'
 
 /**
  * Saisie d'une pesée (une par jour). Une date déjà saisie remplace la pesée existante ;
@@ -32,7 +31,7 @@ export function PeseeForm({
   title?: string
   onDone?: () => void
 }) {
-  const [date, setDate] = useState(editing?.date ?? localDate())
+  const [date, setDate] = useState(editing?.date ?? dateLocale())
   const [poids, setPoids] = useState(editing ? String(editing.poids) : '')
   const [note, setNote] = useState(editing?.note ?? '')
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
@@ -85,7 +84,7 @@ export function PeseeForm({
         <input
           type="date"
           value={date}
-          max={localDate()}
+          max={dateLocale()}
           required
           disabled={Boolean(editing) || lockDate}
           onChange={(e) => setDate(e.target.value)}

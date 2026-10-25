@@ -1,4 +1,5 @@
-import { localDate, type PeseeInput } from '../../core/pesees'
+import { dateLocale } from '../../core/analyse'
+import { type PeseeInput } from '../../core/pesees'
 
 const NOTES = [
   'après le footing',
@@ -36,7 +37,7 @@ export function fakePesees(days = 365, today = new Date()): PeseeInput[] {
     const monday = day.getDay() === 1 ? 0.4 : 0
     const poids = Math.round((trend + monday + (rand() - 0.5) * 0.8) * 10) / 10
     const note = rand() < 0.12 ? NOTES[Math.floor(rand() * NOTES.length)] : undefined
-    result.push({ date: localDate(day), poids, ...(note && { note }) })
+    result.push({ date: dateLocale(day), poids, ...(note && { note }) })
   }
   return result
 }
@@ -53,7 +54,7 @@ export function fakeBaisseReguliere(days = 90, today = new Date()): PeseeInput[]
     if (rand() < 0.15) continue
     const trend = 84 - (0.4 / 7) * (days - 1 - i)
     const poids = Math.round((trend + (rand() - 0.5) * 0.8) * 10) / 10
-    result.push({ date: localDate(day), poids })
+    result.push({ date: dateLocale(day), poids })
   }
   return result
 }

@@ -1,5 +1,5 @@
 import type { Pesee, PeseeRepository } from '../../core/pesees'
-import { formatFixed, formatSigned } from '../pesees/format'
+import { formatFixed, formatSigned } from '../commun/format'
 import { GraphiquePesees } from './GraphiquePesees'
 import { SaisiePesee } from './SaisiePesee'
 import { Tuile } from './Tuile'

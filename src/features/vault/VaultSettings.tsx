@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { WrongPassphraseError } from '../../core/crypto'
-import { WeakPassphraseError } from '../../core/vault'
+import { messageErreur } from './messages'
 import { PassphraseForm } from './PassphraseForm'
 import { useUnlockedVault } from './VaultContext'
 
@@ -32,9 +31,7 @@ export function VaultSettings() {
               await changePassphrase(ancienne, nouvelle)
               setChanged(true)
             } catch (error) {
-              if (error instanceof WrongPassphraseError) return 'Phrase actuelle incorrecte.'
-              if (error instanceof WeakPassphraseError) return error.message
-              return 'Connexion au serveur impossible. Vérifie le réseau puis réessaie.'
+              return messageErreur(error, 'Phrase actuelle incorrecte.')
             }
           }}
         />
