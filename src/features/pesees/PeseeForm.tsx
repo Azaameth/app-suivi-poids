@@ -18,11 +18,16 @@ export function PeseeForm({
   pesees,
   repo,
   editing,
+  lockDate = false,
+  title,
   onDone,
 }: {
   pesees: Pesee[]
   repo: PeseeRepository
   editing?: Pesee
+  /** Date figée sur aujourd'hui (saisie du jour, tableau de bord). */
+  lockDate?: boolean
+  title?: string
   onDone?: () => void
 }) {
   const [date, setDate] = useState(editing?.date ?? localDate())
@@ -62,7 +67,7 @@ export function PeseeForm({
 
   return (
     <form onSubmit={submit} className="card">
-      <h2>{editing ? 'Modifier la pesée' : 'Nouvelle pesée'}</h2>
+      <h2>{title ?? (editing ? 'Modifier la pesée' : 'Nouvelle pesée')}</h2>
       <label>
         Date
         <input
@@ -70,7 +75,7 @@ export function PeseeForm({
           value={date}
           max={localDate()}
           required
-          disabled={Boolean(editing)}
+          disabled={Boolean(editing) || lockDate}
           onChange={(e) => setDate(e.target.value)}
         />
       </label>

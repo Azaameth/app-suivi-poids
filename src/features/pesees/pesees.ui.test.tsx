@@ -2,31 +2,48 @@ import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, test } from 'vitest'
 import { createMemoryServices } from '../../adapters/memory'
 import type { MemoryFileExporter } from '../../adapters/memory/MemoryFileExporter'
-import { PESEES } from '../../core/pesees'
+import type { Services } from '../../core'
+import { ajouterJours, dateLocale } from '../../core/analyse'
+import { PESEES, PeseeRepository } from '../../core/pesees'
 import { createVault, fill, renderApp, signIn } from '../../test/appHarness'
 
 afterEach(cleanup)
 
-async function start() {
-  const services = renderApp()
+async function start(services: Services = createMemoryServices()) {
+  renderApp(services)
   await signIn()
   await createVault()
   return services
 }
 
+const tab = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
+const history = () => screen.getByRole('list', { name: 'Historique des pesées' })
+const tuile = (name: string) => screen.getByRole('region', { name })
+
+/** Saisie dans l'onglet Historique (date au choix). */
 async function addPesee(date: string, poids: string, note = '') {
   fill('Date', date)
   fill('Poids (kg)', poids)
   fill('Note (facultative)', note)
   fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
-  await screen.findByText(new RegExp(`${poids.replace('.', ',')} kg`))
+  const list = await screen.findByRole('list', { name: 'Historique des pesées' })
+  await within(list).findByText(new RegExp(`${poids.replace('.', ',')} kg`))
 }
 
-const history = () => screen.getByRole('list', { name: 'Historique des pesées' })
+/** Remplit directement le DataStore : `jours` pesées quotidiennes jusqu'à aujourd'hui. */
+async function seed(services: Services, jours: number, poids: (i: number) => number) {
+  const key = await services.keys.load()
+  const repo = new PeseeRepository(services.data, 'uid-test', key!)
+  const today = dateLocale()
+  for (let i = 0; i < jours; i++) {
+    await repo.save({ date: ajouterJours(today, i - jours + 1), poids: poids(i) })
+  }
+}
 
-describe('journal', () => {
-  test('état vide, puis saisie (virgule acceptée) visible dans l’historique, stockée chiffrée', async () => {
+describe('historique', () => {
+  test('état vide, puis saisie (virgule acceptée) visible et stockée chiffrée', async () => {
     const services = await start()
+    tab('Historique')
     expect(screen.getByText(/Aucune pesée pour l’instant/)).toBeTruthy()
 
     await addPesee('2026-10-24', '72,4', 'après le footing')
@@ -37,6 +54,7 @@ describe('journal', () => {
 
   test('poids manquant ou hors bornes refusé', async () => {
     await start()
+    tab('Historique')
     fill('Poids (kg)', '')
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
     expect((await screen.findByRole('alert')).textContent).toMatch(/Indique un poids/)
@@ -47,6 +65,7 @@ describe('journal', () => {
 
   test('même jour : avertissement puis remplacement (une seule pesée par jour)', async () => {
     await start()
+    tab('Historique')
     await addPesee('2026-10-24', '72.4')
     fill('Date', '2026-10-24')
     expect(screen.getByText(/elle sera remplacée/)).toBeTruthy()
@@ -54,66 +73,85 @@ describe('journal', () => {
     expect(within(history()).getAllByRole('listitem')).toHaveLength(1)
   }, 15_000)
 
-  test('modifier depuis l’historique', async () => {
+  test('modifier puis supprimer depuis l’historique', async () => {
     await start()
+    tab('Historique')
     await addPesee('2026-10-24', '72.4')
     fireEvent.click(within(history()).getByRole('button', { name: 'Modifier' }))
     await screen.findByRole('heading', { name: 'Modifier la pesée' })
     fill('Poids (kg)', '70')
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await within(history()).findByText('70 kg')
-    expect(screen.getByRole('heading', { name: 'Nouvelle pesée' })).toBeTruthy()
-  }, 15_000)
 
-  test('supprimer en deux temps', async () => {
-    await start()
-    await addPesee('2026-10-24', '72.4')
     fireEvent.click(within(history()).getByRole('button', { name: 'Supprimer' }))
     fireEvent.click(screen.getByRole('button', { name: 'Confirmer la suppression' }))
     await screen.findByText(/Aucune pesée pour l’instant/)
   }, 15_000)
 })
 
-describe('graphique', () => {
-  test('rendu réglable : période, moyenne mobile, préférences mémorisées', async () => {
+describe('tableau de bord', () => {
+  test('état vide : invitation et saisie du jour, ni tuiles ni graphique', async () => {
+    await start()
+    expect(screen.getByText(/Saisis ta première pesée/)).toBeTruthy()
+    expect(screen.queryByRole('region', { name: 'Tendance' })).toBeNull()
+    expect(screen.queryByRole('img')).toBeNull()
+  }, 15_000)
+
+  test('pesée du jour : saisie, puis « Pesée du jour : X kg — modifier » pré-rempli', async () => {
+    await start()
+    fill('Poids (kg)', '78,6')
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await screen.findByText('78,6 kg', { selector: 'strong' })
+    fireEvent.click(screen.getByRole('button', { name: 'Modifier' }))
+    expect((screen.getByLabelText('Poids (kg)') as HTMLInputElement).value).toBe('78.6')
+    expect((screen.getByLabelText('Date') as HTMLInputElement).disabled).toBe(true)
+  }, 15_000)
+
+  test('peu de pesées : rythme et projection masqués, historique insuffisant', async () => {
     const services = await start()
-    fireEvent.click(screen.getByRole('button', { name: 'Graphique' }))
-    expect(screen.getByText(/Pas assez de pesées/)).toBeTruthy()
+    await seed(services, 5, () => 80)
+    await within(await screen.findByRole('region', { name: 'Rythme' })).findByText(
+      'Encore 9 pesées pour estimer',
+    )
+    expect(within(tuile('Projection')).getByText('—')).toBeTruthy()
+    expect(within(tuile('Sur 30 jours')).getByText('Historique insuffisant')).toBeTruthy()
+  }, 15_000)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Journal' }))
-    // Dates récentes : visibles dans la période par défaut (90 j).
-    const today = new Date()
-    const day = (offset: number) =>
-      new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset).toLocaleDateString(
-        'sv-SE',
-      )
-    await addPesee(day(2), '73')
-    await addPesee(day(1), '72.5')
-    await addPesee(day(0), '72')
+  test('40 jours de baisse régulière : tuiles, tendance, projection et cône', async () => {
+    const services = await start()
+    await seed(services, 40, (i) => 82 - 0.05 * i)
+    await within(await screen.findByRole('region', { name: 'Rythme' })).findByText('−0,35 kg/sem')
+    expect(within(tuile('Sur 30 jours')).getByText(/^−1,\d kg$/)).toBeTruthy()
+    expect(within(tuile('Projection')).getByText(/^Dans 4 sem\. : \d+,\d kg$/)).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Graphique' }))
-    const chart = screen.getByRole('img', { name: /Poids du/ })
-    expect(chart.querySelectorAll('circle')).toHaveLength(3)
-    expect(chart.querySelector('polyline.series')).toBeTruthy()
-    expect(chart.querySelector('polyline.average')).toBeTruthy()
+    const chart = screen.getByRole('img', { name: /Tendance du/ })
+    expect(chart.querySelector('polyline.tendance')).toBeTruthy()
+    expect(chart.querySelector('polyline.projection')).toBeTruthy()
+    expect(chart.querySelector('polygon.cone')).toBeTruthy()
+    // Période par défaut 90 j : les 40 pesées sont visibles.
+    expect(chart.querySelectorAll('circle.pesee')).toHaveLength(40)
 
-    expect(chart.querySelector('polyline.series.faded')).toBeTruthy()
-
-    fireEvent.click(screen.getByLabelText('Moyenne 7 j'))
-    expect(chart.querySelector('polyline.average')).toBeNull()
-    expect(chart.querySelector('polyline.series.faded')).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: '30 j' }))
-
-    expect(services.prefs.get().chart).toMatchObject({ period: '30j', average: false })
+    tab('7 j')
+    expect(screen.getByRole('img').querySelectorAll('circle.pesee')).toHaveLength(7)
+    fireEvent.click(screen.getByLabelText('Axe depuis 0'))
+    expect(services.prefs.get().chart).toEqual({ period: '7j', fromZero: true })
   }, 20_000)
+
+  test('poids stable : « Stable », pas de projection', async () => {
+    const services = await start()
+    await seed(services, 20, () => 80)
+    await within(await screen.findByRole('region', { name: 'Rythme' })).findByText('Stable')
+    expect(within(tuile('Projection')).getByText('Stable')).toBeTruthy()
+    expect(screen.getByRole('img').querySelector('polyline.projection')).toBeNull()
+  }, 15_000)
 })
 
 describe('export et réglages', () => {
   test('export CSV en clair, via le FileExporter', async () => {
     const services = await start()
+    tab('Historique')
     await addPesee('2026-10-24', '72.4', 'footing')
-    fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
+    tab('Export & réglages')
     fireEvent.click(screen.getByRole('button', { name: 'Exporter en CSV' }))
     await screen.findByText('1 pesée(s) exportée(s).')
     const [file] = (services.files as MemoryFileExporter).files
@@ -122,11 +160,8 @@ describe('export et réglages', () => {
   }, 15_000)
 
   test('délai de verrouillage réglable', async () => {
-    const services = createMemoryServices()
-    renderApp(services)
-    await signIn()
-    await createVault()
-    fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
+    const services = await start()
+    tab('Export & réglages')
     fireEvent.change(screen.getByLabelText(/Verrouillage automatique après/), {
       target: { value: '15' },
     })
@@ -148,14 +183,14 @@ describe('outils de dev', () => {
 
   test('générer puis tout effacer', async () => {
     await start()
-    fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
+    tab('Export & réglages')
     fireEvent.click(screen.getByRole('button', { name: 'Générer un an de données fictives' }))
     await screen.findByText(/Génération : \d+ pesée\(s\), synchronisé/, undefined, {
       timeout: 10_000,
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Journal' }))
+    tab('Historique')
     expect(within(history()).getAllByRole('listitem').length).toBeGreaterThan(250)
-    fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
+    tab('Export & réglages')
     fireEvent.click(screen.getByRole('button', { name: 'Tout effacer' }))
     await screen.findByText(/Effacement : \d+ pesée\(s\), synchronisé/)
   }, 30_000)

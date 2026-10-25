@@ -32,5 +32,5 @@ export async function createVault() {
   fill('Phrase secrète', PHRASE)
   fill('Confirmation', PHRASE)
   fireEvent.click(screen.getByRole('button', { name: 'Créer mon coffre' }))
-  await screen.findByRole('heading', { name: 'Nouvelle pesée' }, { timeout: 5000 })
+  await screen.findByRole('heading', { name: 'Pesée du jour' }, { timeout: 5000 })
 }

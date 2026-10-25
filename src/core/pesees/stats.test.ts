@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { filterByPeriod, localDate, movingAverage, toCsv, type Pesee } from '.'
+import { filterByPeriod, localDate, toCsv, type Pesee } from '.'
 import { parsePreferences } from '../prefs/Preferences'
 
 const p = (date: string, poids: number, note?: string): Pesee => ({
@@ -25,19 +25,10 @@ describe('statistiques', () => {
     const dates = (period: Parameters<typeof filterByPeriod>[1]) =>
       filterByPeriod(pesees, period, '2026-10-24').map((x) => x.date)
     // 30 j = le jour même et les 29 précédents : le 2026-09-25 est inclus.
+    expect(dates('7j')).toEqual(['2026-10-24'])
     expect(dates('30j')).toEqual(['2026-09-25', '2026-10-24'])
     expect(dates('90j')).toEqual(['2026-07-27', '2026-09-25', '2026-10-24'])
     expect(dates('tout')).toEqual(['2025-10-01', '2026-07-27', '2026-09-25', '2026-10-24'])
-  })
-
-  test('moyenne mobile sur 7 jours glissants', () => {
-    const pesees = [
-      p('2026-10-01', 70),
-      p('2026-10-04', 72),
-      p('2026-10-07', 74),
-      p('2026-10-09', 76),
-    ]
-    expect(movingAverage(pesees).map((x) => x.poids)).toEqual([70, 71, 72, 74])
   })
 
   test('CSV : BOM, en-tête, tri, guillemets autour des notes à virgule ou guillemets', () => {
@@ -54,13 +45,13 @@ describe('préférences', () => {
   test('valeurs par défaut et valeurs invalides ramenées au défaut', () => {
     expect(parsePreferences(null)).toEqual({
       autoLockMinutes: 5,
-      chart: { period: '90j', average: true, fromZero: false },
+      chart: { period: '90j', fromZero: false },
     })
     expect(
       parsePreferences({ autoLockMinutes: 0, chart: { period: '2ans', fromZero: true } }),
     ).toEqual({
       autoLockMinutes: 5,
-      chart: { period: '90j', average: true, fromZero: true },
+      chart: { period: '90j', fromZero: true },
     })
   })
 })
