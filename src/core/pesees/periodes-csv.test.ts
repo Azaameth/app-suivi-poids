@@ -46,12 +46,18 @@ describe('préférences', () => {
   test('valeurs par défaut et valeurs invalides ramenées au défaut', () => {
     expect(parsePreferences(null)).toEqual({
       autoLockMinutes: 5,
+      theme: 'systeme',
       chart: { period: '90j', fromZero: false },
     })
     expect(
-      parsePreferences({ autoLockMinutes: 0, chart: { period: '2ans', fromZero: true } }),
+      parsePreferences({
+        autoLockMinutes: 0,
+        theme: 'violet',
+        chart: { period: '2ans', fromZero: true },
+      }),
     ).toEqual({
       autoLockMinutes: 5,
+      theme: 'systeme',
       chart: { period: '90j', fromZero: true },
     })
   })

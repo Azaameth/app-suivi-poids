@@ -162,8 +162,16 @@ function Trace({
           </>
         )}
         {visibles.map((p) => (
-          <circle key={p.date} className="pesee" cx={x(p.date)} cy={y(p.poids)} r={1.8}>
-            <title>{`${formatDay(p.date)} : ${formatWeight(p.poids)}`}</title>
+          <circle
+            key={p.date}
+            className={p.note ? 'pesee note' : 'pesee'}
+            cx={x(p.date)}
+            cy={y(p.poids)}
+            r={p.note ? 3.2 : 1.8}
+          >
+            <title>
+              {`${formatDay(p.date)} : ${formatWeight(p.poids)}${p.note ? ` — ${p.note}` : ''}`}
+            </title>
           </circle>
         ))}
         <path
@@ -181,6 +189,12 @@ function Trace({
           </>
         )}{' '}
         <span className="point" /> pesées
+        {visibles.some((p) => p.note) && (
+          <>
+            {' '}
+            <span className="point note" /> pesée avec note
+          </>
+        )}
       </p>
     </>
   )

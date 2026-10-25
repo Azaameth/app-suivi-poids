@@ -3,6 +3,8 @@ import { PERIODS } from '../pesees/periodes'
 import type { Unsubscribe } from '../types'
 
 export const AUTO_LOCK_CHOICES = [1, 2, 5, 10, 15, 30] as const
+export const THEMES = ['systeme', 'clair', 'sombre'] as const
+export type Theme = (typeof THEMES)[number]
 
 /**
  * Préférences d'affichage, propres à l'appareil. Rien de secret ici : jamais de clé,
@@ -11,6 +13,8 @@ export const AUTO_LOCK_CHOICES = [1, 2, 5, 10, 15, 30] as const
 export const preferencesSchema = z.object({
   /** Verrouillage automatique après inactivité (D12). */
   autoLockMinutes: z.number().int().min(1).max(60).catch(5),
+  /** Système (suit l'appareil), Clair ou Sombre (D41). */
+  theme: z.enum(THEMES).catch('systeme'),
   chart: z
     .object({
       period: z.enum(PERIODS).catch('90j'),

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { signalerImprobables } from '../../core/analyse'
 import type { Pesee } from '../../core/pesees'
 import { formatDay, formatWeight } from '../commun/format'
+import { Icone } from '../commun/Icones'
 import { messageAvis } from '../commun/plausibilite'
 
 /** Historique, de la plus récente à la plus ancienne. Suppression en deux temps. */
@@ -46,7 +47,7 @@ export function PeseeList({
           <div className="row">
             {confirming === p.date ? (
               <>
-                <button type="button" className="danger" onClick={() => onRemove(p.date)}>
+                <button type="button" className="danger-plein" onClick={() => onRemove(p.date)}>
                   Confirmer la suppression
                 </button>
                 <button type="button" onClick={() => setConfirming(null)}>
@@ -55,11 +56,23 @@ export function PeseeList({
               </>
             ) : (
               <>
-                <button type="button" onClick={() => onEdit(p)}>
-                  Modifier
+                <button
+                  type="button"
+                  className="icone"
+                  aria-label={`Modifier la pesée du ${formatDay(p.date)}`}
+                  title="Modifier"
+                  onClick={() => onEdit(p)}
+                >
+                  <Icone nom="stylo" />
                 </button>
-                <button type="button" onClick={() => setConfirming(p.date)}>
-                  Supprimer
+                <button
+                  type="button"
+                  className="icone danger-plein"
+                  aria-label={`Supprimer la pesée du ${formatDay(p.date)}`}
+                  title="Supprimer"
+                  onClick={() => setConfirming(p.date)}
+                >
+                  <Icone nom="poubelle" />
                 </button>
               </>
             )}

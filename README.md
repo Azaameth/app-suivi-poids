@@ -21,6 +21,10 @@ les données. Seule la date reste en clair, pour le tri.
 Sur le web, la clé et la phrase ne sont gardées qu'en mémoire (jamais dans le stockage du
 navigateur) ; le coffre se verrouille après quelques minutes d'inactivité.
 
+La clé d'API Firebase visible dans `src/firebase.config.ts` n'est pas un secret : elle identifie
+le projet, et elle est restreinte aux domaines de l'appli et aux seules API utilisées. L'accès
+aux données est contrôlé par les règles Firestore, et leur contenu est chiffré.
+
 ## Stack
 
 Vite · React · TypeScript · Zod · Firebase (Auth Google, Firestore, Hosting ; plan gratuit) ·
