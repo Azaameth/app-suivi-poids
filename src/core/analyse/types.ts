@@ -22,6 +22,10 @@ export interface Rythme {
 export interface PointProjection {
   date: string
   centre: number
+  /** Fourchette à 95 % (Student). */
   bas: number
   haut: number
+  /** Fourchette à 99 % (Student). */
+  bas99: number
+  haut99: number
 }

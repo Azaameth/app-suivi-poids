@@ -8,6 +8,7 @@ import {
   dateLocale,
   ecartJours,
   peseesDansFenetre,
+  quantileStudent,
   type Mesure,
   type Rythme,
 } from '.'
@@ -160,11 +161,32 @@ describe('projection (4 semaines)', () => {
     expect(p[27].centre).toBeCloseTo(78.6, 10)
   })
 
-  test('la marge croît linéairement avec h', () => {
+  test('la marge croît linéairement avec h (Student, 28 pesées → 26 ddl)', () => {
     const p = calculerProjection(80, rythme(-0.35, 0.01), '2026-10-28')!
     const marge = (h: number) => p[h - 1].haut - p[h - 1].centre
-    expect(marge(1)).toBeCloseTo(0.02, 10)
+    expect(marge(1)).toBeCloseTo(2.056 * 0.01, 10)
     expect(marge(14)).toBeCloseTo(14 * marge(1), 10)
     expect(marge(28)).toBeCloseTo(28 * marge(1), 10)
+  })
+})
+
+describe('fourchettes de Student (D36)', () => {
+  test('quantiles tabulés et repli sur la loi normale', () => {
+    expect(quantileStudent(95, 12)).toBe(2.179)
+    expect(quantileStudent(99, 26)).toBe(2.779)
+    expect(quantileStudent(95, 200)).toBe(1.96)
+  })
+
+  test('peu de pesées → fourchette plus large ; 99 % englobe 95 %', () => {
+    const r = (nbPesees: number): Rythme => ({
+      kgParSemaine: -0.35,
+      erreurKgParJour: 0.01,
+      stable: false,
+      nbPesees,
+    })
+    const [peu, beaucoup] = [14, 28].map((n) => calculerProjection(80, r(n), '2026-10-28')!.at(-1)!)
+    expect(peu.haut - peu.centre).toBeGreaterThan(beaucoup.haut - beaucoup.centre)
+    expect(peu.haut99).toBeGreaterThan(peu.haut)
+    expect(peu.bas99).toBeLessThan(peu.bas)
   })
 })

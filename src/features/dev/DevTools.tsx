@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { Pesee, PeseeRepository } from '../../core/pesees'
-import { fakePesees } from './fakePesees'
+import type { Pesee, PeseeInput, PeseeRepository } from '../../core/pesees'
+import { fakeBaisseReguliere, fakePesees } from './fakePesees'
 
 /**
  * Outils de développement (données fictives). Affiché uniquement sous `npm run dev` :
@@ -24,11 +24,13 @@ export function DevTools({ pesees, repo }: { pesees: Pesee[]; repo: PeseeReposit
     }
   }
 
-  async function generate() {
-    const byDate = new Map(pesees.map((p) => [p.date, p]))
+  /** Remplace d'abord toutes les pesées : chaque scénario part d'un historique propre. */
+  async function generate(inputs: PeseeInput[]) {
+    // Émulateur en ligne : on attend l'effacement pour ne compter que les pesées générées.
+    await Promise.all(pesees.map((p) => repo.remove(p.date).synced))
     const synced: Promise<void>[] = []
-    for (const input of fakePesees()) {
-      synced.push((await repo.save(input, byDate.get(input.date))).synced)
+    for (const input of inputs) {
+      synced.push((await repo.save(input)).synced)
     }
     return synced
   }
@@ -40,10 +42,24 @@ export function DevTools({ pesees, repo }: { pesees: Pesee[]; repo: PeseeReposit
   return (
     <section className="card">
       <h2>🧪 Outils de dev</h2>
-      <p className="hint">Visible uniquement en développement (émulateurs).</p>
+      <p className="hint">
+        Visible uniquement en développement (émulateurs). Chaque génération remplace toutes les
+        pesées.
+      </p>
       <div className="row">
-        <button type="button" disabled={busy} onClick={() => run('Génération', generate)}>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => run('Génération', () => generate(fakePesees()))}
+        >
           Générer un an de données fictives
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => run('Génération', () => generate(fakeBaisseReguliere()))}
+        >
+          Scénario : baisse régulière (90 j)
         </button>
         <button
           type="button"

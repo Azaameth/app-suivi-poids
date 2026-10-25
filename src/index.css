@@ -212,7 +212,12 @@ label.inline {
 
 .chart .cone {
   fill: var(--accent);
-  opacity: 0.15;
+  opacity: 0.2;
+}
+
+/* Le cône à 99 % englobe celui à 95 % : plus pâle. */
+.chart .cone99 {
+  opacity: 0.09;
 }
 
 /* Tableau de bord : 2 × 2 tuiles, lisible dès 360 px. */
@@ -264,6 +269,16 @@ label.inline {
 
 .legende .pointilles {
   border-top: 2px dashed var(--accent);
+}
+
+.legende .zone {
+  height: 0.7rem;
+  background: var(--accent);
+  opacity: 0.29;
+}
+
+.legende .zone99 {
+  opacity: 0.09;
 }
 
 .legende .point {

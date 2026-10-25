@@ -40,3 +40,20 @@ export function fakePesees(days = 365, today = new Date()): PeseeInput[] {
   }
   return result
 }
+
+/**
+ * Scénario « baisse régulière » : 90 jours à environ −0,4 kg/semaine jusqu'à aujourd'hui,
+ * bruit journalier, ~15 % de jours sans pesée. Fait apparaître rythme, projection et cônes.
+ */
+export function fakeBaisseReguliere(days = 90, today = new Date()): PeseeInput[] {
+  const rand = random(7)
+  const result: PeseeInput[] = []
+  for (let i = days - 1; i >= 0; i--) {
+    const day = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)
+    if (rand() < 0.15) continue
+    const trend = 84 - (0.4 / 7) * (days - 1 - i)
+    const poids = Math.round((trend + (rand() - 0.5) * 0.8) * 10) / 10
+    result.push({ date: localDate(day), poids })
+  }
+  return result
+}

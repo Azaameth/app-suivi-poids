@@ -455,6 +455,7 @@ Déclenché sur un tag `v*` :
 | D33 | 2026-10-25 | Couleurs neutres tant qu'aucun usage n'est défini ; jamais la couleur seule | Une baisse n'est pas forcément un progrès (#24) | Vert = baisse, rouge = hausse |
 | D34 | 2026-10-25 | Onglets : Tableau de bord · Historique (date au choix, modifier, supprimer) · Export & réglages | La spec ne couvre ni l'historique ni l'export | Une seule page |
 | D35 | 2026-10-25 | Saisie improbable signalée par ⚠️, jamais bloquée : écart de plus de 3 kg à la tendance des pesées antérieures (si la dernière date de moins de 30 jours), ou poids hors 20 – 300 kg | Repérer les fautes de frappe (87,4 au lieu de 78,4) sans empêcher une saisie réelle ; bornes 20 – 300 kg de la spec reprises comme avertissement | Blocage de la saisie ; bornes strictes |
+| D36 | 2026-10-25 | Fourchettes de projection par la loi de Student (n − 2 ddl) à 95 % (tuile + cône) et 99 % (cône pâle autour), au lieu du facteur fixe 2 (`T_FOURCHETTE`) ; cônes sur la tendance, pas sur les pesées futures | Avec 14 à 28 pesées, le facteur 2 sous-estime l'incertitude (~10 %) ; deux niveaux montrent la zone probable et la zone extrême | Facteur 2 et 2,6 ; intervalle de prédiction des pesées (trop large, bruité) |
  
 ## ⚠️ Risques
  
@@ -493,3 +494,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.6 | Spec de restitution (#24) versée dans `docs/`, arbitrages notés. `core/analyse` testé d'abord (cas obligatoires § 7), puis tableau de bord. Périodes 7 j → Tout ; moyenne 7 j remplacée par la tendance. 88 tests unitaires. |
 | 2026-10-25 | 2.6 | Avertissement de saisie improbable (D35) : à la frappe dans le formulaire, ⚠️ dans l'historique. `core/analyse/plausibilite.ts`, testé. |
 | 2026-10-25 | 2.6 | Graphique : tendance en courbe lissée monotone (sans dépassement) ; repères verticaux en pointillés ténus (mois ≤ 4 mois, trimestres ≤ 2 ans, années au-delà, 1ᵉʳ janvier marqué). |
+| 2026-10-25 | 2.6 | Cônes à 95 % et 99 % (Student, D36) ; scénario de dev « baisse régulière » (la projection n'apparaît qu'avec ≥ 14 pesées sur 28 j et un rythme ≥ 0,1 kg/sem, D31). |

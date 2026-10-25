@@ -78,7 +78,7 @@ function Trace({
   const valeurs = [
     ...visibles.map((p) => p.poids),
     ...tendance.map((p) => p.tendance),
-    ...projection.flatMap((p) => [p.bas, p.haut]),
+    ...projection.flatMap((p) => [p.bas99, p.haut99]),
   ]
   const {
     ticks,
@@ -136,6 +136,14 @@ function Trace({
         {projection.length > 0 && (
           <>
             <polygon
+              className="cone cone99"
+              points={[
+                pt(derniere.date, derniere.tendance),
+                ...projection.map((p) => pt(p.date, p.haut99)),
+                ...[...projection].reverse().map((p) => pt(p.date, p.bas99)),
+              ].join(' ')}
+            />
+            <polygon
               className="cone"
               points={[
                 pt(derniere.date, derniere.tendance),
@@ -167,7 +175,8 @@ function Trace({
         {projection.length > 0 && (
           <>
             {' '}
-            <span className="pointilles" /> tendance attendue (4 sem.)
+            <span className="pointilles" /> tendance attendue (4 sem.) <span className="zone" /> 95
+            % <span className="zone zone99" /> 99 %
           </>
         )}{' '}
         <span className="point" /> pesées

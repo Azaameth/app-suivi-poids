@@ -127,7 +127,8 @@ describe('tableau de bord', () => {
     const chart = screen.getByRole('img', { name: /Tendance du/ })
     expect(chart.querySelector('path.tendance')?.getAttribute('d')).toMatch(/^M.+C/)
     expect(chart.querySelector('polyline.projection')).toBeTruthy()
-    expect(chart.querySelector('polygon.cone')).toBeTruthy()
+    expect(chart.querySelectorAll('polygon.cone')).toHaveLength(2)
+    expect(chart.querySelector('polygon.cone99')).toBeTruthy()
     // 40 jours + 4 semaines de projection : au moins un début de mois en repère.
     expect(chart.querySelectorAll('.repere line').length).toBeGreaterThan(0)
     // Période par défaut 90 j : les 40 pesées sont visibles.
@@ -182,6 +183,22 @@ describe('outils de dev', () => {
     expect(data.every((p) => p.poids > 70 && p.poids < 90)).toBe(true)
     expect(fakePesees(365, today)).toEqual(data)
   })
+
+  test('scénario baisse régulière : remplace tout, rythme et projection visibles', async () => {
+    const { fakeBaisseReguliere } = await import('../dev/fakePesees')
+    const attendu = fakeBaisseReguliere().length
+    await start()
+    tab('Export & réglages')
+    fireEvent.click(screen.getByRole('button', { name: 'Générer un an de données fictives' }))
+    await screen.findByText(/Génération : \d+ pesée/, undefined, { timeout: 10_000 })
+    fireEvent.click(screen.getByRole('button', { name: 'Scénario : baisse régulière (90 j)' }))
+    await screen.findByText(`Génération : ${attendu} pesée(s), synchronisé.`, undefined, {
+      timeout: 10_000,
+    })
+    tab('Tableau de bord')
+    expect(within(tuile('Rythme')).getByText(/^−0,\d\d kg\/sem$/)).toBeTruthy()
+    expect(screen.getByRole('img').querySelector('polygon.cone99')).toBeTruthy()
+  }, 30_000)
 
   test('générer puis tout effacer', async () => {
     await start()

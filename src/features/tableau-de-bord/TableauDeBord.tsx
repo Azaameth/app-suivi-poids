@@ -52,7 +52,7 @@ export function TableauDeBord({ pesees, repo }: { pesees: Pesee[]; repo: PeseeRe
             !rythme
               ? encore
               : fin && !rythme.stable
-                ? `Tendance attendue (${formatFixed(fin.bas)} – ${formatFixed(fin.haut)})`
+                ? `Tendance attendue, à 95 % : ${formatFixed(fin.bas)} – ${formatFixed(fin.haut)}`
                 : undefined
           }
         />

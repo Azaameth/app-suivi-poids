@@ -295,4 +295,5 @@ src/features/tableau-de-bord/
 | § 5 Écran | **Tableau de bord en 1er onglet**, puis Historique (liste, modifier, supprimer, date passée), puis Export & réglages | D34 |
 | Moyenne 7 j (2.4) | Remplacée par la **tendance** (§ 4.1), toujours affichée | D29, D30 |
 | § 6 Arborescence | `src/core/analyse/` comme prévu ; `SaisiePesee` réutilise le formulaire existant | — |
+| § 3 `T_FOURCHETTE = 2` | **Loi de Student** à n − 2 ddl : fourchette à 95 % (tuile, cône) **et** à 99 % (cône pâle). S'applique aussi à la fourchette de l'objectif en v1.1 | D36 |
 | Q1 Horizon objectif (90 j) | Reste ouvert : concerne la v1.1 | — |
