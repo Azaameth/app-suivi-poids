@@ -2,6 +2,7 @@ import { jourEnMs } from '../../core/analyse'
 import { PERIODS, filterByPeriod, type Pesee } from '../../core/pesees'
 import { usePreferences } from '../prefs/usePreferences'
 import { formatDay, formatShortDay, formatWeight } from '../commun/format'
+import { MachimotoDit } from '../commun/Mascotte'
 import { courbeMonotone } from './courbe'
 import { reperesTemporels } from './reperes'
 import type { Analyse } from './useAnalyse'
@@ -52,7 +53,9 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
         Axe depuis 0
       </label>
       {visibles.length < 2 ? (
-        <p className="hint">Pas assez de pesées sur cette période (2 au minimum).</p>
+        <MachimotoDit expression="pensif" taille={48}>
+          <p>Pas assez de pesées sur cette période (2 au minimum).</p>
+        </MachimotoDit>
       ) : (
         <Trace visibles={visibles} analyse={analyse} fromZero={options.fromZero} />
       )}

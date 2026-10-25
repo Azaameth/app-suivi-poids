@@ -21,8 +21,12 @@ export function LoginScreen() {
 
   return (
     <section className="accueil">
-      <Mascotte taille={160} />
-      <p>Bonjour ! Connecte-toi pour retrouver tes pesées.</p>
+      <Mascotte taille={160} expression={error ? 'triste' : 'content'} />
+      <h2>Bonjour, je suis le Professeur Machimoto !</h2>
+      <p>
+        Je t’aide à suivre ton poids au fil des jours. Tes pesées sont chiffrées : personne d’autre
+        que toi ne peut les lire.
+      </p>
       <button type="button" onClick={signIn} disabled={pending}>
         {pending ? 'Connexion…' : 'Se connecter avec Google'}
       </button>

@@ -9,7 +9,7 @@ import {
 } from '../../core/suggestions'
 import { useServices } from '../../context/ServicesContext'
 import { Icone } from '../commun/Icones'
-import { Mascotte } from '../commun/Mascotte'
+import { MachimotoDit } from '../commun/Mascotte'
 import { Modal } from '../shell/Modal'
 import { useToast } from '../shell/toast'
 
@@ -55,12 +55,9 @@ export function SuggestionButton({ user }: { user: AuthUser }) {
       {ouvert && (
         <Modal title="Une idée, un problème ?" onClose={() => setOuvert(false)}>
           <form onSubmit={envoyer}>
-            <p className="row">
-              <Mascotte taille={48} />
-              <span className="hint">
-                Je t’écoute ! Une idée pour m’améliorer, ou quelque chose qui cloche ?
-              </span>
-            </p>
+            <MachimotoDit taille={48}>
+              <p>Je t’écoute ! Une idée pour m’améliorer, ou quelque chose qui cloche ?</p>
+            </MachimotoDit>
             <div className="row" role="group" aria-label="Type">
               {(
                 [

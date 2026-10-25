@@ -15,6 +15,11 @@ export const preferencesSchema = z.object({
   autoLockMinutes: z.number().int().min(1).max(60).catch(5),
   /** Système (suit l'appareil), Clair ou Sombre (D41). */
   theme: z.enum(THEMES).catch('systeme'),
+  /**
+   * Garder une copie locale (chiffrée, comme sur le serveur) pour démarrer hors ligne (D49).
+   * Prise en compte au prochain chargement de l'appli.
+   */
+  horsLigne: z.boolean().catch(true),
   chart: z
     .object({
       period: z.enum(PERIODS).catch('90j'),

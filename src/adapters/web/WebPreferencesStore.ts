@@ -38,6 +38,11 @@ export class WebPreferencesStore implements PreferencesStore {
   }
 }
 
+/** Préférences stockées (ou valeurs par défaut), lisibles avant toute initialisation. */
+export function preferencesStockees(): Preferences {
+  return parsePreferences(read())
+}
+
 function read(): unknown {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')

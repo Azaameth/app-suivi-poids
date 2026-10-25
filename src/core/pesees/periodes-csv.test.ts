@@ -47,6 +47,7 @@ describe('préférences', () => {
     expect(parsePreferences(null)).toEqual({
       autoLockMinutes: 5,
       theme: 'systeme',
+      horsLigne: true,
       chart: { period: '90j', fromZero: false },
     })
     expect(
@@ -58,6 +59,7 @@ describe('préférences', () => {
     ).toEqual({
       autoLockMinutes: 5,
       theme: 'systeme',
+      horsLigne: true,
       chart: { period: '90j', fromZero: true },
     })
   })

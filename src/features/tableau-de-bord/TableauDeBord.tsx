@@ -15,7 +15,7 @@ export function TableauDeBord({ pesees, onSaisir }: { pesees: Pesee[]; onSaisir:
     return (
       <>
         <section className="card vide">
-          <Mascotte taille={96} />
+          <Mascotte taille={96} expression="ravi" />
           <p>
             Bienvenue ! Saisis ta première pesée : la tendance, le rythme et la projection
             apparaîtront au fil des jours.

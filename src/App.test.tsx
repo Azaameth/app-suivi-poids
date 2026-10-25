@@ -1,8 +1,16 @@
-import { act, cleanup, fireEvent, screen } from '@testing-library/react'
-import { afterEach, expect, test } from 'vitest'
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, test } from 'vitest'
 import { createMemoryServices } from './adapters/memory'
 import type { MemoryDataStore } from './adapters/memory/MemoryDataStore'
-import { PHRASE, createVault, fill, menuProfil, renderApp, signIn } from './test/appHarness'
+import {
+  PHRASE,
+  createVault,
+  fill,
+  menuProfil,
+  renderApp,
+  seDeconnecter,
+  signIn,
+} from './test/appHarness'
 
 afterEach(cleanup)
 
@@ -15,7 +23,7 @@ test('connexion Google puis déconnexion', async () => {
   renderApp()
   fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
   expect(await screen.findByRole('button', { name: 'Profil de Test' })).toBeTruthy()
-  menuProfil('🚪 Se déconnecter')
+  seDeconnecter()
   expect(await screen.findByRole('button', { name: 'Se connecter avec Google' })).toBeTruthy()
 })
 
@@ -78,9 +86,54 @@ test('la déconnexion verrouille le coffre', async () => {
   const services = renderApp()
   await signIn()
   await createVault()
-  menuProfil('🚪 Se déconnecter')
+  seDeconnecter()
   await screen.findByRole('button', { name: 'Se connecter avec Google' })
   expect(await services.keys.load()).toBeNull()
   await signIn()
   await screen.findByRole('heading', { name: 'Coffre verrouillé' })
 }, 15_000)
+
+describe('Machimoto dans les parcours (bloc 2.10)', () => {
+  const expressions = (zone = 'main') =>
+    [...document.querySelectorAll(`${zone} img.mascotte`)].map((img) =>
+      img.getAttribute('data-expression'),
+    )
+
+  test('déconnexion : Machimoto triste, « Rester » garde la session', async () => {
+    renderApp()
+    await signIn()
+    await createVault()
+    menuProfil('🚪 Se déconnecter')
+    const fenetre = screen.getByRole('dialog', { name: 'Se déconnecter' })
+    expect(within(fenetre).getByText(/À bientôt/)).toBeTruthy()
+    expect(fenetre.querySelector('img.mascotte')?.getAttribute('data-expression')).toBe('triste')
+    fireEvent.click(within(fenetre).getByRole('button', { name: 'Rester' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Profil de Test' })).toBeTruthy()
+  }, 15_000)
+
+  test('accueil guidé : étape 1 puis étape 2, Machimoto ravi au code de secours', async () => {
+    renderApp()
+    await signIn()
+    await screen.findByText('Étape 1 sur 2')
+    expect(screen.getByText(/Sans ta phrase ni ton code de secours/)).toBeTruthy()
+    fill('Phrase secrète', PHRASE)
+    fill('Confirmation', PHRASE)
+    fireEvent.click(screen.getByRole('button', { name: 'Créer mon coffre' }))
+    await screen.findByText('Étape 2 sur 2')
+    expect(expressions()).toContain('ravi')
+  }, 15_000)
+
+  test('connexion échouée : Machimoto triste ; images décoratives', async () => {
+    const services = createMemoryServices()
+    services.auth.signIn = () => Promise.reject(new Error('popup fermée'))
+    renderApp(services)
+    expect(expressions('.accueil')).toEqual(['content'])
+    fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
+    await screen.findByRole('alert')
+    expect(expressions('.accueil')).toEqual(['triste'])
+    for (const img of document.querySelectorAll('img.mascotte')) {
+      expect(img.getAttribute('alt')).toBe('')
+    }
+  })
+})

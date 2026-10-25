@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Professeur Machimoto : une bulle bienveillante à lunettes (dessin original), pensif -->
+  <path d="M32 5C48.6 5 59 14.8 59 27.5S48.6 50 32 50c-2.4 0-4.6-.2-6.7-.6L12 58.5l3.4-12C9.2 42.4 5 35.5 5 27.5 5 14.8 15.4 5 32 5Z"
+        fill="#fff" stroke="#1d1b20" stroke-width="3.6" stroke-linejoin="round"/>
+  <!-- lunettes -->
+  <g fill="#fff" stroke="#3b2716" stroke-width="3.4" stroke-linejoin="round">
+    <rect x="11.5" y="17" width="17.5" height="14" rx="4.5"/>
+    <rect x="35" y="17" width="17.5" height="14" rx="4.5"/>
+  </g>
+  <path d="M29 22.5c2-1.6 4-1.6 6 0" fill="none" stroke="#3b2716" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M12 18.6h16.5M35.5 18.6h16.5" stroke="#3b2716" stroke-width="3.2" stroke-linecap="round"/>
+  <!-- yeux levés -->
+  <g fill="#3b2716">
+    <ellipse cx="22" cy="22.6" rx="3.1" ry="3.7"/>
+    <ellipse cx="45.4" cy="22.6" rx="3.1" ry="3.7"/>
+  </g>
+  <g fill="#b07a3e">
+    <circle cx="23" cy="21.2" r="1.1"/>
+    <circle cx="46.4" cy="21.2" r="1.1"/>
+  </g>
+  <!-- bouche songeuse -->
+  <path d="M27 41.5c3 .3 6.6-.3 10-2.6" fill="none" stroke="#3b2716" stroke-width="3.2" stroke-linecap="round"/>
+</svg>

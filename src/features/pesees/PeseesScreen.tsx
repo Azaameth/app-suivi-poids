@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
+import { MachimotoDit } from '../commun/Mascotte'
 import { Modal } from '../shell/Modal'
 import { TABS, type Tab } from '../shell/onglets'
 import { useToast } from '../shell/toast'
@@ -11,7 +12,9 @@ const HistoriqueScreen = lazy(() =>
   import('./HistoriqueScreen').then((m) => ({ default: m.HistoriqueScreen })),
 )
 const ReglagesScreen = lazy(() =>
-  import('../prefs/ReglagesScreen').then((m) => ({ default: m.ReglagesScreen })),
+  import('../prefs/ReglagesScreen').then((m) => ({
+    default: m.ReglagesScreen,
+  })),
 )
 
 /** Écran principal, coffre déverrouillé : contenu de l'onglet et saisie du jour. */
@@ -31,9 +34,15 @@ export function PeseesScreen({ tab }: { tab: Tab }) {
     <>
       <h2 className="titre-ecran">{TABS[tab]}</h2>
 
-      {state.status === 'loading' && <p>Chargement des pesées…</p>}
+      {state.status === 'loading' && (
+        <MachimotoDit expression="pensif">
+          <p>Chargement des pesées…</p>
+        </MachimotoDit>
+      )}
       {state.status === 'error' && (
-        <p role="alert">Impossible de charger les pesées. Vérifie la connexion puis recharge.</p>
+        <MachimotoDit expression="triste">
+          <p role="alert">Impossible de charger les pesées. Vérifie la connexion puis recharge.</p>
+        </MachimotoDit>
       )}
       {state.status === 'ready' && (
         <>

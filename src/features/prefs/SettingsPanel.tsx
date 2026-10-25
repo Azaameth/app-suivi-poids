@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { AUTO_LOCK_CHOICES, THEMES, type Theme } from '../../core/prefs/Preferences'
 import { VaultSettings } from '../vault/VaultSettings'
 import { usePreferences } from './usePreferences'
@@ -35,7 +36,36 @@ export function SettingsPanel() {
           ))}
         </select>
       </label>
+      <HorsLigne actif={preferences.horsLigne} onChange={(horsLigne) => update({ horsLigne })} />
       <VaultSettings />
     </section>
+  )
+}
+
+/**
+ * « Garder mes données sur cet appareil » (D49) : copie locale chiffrée pour démarrer hors
+ * ligne. Le cache Firestore se choisit au démarrage : changement appliqué au rechargement.
+ */
+function HorsLigne({ actif, onChange }: { actif: boolean; onChange: (actif: boolean) => void }) {
+  const [initial] = useState(actif)
+  return (
+    <div className="hors-ligne">
+      <label className="inline">
+        <input type="checkbox" checked={actif} onChange={(e) => onChange(e.target.checked)} />
+        Garder mes données sur cet appareil (hors ligne)
+      </label>
+      <p className="hint">
+        Permet d’ouvrir l’appli sans réseau. La copie est chiffrée comme sur le serveur (seules les
+        dates sont lisibles) et effacée à la déconnexion. Désactive sur un ordinateur partagé.
+      </p>
+      {actif !== initial && (
+        <p role="status">
+          Pris en compte au prochain chargement.{' '}
+          <button type="button" className="lien" onClick={() => location.reload()}>
+            Recharger maintenant
+          </button>
+        </p>
+      )}
+    </div>
   )
 }

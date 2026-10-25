@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from '../App'
 import { createMemoryServices } from '../adapters/memory'
 import { ServicesProvider } from '../context/ServicesProvider'
@@ -25,6 +25,13 @@ export function fill(label: string | RegExp, value: string) {
 export function menuProfil(action: string) {
   fireEvent.click(screen.getByRole('button', { name: 'Profil de Test' }))
   fireEvent.click(screen.getByRole('button', { name: action }))
+}
+
+/** Déconnexion confirmée dans la fenêtre de départ (bloc 2.10). */
+export function seDeconnecter() {
+  menuProfil('🚪 Se déconnecter')
+  const fenetre = screen.getByRole('dialog', { name: 'Se déconnecter' })
+  fireEvent.click(within(fenetre).getByRole('button', { name: '🚪 Se déconnecter' }))
 }
 
 export async function signIn() {
