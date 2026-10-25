@@ -1,6 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
 import { Modal } from '../shell/Modal'
-import { NavBar } from '../shell/NavBar'
 import { TABS, type Tab } from '../shell/onglets'
 import { useToast } from '../shell/toast'
 import { SaisieDuJour } from '../tableau-de-bord/SaisiePesee'
@@ -15,8 +14,8 @@ const ReglagesScreen = lazy(() =>
   import('../prefs/ReglagesScreen').then((m) => ({ default: m.ReglagesScreen })),
 )
 
-/** Écran principal, coffre déverrouillé : contenu de l'onglet, navigation, saisie du jour. */
-export function PeseesScreen({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
+/** Écran principal, coffre déverrouillé : contenu de l'onglet et saisie du jour. */
+export function PeseesScreen({ tab }: { tab: Tab }) {
   const { state, repo } = usePesees()
   const [saisie, setSaisie] = useState(false)
   const [removeError, setRemoveError] = useState(false)
@@ -30,7 +29,6 @@ export function PeseesScreen({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => vo
 
   return (
     <>
-      <NavBar tab={tab} onChange={onTab} />
       <h2 className="titre-ecran">{TABS[tab]}</h2>
 
       {state.status === 'loading' && <p>Chargement des pesées…</p>}

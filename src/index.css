@@ -9,10 +9,15 @@
   --accent: #6750a4;
   --accent-soft: #e8def8;
   --danger: #b3261e;
+  /* Fond plein des actions destructives (texte blanc, contraste ≥ 4,5:1). */
+  --danger-plein: #c62828;
+  /* Mise en évidence (pesées avec note) : même intensité perçue dans les deux thèmes (D42). */
+  --highlight: #9c6300;
 }
 
+/* Thème (D41) : « Système » suit l'appareil ; Clair / Sombre forcent via data-theme. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='clair']) {
     --bg: #1c1b1f;
     --fg: #e6e1e5;
     --muted: #b0a7bb;
@@ -21,7 +26,27 @@
     --accent: #d0bcff;
     --accent-soft: #4a4458;
     --danger: #f2b8b5;
+    --danger-plein: #c93a32;
+    --highlight: #c98f25;
   }
+}
+
+:root[data-theme='sombre'] {
+  color-scheme: dark;
+  --bg: #1c1b1f;
+  --fg: #e6e1e5;
+  --muted: #b0a7bb;
+  --border: #49454f;
+  --card: #2b2930;
+  --accent: #d0bcff;
+  --accent-soft: #4a4458;
+  --danger: #f2b8b5;
+  --danger-plein: #c93a32;
+  --highlight: #c98f25;
+}
+
+:root[data-theme='clair'] {
+  color-scheme: light;
 }
 
 body {
@@ -39,17 +64,23 @@ main {
 }
 
 /* ---- Bandeau du haut ---- */
+/* Bandeau + navigation (grand écran) : une seule zone collante, opaque, pleine largeur. */
 .app-header {
   position: sticky;
   top: 0;
   z-index: 10;
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.barre-haut {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
+  max-width: 40rem;
+  margin: 0 auto;
 }
 
 .app-header h1 {
@@ -182,14 +213,14 @@ main {
   }
 
   .navbar {
-    position: sticky;
-    top: 3.75rem;
+    position: static;
     height: auto;
     max-width: 40rem;
-    margin: 0.75rem auto 0;
+    margin: 0.75rem auto 0.25rem;
     padding: 0.25rem;
     border: 1px solid var(--border);
     border-radius: 0.75rem;
+    background: var(--bg);
   }
 
   .navbar button {
@@ -351,9 +382,12 @@ button.principal {
 
 button.icone {
   min-width: 2.75rem;
+  font-size: 1.1rem;
+}
+
+.modal button.icone {
   border: none;
   background: transparent;
-  font-size: 1.1rem;
 }
 
 button[aria-pressed='true'] {
@@ -364,6 +398,23 @@ button[aria-pressed='true'] {
 button.danger {
   color: var(--danger);
   border-color: var(--danger);
+}
+
+button.danger-plein {
+  background: var(--danger-plein);
+  border-color: var(--danger-plein);
+  color: #fff;
+}
+
+.icone-svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 button:disabled {
@@ -498,6 +549,12 @@ label.inline {
   opacity: 0.3;
 }
 
+/* Pesée avec note (D42) : mise en évidence, pleine opacité. */
+.chart .pesee.note {
+  fill: var(--highlight);
+  opacity: 1;
+}
+
 .chart .projection {
   fill: none;
   stroke: var(--accent);
@@ -574,6 +631,11 @@ label.inline {
 
 .legende .zone99 {
   opacity: 0.09;
+}
+
+.legende .point.note {
+  background: var(--highlight);
+  opacity: 1;
 }
 
 .legende .point {

@@ -88,13 +88,13 @@ describe('historique', () => {
     await start()
     await tab('Historique')
     await addPesee('2026-10-24', '72.4')
-    fireEvent.click(within(history()).getByRole('button', { name: 'Modifier' }))
+    fireEvent.click(within(history()).getByRole('button', { name: /^Modifier la pesée du/ }))
     await screen.findByRole('heading', { name: 'Modifier la pesée' })
     fill('Poids (kg)', '70')
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await within(history()).findByText('70 kg')
 
-    fireEvent.click(within(history()).getByRole('button', { name: 'Supprimer' }))
+    fireEvent.click(within(history()).getByRole('button', { name: /^Supprimer la pesée du/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Confirmer la suppression' }))
     await screen.findByText(/Aucune pesée pour l’instant/)
   }, 15_000)
@@ -164,6 +164,48 @@ describe('tableau de bord', () => {
     await within(await screen.findByRole('region', { name: 'Rythme' })).findByText('Stable')
     expect(within(tuile('Projection')).getByText('Stable')).toBeTruthy()
     expect(screen.getByRole('img').querySelector('polyline.projection')).toBeNull()
+  }, 15_000)
+})
+
+describe('finitions (bloc 2.7)', () => {
+  test('pesée avec note : point mis en évidence, note dans l’info-bulle, légende', async () => {
+    const services = await start()
+    const key = await services.keys.load()
+    const repo = new PeseeRepository(services.data, 'uid-test', key!)
+    const today = dateLocale()
+    await repo.save({ date: ajouterJours(today, -2), poids: 80 })
+    await repo.save({ date: ajouterJours(today, -1), poids: 79.6, note: 'repas de famille' })
+    await repo.save({ date: today, poids: 79.4 })
+
+    const chart = await screen.findByRole('img', { name: /Tendance du/ })
+    const notes = chart.querySelectorAll('circle.pesee.note')
+    expect(notes).toHaveLength(1)
+    expect(notes[0].querySelector('title')?.textContent).toMatch(/79,6 kg — repas de famille/)
+    expect(chart.querySelectorAll('circle.pesee')).toHaveLength(3)
+    expect(screen.getByText(/pesée avec note/)).toBeTruthy()
+  }, 15_000)
+
+  test('historique : modifier et supprimer en icônes, avec un nom accessible', async () => {
+    await start()
+    await tab('Historique')
+    await addPesee('2026-10-24', '72.4')
+    const supprimer = within(history()).getByRole('button', { name: /^Supprimer la pesée du/ })
+    expect(supprimer.className).toContain('danger-plein')
+    expect(supprimer.getAttribute('title')).toBe('Supprimer')
+  }, 15_000)
+
+  test('thème : Système → Sombre → Clair, appliqué à <html> et mémorisé', async () => {
+    const services = await start()
+    await tab('Réglages')
+    const html = document.documentElement
+    expect(html.dataset.theme).toBeUndefined()
+    fireEvent.click(screen.getByRole('button', { name: 'Sombre' }))
+    expect(html.dataset.theme).toBe('sombre')
+    expect(services.prefs.get().theme).toBe('sombre')
+    fireEvent.click(screen.getByRole('button', { name: 'Clair' }))
+    expect(html.dataset.theme).toBe('clair')
+    fireEvent.click(screen.getByRole('button', { name: 'Système' }))
+    expect(html.dataset.theme).toBeUndefined()
   }, 15_000)
 })
 

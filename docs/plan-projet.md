@@ -52,7 +52,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.4 | Fonctionnel | Écrans métier | [x] |
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [x] |
 | 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
-| 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [ ] |
+| 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -342,11 +342,11 @@ npm run test:emulateurs
 - D42 : mise en évidence des notes par un jeton `--highlight` par thème, d'intensité équivalente ; info-bulle native (`<title>` SVG) pour commencer.
 
 **Critères d'acceptation**
-- [ ] Modifier / Supprimer reconnaissables sans texte, utilisables au clavier et au lecteur d'écran
-- [ ] Aucun contenu visible entre ou sous les barres en défilant (mobile et grand écran)
-- [ ] Les pesées avec note se repèrent sur le graphique, la note s'affiche au survol
-- [ ] Le thème change instantanément, persiste au rechargement, et « Système » suit le réglage de l'appareil
-- [ ] Contrastes lisibles dans les deux thèmes (texte ≥ 4,5:1, éléments graphiques ≥ 3:1)
+- [x] Modifier / Supprimer reconnaissables sans texte, utilisables au clavier et au lecteur d'écran
+- [x] Aucun contenu visible entre ou sous les barres en défilant (mobile et grand écran)
+- [x] Les pesées avec note se repèrent sur le graphique, la note s'affiche au survol
+- [x] Le thème change instantanément, persiste au rechargement, et « Système » suit le réglage de l'appareil
+- [x] Contrastes lisibles dans les deux thèmes (texte ≥ 4,5:1, éléments graphiques ≥ 3:1) — `--highlight` : 4,55:1 (clair) et 5,09:1 (sombre) ; blanc sur rouge ≥ 5:1
 
 **🏁 Fin du jalon 2 :** tag `v0.2.0`.
  
@@ -543,3 +543,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | Ergonomie | Bandeau profil, barre de navigation, bouton « + » et fenêtre de saisie du jour, toasts, accessibilité (D39) ; écrans secondaires à la demande (D40). |
 | 2026-10-25 | 2.7 | Plan des finitions proposé (icônes historique, barres, notes sur le graphique, thème clair / sombre) : à valider avec #32. |
 | 2026-10-25 | Sécurité | Alerte GitHub « Google API Key – Public leak » sur `src/firebase.config.ts` : clé web Firebase, publique par conception. Clé restreinte par référent et par API dans Google Cloud (vérifié : 403 hors référent), alerte fermée (D43). Relevé #28 : en-têtes personnalisés non appliqués à `/__/auth/*` → `X-Frame-Options` possible. |
+| 2026-10-25 | 2.7 | Finitions : icônes ✏️ / 🗑️ (fond rouge), navigation intégrée au bandeau (zone collante unique, espacée), notes mises en évidence sur le graphique (`--highlight` équilibré : 4,55 / 5,09:1), thème Système · Clair · Sombre (D41, D42). `X-Frame-Options: DENY` ajouté (#28, sans risque pour `/__/auth/*`). |
