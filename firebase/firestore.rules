@@ -10,11 +10,19 @@ service cloud.firestore {
       }
 
       // Méta-données de la clé de données : seul document autorisé dans meta/.
-      // Suppression interdite : perdre wrappedKey rendrait toutes les données illisibles.
+      // Suppression réservée au parcours « Supprimer mon compte » (confirmation forte, D47) :
+      // perdre wrappedKey rend toutes les données illisibles.
       match /meta/{docId} {
         allow read: if isOwner() && docId == 'keys';
         allow create, update: if isOwner() && docId == 'keys' && isValidKeyMeta(request.resource.data);
-        allow delete: if false;
+        allow delete: if isOwner() && docId == 'keys';
+      }
+
+      // Suggestions (D45) : non chiffrées, créées, relues et supprimées par leur auteur seul.
+      // Pas de modification : une suggestion envoyée est figée.
+      match /suggestions/{id} {
+        allow read, delete: if isOwner();
+        allow create: if isOwner() && isValidSuggestion(request.resource.data);
       }
 
       // Pesées : une par jour, identifiant = date (D16). Miroir de core/pesees/model.ts.
@@ -36,6 +44,15 @@ service cloud.firestore {
           && data.salt is string && data.salt.size() > 0
           && data.iterations is int && data.iterations >= 600000
           && data.version is int;
+      }
+
+      function isValidSuggestion(data) {
+        return data.keys().hasOnly(['type', 'texte', 'version', 'createdAt'])
+          && data.keys().hasAll(['type', 'texte', 'version', 'createdAt'])
+          && data.type in ['idee', 'probleme']
+          && data.texte is string && data.texte.size() >= 10 && data.texte.size() <= 2000
+          && data.version is string && data.version.size() >= 1 && data.version.size() <= 32
+          && data.createdAt is int;
       }
 
       function isValidPesee(id, data) {

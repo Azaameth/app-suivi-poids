@@ -120,6 +120,10 @@ export function VaultGate({
               </strong>{' '}
               Range-la dans un gestionnaire de mots de passe.
             </p>
+            <p className="hint">
+              Conseil : exporte tes pesées de temps en temps (Réglages → Export CSV), c’est ta
+              sauvegarde.
+            </p>
           </PassphraseForm>
         )
       case 'locked':

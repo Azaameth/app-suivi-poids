@@ -154,8 +154,9 @@ describe('users/{uid}/meta/keys', () => {
     await assertSucceeds(setDoc(keys(), { ...validMeta, iterations: 700000 }))
   })
 
-  test('suppression interdite', async () => {
-    await assertFails(deleteDoc(keys()))
+  test('suppression : par le propriétaire seulement (supprimer mon compte, D47)', async () => {
+    await assertFails(deleteDoc(doc(bob(), 'users/alice/meta/keys')))
+    await assertSucceeds(deleteDoc(keys()))
   })
 
   test('méta-données invalides refusées', async () => {
@@ -169,5 +170,42 @@ describe('users/{uid}/meta/keys', () => {
 
   test('aucun autre document dans meta/', async () => {
     await assertFails(setDoc(doc(alice(), 'users/alice/meta/other'), validMeta))
+  })
+})
+
+describe('users/{uid}/suggestions/{id} (D45)', () => {
+  const suggestion = {
+    type: 'idee',
+    texte: 'Un rappel le matin pour se peser',
+    version: '0.2.1',
+    createdAt: 1793000000000,
+  }
+  const ref = (db: ReturnType<typeof alice>, id = 's1') => doc(db, `users/alice/suggestions/${id}`)
+
+  test('l’auteur crée, relit et supprime sa suggestion', async () => {
+    await assertSucceeds(setDoc(ref(alice()), suggestion))
+    await assertSucceeds(getDoc(ref(alice())))
+    await assertSucceeds(deleteDoc(ref(alice())))
+  })
+
+  test('une suggestion envoyée ne se modifie pas', async () => {
+    await assertSucceeds(setDoc(ref(alice()), suggestion))
+    await assertFails(setDoc(ref(alice()), { ...suggestion, texte: 'Finalement autre chose' }))
+  })
+
+  test('les autres comptes et les visiteurs sont refusés', async () => {
+    await assertFails(setDoc(ref(bob()), suggestion))
+    await assertFails(getDoc(ref(bob())))
+    await assertFails(setDoc(ref(anonymous()), suggestion))
+  })
+
+  test.each([
+    ['texte trop court', { texte: 'court' }],
+    ['texte trop long', { texte: 'x'.repeat(2001) }],
+    ['type inconnu', { type: 'spam' }],
+    ['champ en trop', { email: 'a@b.c' }],
+    ['version vide', { version: '' }],
+  ])('refuse : %s', async (_, override) => {
+    await assertFails(setDoc(ref(alice()), { ...suggestion, ...override }))
   })
 })

@@ -1,4 +1,5 @@
 import type { Pesee, PeseeRepository } from '../../core/pesees'
+import { SupprimerCompte } from '../compte/SupprimerCompte'
 import { DevTools } from '../dev/DevTools'
 import { ExportPanel } from '../pesees/ExportPanel'
 import { SettingsPanel } from './SettingsPanel'
@@ -9,6 +10,7 @@ export function ReglagesScreen({ pesees, repo }: { pesees: Pesee[]; repo: PeseeR
     <>
       <ExportPanel pesees={pesees} />
       <SettingsPanel />
+      <SupprimerCompte />
       {import.meta.env.DEV && <DevTools pesees={pesees} repo={repo} />}
     </>
   )

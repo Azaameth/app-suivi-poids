@@ -15,17 +15,28 @@ export function Modal({
 }) {
   const titleId = useId()
   const panel = useRef<HTMLDivElement>(null)
+  // Dernière version de onClose, sans relancer l'effet d'ouverture (souvent une fonction
+  // recréée à chaque rendu : la relancer replaçait le focus à chaque lettre tapée).
+  const fermer = useRef(onClose)
+  useEffect(() => {
+    fermer.current = onClose
+  }, [onClose])
 
+  // À l'ouverture seulement : focus sur le premier champ de saisie (sinon le premier bouton).
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null
-    panel.current?.querySelector<HTMLElement>('input:not([disabled]), button')?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const champ =
+      panel.current?.querySelector<HTMLElement>(
+        'input:not([disabled]), textarea:not([disabled]), select:not([disabled])',
+      ) ?? panel.current?.querySelector<HTMLElement>('button')
+    champ?.focus()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && fermer.current()
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
       previous?.focus()
     }
-  }, [onClose])
+  }, [])
 
   return (
     <div className="modal-fond" onClick={(e) => e.target === e.currentTarget && onClose()}>

@@ -380,6 +380,17 @@ button.principal {
   border-color: var(--accent);
 }
 
+/* Bouton d'icône du bandeau (🗨️ suggestions) : sans cadre, comme l'avatar. */
+button.icone.bandeau {
+  border: none;
+  background: transparent;
+  color: var(--fg);
+}
+
+.zone-sensible {
+  border-color: var(--danger);
+}
+
 button.icone {
   min-width: 2.75rem;
   font-size: 1.1rem;

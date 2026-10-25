@@ -26,6 +26,10 @@ export class MemoryAuthService implements AuthService {
     this.setUser(null)
   }
 
+  async deleteAccount() {
+    this.setUser(null)
+  }
+
   private setUser(user: AuthUser | null) {
     this.user = user
     this.listeners.forEach((listener) => listener(user))

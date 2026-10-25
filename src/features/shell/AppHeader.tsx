@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { AuthUser } from '../../core'
+import { SuggestionButton } from '../suggestions/SuggestionButton'
 import { SyncIndicator } from '../sync/SyncIndicator'
 import { ProfileMenu } from './ProfileMenu'
 
@@ -26,6 +27,7 @@ export function AppHeader({
         {user && (
           <div className="row">
             <SyncIndicator />
+            <SuggestionButton user={user} />
             <ProfileMenu user={user} onLock={onLock} onSettings={onSettings} />
           </div>
         )}

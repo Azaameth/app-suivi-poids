@@ -15,4 +15,6 @@ export interface AuthService {
   onAuthStateChanged(listener: (user: AuthUser | null) => void): Unsubscribe
   signIn(credentials: Credentials): Promise<AuthUser>
   signOut(): Promise<void>
+  /** Supprime définitivement le compte (peut redemander une connexion Google récente). */
+  deleteAccount(): Promise<void>
 }

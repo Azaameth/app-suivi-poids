@@ -1,5 +1,5 @@
 import { initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { doc, getDoc, setLogLevel, type Firestore } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, setLogLevel, type Firestore } from 'firebase/firestore'
 import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 import { SyncTracker, type NetworkTarget } from '../../src/adapters/web/SyncTracker'
@@ -8,6 +8,9 @@ import { generateDataKey } from '../../src/core/crypto/keys'
 import { MemoryKeyStore } from '../../src/adapters/memory/MemoryKeyStore'
 import { PeseeRepository, type Pesee } from '../../src/core/pesees'
 import { Vault } from '../../src/core/vault'
+import { SuggestionRepository } from '../../src/core/suggestions'
+import { supprimerCompte } from '../../src/core/compte/supprimerCompte'
+import type { AuthService } from '../../src/core'
 
 // Les refus attendus sont vérifiés par les tests : inutile que le SDK les journalise.
 setLogLevel('silent')
@@ -89,5 +92,31 @@ describe('WebDataStore + PeseeRepository (émulateur, règles actives)', () => {
     await expect(ailleurs.setup('une autre phrase longue')).rejects.toThrow(/existe déjà/)
     await ailleurs.unlock(phrase)
     expect(await ailleurs.status()).toBe('unlocked')
+  })
+
+  test('suggestion réelle acceptée ; supprimer mon compte vide le serveur (D45, D47)', async () => {
+    const store = storeFor('alice')
+    const keys = new MemoryKeyStore()
+    const key = await new Vault(store, keys, 'alice').setup('cheval agrafe batterie')
+    await (
+      await new PeseeRepository(store, 'alice', key).save({ date: '2026-10-25', poids: 75 })
+    ).synced
+    await new SuggestionRepository(store, 'alice', '0.2.1').envoyer({
+      type: 'probleme',
+      texte: 'Le graphique est trop petit sur mon téléphone',
+    }).synced
+
+    let compteSupprime = false
+    const auth = { deleteAccount: async () => void (compteSupprime = true) } as AuthService
+    await supprimerCompte({ auth, data: store, keys }, 'alice')
+
+    expect(compteSupprime).toBe(true)
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore()
+      for (const chemin of ['pesees', 'suggestions']) {
+        expect((await getDocs(collection(db, `users/alice/${chemin}`))).size).toBe(0)
+      }
+      expect((await getDoc(doc(db, 'users/alice/meta/keys'))).exists()).toBe(false)
+    })
   })
 })
