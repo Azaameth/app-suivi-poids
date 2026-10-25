@@ -2,6 +2,7 @@ import { PERIODS, dayToMs, filterByPeriod, type Pesee } from '../../core/pesees'
 import { usePreferences } from '../prefs/usePreferences'
 import { formatDay, formatShortDay, formatWeight } from '../pesees/format'
 import { courbeMonotone } from './courbe'
+import { reperesTemporels } from './reperes'
 import type { Analyse } from './useAnalyse'
 
 const PERIOD_LABELS = {
@@ -122,6 +123,16 @@ function Trace({
           </text>
         ))}
 
+        {reperesTemporels(debut, fin).map(({ date, type }) => (
+          <g key={date} className={`repere ${type}`}>
+            <line x1={x(date)} x2={x(date)} y1={M.top} y2={H - M.bottom} />
+            {type === 'annee' && (
+              <text x={x(date) + 3} y={M.top + 8}>
+                {date.slice(0, 4)}
+              </text>
+            )}
+          </g>
+        ))}
         {projection.length > 0 && (
           <>
             <polygon

@@ -128,6 +128,8 @@ describe('tableau de bord', () => {
     expect(chart.querySelector('path.tendance')?.getAttribute('d')).toMatch(/^M.+C/)
     expect(chart.querySelector('polyline.projection')).toBeTruthy()
     expect(chart.querySelector('polygon.cone')).toBeTruthy()
+    // 40 jours + 4 semaines de projection : au moins un début de mois en repère.
+    expect(chart.querySelectorAll('.repere line').length).toBeGreaterThan(0)
     // Période par défaut 90 j : les 40 pesées sont visibles.
     expect(chart.querySelectorAll('circle.pesee')).toHaveLength(40)
 

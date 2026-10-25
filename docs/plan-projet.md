@@ -492,3 +492,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.4 | Graphique simplifié (courbe seule, D29 révisée), lisible avec beaucoup de points ; outils de dev (données fictives). Besoin de restitution (tendance, projection…) à préciser dans une issue. |
 | 2026-10-25 | 2.6 | Spec de restitution (#24) versée dans `docs/`, arbitrages notés. `core/analyse` testé d'abord (cas obligatoires § 7), puis tableau de bord. Périodes 7 j → Tout ; moyenne 7 j remplacée par la tendance. 88 tests unitaires. |
 | 2026-10-25 | 2.6 | Avertissement de saisie improbable (D35) : à la frappe dans le formulaire, ⚠️ dans l'historique. `core/analyse/plausibilite.ts`, testé. |
+| 2026-10-25 | 2.6 | Graphique : tendance en courbe lissée monotone (sans dépassement) ; repères verticaux en pointillés ténus (mois ≤ 4 mois, trimestres ≤ 2 ans, années au-delà, 1ᵉʳ janvier marqué). |
