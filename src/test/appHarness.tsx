@@ -32,11 +32,21 @@ export async function signIn() {
   await screen.findByRole('button', { name: 'Profil de Test' })
 }
 
-/** Premier lancement : création du coffre, jusqu'à l'écran des pesées. */
-export async function createVault() {
+/** Premier lancement : création du coffre, jusqu'à l'écran des pesées. Renvoie le code de secours. */
+export async function createVault(): Promise<string> {
   await screen.findByRole('heading', { name: 'Choisis ta phrase secrète' })
   fill('Phrase secrète', PHRASE)
   fill('Confirmation', PHRASE)
   fireEvent.click(screen.getByRole('button', { name: 'Créer mon coffre' }))
+  return passerCodeSecours()
+}
+
+/** Écran « Ton code de secours » (D48) : le relève, confirme l'avoir rangé, continue. */
+export async function passerCodeSecours(): Promise<string> {
+  await screen.findByRole('heading', { name: 'Ton code de secours' }, { timeout: 5000 })
+  const code = screen.getByLabelText('Code de secours').textContent ?? ''
+  fireEvent.click(screen.getByLabelText('J’ai rangé mon code en lieu sûr'))
+  fireEvent.click(screen.getByRole('button', { name: 'Continuer' }))
   await screen.findByRole('heading', { name: 'Tableau de bord' }, { timeout: 5000 })
+  return code
 }

@@ -168,6 +168,17 @@ describe('users/{uid}/meta/keys', () => {
     await assertFails(setDoc(keys(), withoutSalt))
   })
 
+  test('code de secours (D48) : accepté s’il est bien formé, refusé sinon', async () => {
+    const secours = { wrappedKey: 'v1:AAAAAAAAAAAAAAAA:CCCCCCCC', salt: 'c2Vs', iterations: 600000 }
+    await assertSucceeds(setDoc(keys(), { ...validMeta, secours }))
+    await assertFails(setDoc(keys(), { ...validMeta, secours: { ...secours, iterations: 1000 } }))
+    await assertFails(
+      setDoc(keys(), { ...validMeta, secours: { ...secours, wrappedKey: 'clair' } }),
+    )
+    await assertFails(setDoc(keys(), { ...validMeta, secours: { ...secours, code: 'K7Q2' } }))
+    await assertFails(setDoc(keys(), { ...validMeta, secours: 'K7Q2-…' }))
+  })
+
   test('aucun autre document dans meta/', async () => {
     await assertFails(setDoc(doc(alice(), 'users/alice/meta/other'), validMeta))
   })

@@ -13,5 +13,16 @@ export {
   changePassphrase,
   createKeyMeta,
   unlockDataKey,
+  type Enveloppe,
   type KeyMeta,
 } from './keys'
+export {
+  InvalidRecoveryCodeError,
+  NoRecoveryCodeError,
+  WrongRecoveryCodeError,
+  ajouterCodeSecours,
+  deverrouillerAvecCode,
+  genererCodeSecours,
+  normaliserCode,
+  remplacerPhraseAvecCode,
+} from './secours'

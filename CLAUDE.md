@@ -58,7 +58,7 @@
 - IV aléatoire de 12 octets à **chaque** chiffrement ; format `v1:<iv_b64>:<data_b64>`.
 - Aucun filtre / tri / index Firestore sur un champ chiffré (la date, en clair, sert d'identifiant et de tri).
 - Web : clé et phrase secrète **en mémoire uniquement**. Session Google conservée par le SDK (D17).
-- `users/{uid}/meta/keys` → `{ wrappedKey, salt, iterations, version }`, jamais écrasé (D25).
+- `users/{uid}/meta/keys` → `{ wrappedKey, salt, iterations, version, secours? }`, jamais écrasé (D25) ; `secours` = même clé encapsulée par le **code de secours** (D48), le code lui-même n'est jamais stocké.
 
 ### Firebase
 - Règles en **liste explicite** (D19) : `meta/keys` et `pesees/{date}` ; tout le reste refusé.

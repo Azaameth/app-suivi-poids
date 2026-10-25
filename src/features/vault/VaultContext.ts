@@ -6,6 +6,9 @@ export interface UnlockedVault {
   key: CryptoKey
   lock(): void
   changePassphrase(oldPassphrase: string, newPassphrase: string): Promise<void>
+  /** Code de secours (D48) : existe-t-il ? Création / régénération (phrase actuelle exigée). */
+  aCodeSecours(): Promise<boolean>
+  creerCodeSecours(passphrase: string): Promise<string>
 }
 
 export const VaultContext = createContext<UnlockedVault | null>(null)
