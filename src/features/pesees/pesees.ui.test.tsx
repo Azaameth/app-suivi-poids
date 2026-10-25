@@ -19,12 +19,13 @@ async function start(services: Services = createMemoryServices()) {
 /** Change d'onglet et attend la fin du chargement à la demande de l'écran. */
 async function tab(name: string) {
   fireEvent.click(screen.getByRole('button', { name }))
-  await waitFor(() => expect(screen.queryByText('Chargement…')).toBeNull())
+  await waitFor(() => expect(screen.queryByText(/^Chargement/)).toBeNull())
 }
 
 /** Ouvre la saisie du jour (bouton « + ») et renvoie la fenêtre. */
-function saisieDuJour() {
-  fireEvent.click(screen.getByRole('button', { name: 'Saisir la pesée du jour' }))
+async function saisieDuJour() {
+  // Le bouton « + » n'apparaît qu'une fois les pesées chargées.
+  fireEvent.click(await screen.findByRole('button', { name: 'Saisir la pesée du jour' }))
   return screen.getByRole('dialog', { name: 'Pesée du jour' })
 }
 const history = () => screen.getByRole('list', { name: 'Historique des pesées' })
@@ -109,7 +110,7 @@ describe('tableau de bord', () => {
 
   test('pesée du jour : saisie, puis « Pesée du jour : X kg — modifier » pré-rempli', async () => {
     await start()
-    const fenetre = saisieDuJour()
+    const fenetre = await saisieDuJour()
     expect((within(fenetre).getByLabelText('Date') as HTMLInputElement).disabled).toBe(true)
     fill('Poids (kg)', '78,6')
     fireEvent.click(within(fenetre).getByRole('button', { name: 'Ajouter' }))
@@ -255,7 +256,7 @@ describe('saisies improbables (avertir sans bloquer)', () => {
 
   test('valeur hors des habitudes : avertie même sans historique', async () => {
     await start()
-    saisieDuJour()
+    await saisieDuJour()
     fill('Poids (kg)', '450')
     expect(screen.getByText(/Valeur inhabituelle \(hors 20 – 300 kg\)/)).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Ajouter' }) as HTMLButtonElement).disabled).toBe(
