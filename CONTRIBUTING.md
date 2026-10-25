@@ -102,6 +102,8 @@ npm run dev         # appli sur http://localhost:5173
 - Le **premier lancement** des émulateurs télécharge leurs fichiers (≈ 100 Mo, une seule fois).
 - En dev, l'appli parle **uniquement aux émulateurs** (projet fictif `demo-suivi-poids`, D8 et
   D18). Aucun compte Firebase n'est nécessaire et la production ne peut pas être touchée.
+- Connexion par e-mail : créez un compte quelconque, il n'existe que dans l'émulateur ; les e-mails
+  de réinitialisation s'affichent dans l'UI des émulateurs (onglet Authentication).
 - La connexion Google de l'émulateur propose un **compte fictif** : cliquez sur « Add new
   account ».
 - Les données des émulateurs sont gardées dans `.emulator-data/` (ignoré par Git) d'une session à
@@ -270,7 +272,7 @@ production.
 | Service       | Réglage                                                                                                                                                                    | Décision |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | Firebase      | Projet `machimoto`, plan **Spark**, Firestore en `europe-west1`                                                                                                            | D18      |
-| Firebase Auth | Fournisseur **Google** seul ; domaines autorisés : `machimoto.web.app`, `machimoto.firebaseapp.com`, `localhost`                                                           | D15      |
+| Firebase Auth | Fournisseurs **Google** et **Adresse e-mail/Mot de passe** (D53) ; domaines autorisés : `machimoto.web.app`, `machimoto.firebaseapp.com`, `localhost`                      | D15, D53 |
 | Google Cloud  | Clé d'API web restreinte aux référents `https://machimoto.web.app/*`, `https://machimoto.firebaseapp.com/*`, et aux API Identity Toolkit, Token Service et Cloud Firestore | D43      |
 | GitHub        | Ruleset sur `main` (PR + check `verify`, ni force-push ni suppression) ; secret scanning activé ; Dependabot                                                               | D14      |
 

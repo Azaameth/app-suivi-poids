@@ -40,6 +40,8 @@ Version web : **https://machimoto.web.app** · APK Android : à venir (jalon 3).
 
 **Au quotidien**
 
+- Connexion avec un compte **Google** ou une **adresse e-mail** et un mot de passe.
+
 - **Hors ligne** : l'appli s'ouvre sans réseau, les saisies partent au retour de la connexion.
 - Thème clair, sombre ou système ; verrouillage automatique après inactivité.
 - Installable comme une application (manifeste web).
@@ -88,7 +90,7 @@ Cette règle est **vérifiée par ESLint** : `firebase/*`, `@capacitor/*`, `loca
 `indexedDB` sont interdits hors de `src/adapters/`. La version Android remplacera les adaptateurs
 sans toucher aux écrans.
 
-**Stack** : Vite · React 19 · TypeScript · Zod · Firebase plan gratuit (Auth Google, Firestore
+**Stack** : Vite · React 19 · TypeScript · Zod · Firebase plan gratuit (Auth Google ou e-mail, Firestore
 `europe-west1`, Hosting) · Web Crypto · Vitest · GitHub Actions · Capacitor (à venir).
 
 ## Démarrage rapide
