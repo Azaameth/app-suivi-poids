@@ -75,3 +75,23 @@ describe('ouverture aux proches (bloc 2.8)', () => {
     )
   }, 15_000)
 })
+
+describe('fenêtres (focus)', () => {
+  test('le focus reste dans le champ pendant la frappe (suggestion et saisie du jour)', async () => {
+    await start()
+    fireEvent.click(screen.getByRole('button', { name: 'Suggérer une idée' }))
+    const texte = screen.getByLabelText('Ta suggestion')
+    expect(document.activeElement).toBe(texte)
+    for (const valeur of ['U', 'Un', 'Un r', 'Un rappel']) {
+      fireEvent.change(texte, { target: { value: valeur } })
+      expect(document.activeElement).toBe(texte)
+    }
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Saisir la pesée du jour' }))
+    const note = screen.getByLabelText('Note (facultative)')
+    note.focus()
+    fireEvent.change(note, { target: { value: 'après le footing' } })
+    expect(document.activeElement).toBe(note)
+  }, 15_000)
+})
