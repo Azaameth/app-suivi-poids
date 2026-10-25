@@ -75,7 +75,7 @@ describe('journal', () => {
 })
 
 describe('graphique', () => {
-  test('rendu réglable : style, moyenne mobile, préférences mémorisées', async () => {
+  test('rendu réglable : période, moyenne mobile, préférences mémorisées', async () => {
     const services = await start()
     fireEvent.click(screen.getByRole('button', { name: 'Graphique' }))
     expect(screen.getByText(/Pas assez de pesées/)).toBeTruthy()
@@ -97,14 +97,15 @@ describe('graphique', () => {
     expect(chart.querySelector('polyline.series')).toBeTruthy()
     expect(chart.querySelector('polyline.average')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Barres' }))
-    expect(chart.querySelectorAll('rect.bar')).toHaveLength(3)
-    expect(chart.querySelector('polyline.series')).toBeNull()
+    expect(chart.querySelector('polyline.series.faded')).toBeTruthy()
 
     fireEvent.click(screen.getByLabelText('Moyenne 7 j'))
     expect(chart.querySelector('polyline.average')).toBeNull()
+    expect(chart.querySelector('polyline.series.faded')).toBeNull()
 
-    expect(services.prefs.get().chart).toMatchObject({ style: 'barres', average: false })
+    fireEvent.click(screen.getByRole('button', { name: '30 j' }))
+
+    expect(services.prefs.get().chart).toMatchObject({ period: '30j', average: false })
   }, 20_000)
 })
 

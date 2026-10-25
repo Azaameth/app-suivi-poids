@@ -436,7 +436,7 @@ Déclenché sur un tag `v*` :
 | D26 | 2026-10-24 | 4ᵉ interface `PreferencesStore` (délai de verrouillage, réglages du graphique) ; web : `localStorage`, propre à l'appareil | Rien de secret ; la règle d'or interdit `localStorage` hors `adapters/` | Firestore `meta/prefs` (synchro entre appareils, règles à étendre) |
 | D27 | 2026-10-24 | 5ᵉ interface `FileExporter` ; web : téléchargement | Sur Android, le téléchargement ne marche pas en WebView : partage natif au jalon 3 | Lien de téléchargement dans les écrans |
 | D28 | 2026-10-24 | CSV RFC 4180 (virgule, point décimal), BOM UTF-8, fichier `machimoto-pesees-AAAA-MM-JJ.csv` | Réimportable tel quel (sauvegarde) ; accents corrects dans Excel | Point-virgule + virgule décimale (Excel FR) |
-| D29 | 2026-10-24 | Graphique en SVG fait main, rendu choisi par l'utilisateur : période, style (courbe / points / barres), moyenne mobile 7 j, axe depuis 0 | Choix demandé par Azaameth ; aucune dépendance ajoutée | Bibliothèque de graphiques (≈ 100 Ko) |
+| D29 | 2026-10-25 | Graphique en SVG fait main, courbe seule ; réglages : période, moyenne mobile 7 j (mise en avant, pesées brutes estompées), axe depuis 0 | Lisible même avec un an de pesées ; aucune dépendance ajoutée. Styles points / barres retirés à la demande d'Azaameth | Bibliothèque de graphiques (≈ 100 Ko) ; choix du style |
  
 ## ⚠️ Risques
  
@@ -471,3 +471,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-24 | 2.2 | `WebDataStore` (Firestore, cache mémoire) + `SyncTracker` (réseau + écritures en attente) ; `PeseeRepository` chiffre/déchiffre (D22, D23) ; indicateur de synchro. Test émulateur : document brut illisible. Logs `PERMISSION_DENIED` coupés dans les tests. |
 | 2026-10-24 | 2.3 | `core/vault` (création, déverrouillage, verrouillage, changement de phrase) + écrans (`VaultGate`, `VaultSettings`) ; verrouillage auto 5 min (D12). `test:rules` sur son propre émulateur (port 8181), compatible avec `npm run emulators`. Reste : réglage du délai dans les paramètres (avec 2.4). |
 | 2026-10-24 | 2.4 | Écrans : journal (saisie, historique, modifier, supprimer), graphique réglable (D29), export CSV (D28), paramètres (délai de verrouillage D12). Interfaces `PreferencesStore` et `FileExporter` (D26, D27). 68 tests unitaires. |
+| 2026-10-25 | 2.4 | Graphique simplifié (courbe seule, D29 révisée), lisible avec beaucoup de points ; outils de dev (données fictives). Besoin de restitution (tendance, projection…) à préciser dans une issue. |

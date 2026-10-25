@@ -1,21 +1,15 @@
 import { PERIODS, dayToMs, filterByPeriod, movingAverage, type Pesee } from '../../core/pesees'
-import { CHART_STYLES, type ChartStyle } from '../../core/prefs/Preferences'
 import { usePreferences } from '../prefs/usePreferences'
 import { formatDay, formatShortDay, formatWeight } from './format'
 
 const PERIOD_LABELS = { '30j': '30 j', '90j': '90 j', '1an': '1 an', tout: 'Tout' } as const
-const STYLE_LABELS: Record<ChartStyle, string> = {
-  courbe: 'Courbe',
-  points: 'Points',
-  barres: 'Barres',
-}
 
 // Repère SVG ; le graphique s'adapte à la largeur de l'écran (viewBox).
 const W = 360
 const H = 220
 const M = { top: 12, right: 12, bottom: 26, left: 44 }
 
-/** Évolution du poids ; période, style, moyenne et échelle réglables (préférences). */
+/** Évolution du poids (courbe) ; période, moyenne et échelle réglables (préférences). */
 export function WeightChart({ pesees }: { pesees: Pesee[] }) {
   const [preferences, update] = usePreferences()
   const options = preferences.chart
@@ -34,18 +28,6 @@ export function WeightChart({ pesees }: { pesees: Pesee[] }) {
             onClick={() => set({ period })}
           >
             {PERIOD_LABELS[period]}
-          </button>
-        ))}
-      </div>
-      <div className="row" role="group" aria-label="Style">
-        {CHART_STYLES.map((style) => (
-          <button
-            key={style}
-            type="button"
-            aria-pressed={options.style === style}
-            onClick={() => set({ style })}
-          >
-            {STYLE_LABELS[style]}
           </button>
         ))}
       </div>
@@ -70,12 +52,7 @@ export function WeightChart({ pesees }: { pesees: Pesee[] }) {
       {points.length < 2 ? (
         <p className="hint">Pas assez de pesées sur cette période (2 au minimum).</p>
       ) : (
-        <Plot
-          points={points}
-          style={options.style}
-          average={options.average}
-          fromZero={options.fromZero}
-        />
+        <Plot points={points} average={options.average} fromZero={options.fromZero} />
       )}
     </section>
   )
@@ -83,12 +60,10 @@ export function WeightChart({ pesees }: { pesees: Pesee[] }) {
 
 function Plot({
   points,
-  style,
   average,
   fromZero,
 }: {
   points: Pesee[]
-  style: ChartStyle
   average: boolean
   fromZero: boolean
 }) {
@@ -111,7 +86,6 @@ function Plot({
   const dense = plotW / points.length < 6
   // Avec la moyenne, c'est elle qui porte la tendance : les pesées brutes passent en fond.
   const raw = average ? ' faded' : ''
-  const barWidth = Math.max(1, Math.min(16, (plotW / points.length) * 0.6))
   const dateTicks = [0, 1 / 3, 2 / 3, 1].map((f) => xMin + f * (xMax - xMin))
   const first = points[0]
   const last = points[points.length - 1]
@@ -144,37 +118,18 @@ function Plot({
         </text>
       ))}
 
-      {style === 'courbe' && (
-        <polyline className={`series${dense ? ' thin' : ''}${raw}`} points={line(points)} />
-      )}
-      {style === 'barres' &&
-        points.map((p) => (
-          <rect
-            key={p.date}
-            className={`bar${raw}`}
-            x={x(dayToMs(p.date)) - barWidth / 2}
-            y={y(p.poids)}
-            width={barWidth}
-            height={Math.max(0, y(yMin) - y(p.poids))}
-          >
-            {tooltip(p)}
-          </rect>
-        ))}
-      {style !== 'barres' &&
-        points.map((p) => {
-          const hidden = style === 'courbe' && dense
-          return (
-            <circle
-              key={p.date}
-              className={hidden ? 'hit' : `dot${raw}`}
-              cx={x(dayToMs(p.date))}
-              cy={y(p.poids)}
-              r={hidden ? 4 : style === 'points' ? (dense ? 1.8 : 3.5) : 2.5}
-            >
-              {tooltip(p)}
-            </circle>
-          )
-        })}
+      <polyline className={`series${dense ? ' thin' : ''}${raw}`} points={line(points)} />
+      {points.map((p) => (
+        <circle
+          key={p.date}
+          className={dense ? 'hit' : `dot${raw}`}
+          cx={x(dayToMs(p.date))}
+          cy={y(p.poids)}
+          r={dense ? 4 : 2.5}
+        >
+          {tooltip(p)}
+        </circle>
+      ))}
       {average && <polyline className="average" points={line(movingAverage(points))} />}
     </svg>
   )

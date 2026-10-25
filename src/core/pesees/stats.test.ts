@@ -54,13 +54,13 @@ describe('préférences', () => {
   test('valeurs par défaut et valeurs invalides ramenées au défaut', () => {
     expect(parsePreferences(null)).toEqual({
       autoLockMinutes: 5,
-      chart: { period: '90j', style: 'courbe', average: true, fromZero: false },
+      chart: { period: '90j', average: true, fromZero: false },
     })
     expect(
-      parsePreferences({ autoLockMinutes: 0, chart: { period: '2ans', style: 'barres' } }),
+      parsePreferences({ autoLockMinutes: 0, chart: { period: '2ans', fromZero: true } }),
     ).toEqual({
       autoLockMinutes: 5,
-      chart: { period: '90j', style: 'barres', average: true, fromZero: false },
+      chart: { period: '90j', average: true, fromZero: true },
     })
   })
 })

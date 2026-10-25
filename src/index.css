@@ -174,8 +174,7 @@ label.inline {
   stroke-width: 2;
 }
 
-.chart .dot,
-.chart .bar {
+.chart .dot {
   fill: var(--accent);
 }
 

@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { PERIODS } from '../pesees/stats'
 import type { Unsubscribe } from '../types'
 
-export const CHART_STYLES = ['courbe', 'points', 'barres'] as const
 export const AUTO_LOCK_CHOICES = [1, 2, 5, 10, 15, 30] as const
 
 /**
@@ -15,17 +14,15 @@ export const preferencesSchema = z.object({
   chart: z
     .object({
       period: z.enum(PERIODS).catch('90j'),
-      style: z.enum(CHART_STYLES).catch('courbe'),
       /** Moyenne mobile sur 7 jours. */
       average: z.boolean().catch(true),
       /** Axe des poids qui part de 0 (sinon : zoom sur l'intervalle des valeurs). */
       fromZero: z.boolean().catch(false),
     })
-    .catch({ period: '90j', style: 'courbe', average: true, fromZero: false }),
+    .catch({ period: '90j', average: true, fromZero: false }),
 })
 
 export type Preferences = z.infer<typeof preferencesSchema>
-export type ChartStyle = (typeof CHART_STYLES)[number]
 
 /** Valeurs par défaut ; toute valeur invalide ou manquante y revient. */
 export function parsePreferences(raw: unknown): Preferences {
