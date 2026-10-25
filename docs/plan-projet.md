@@ -52,6 +52,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.4 | Fonctionnel | Écrans métier | [x] |
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [x] |
 | 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
+| 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [ ] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -318,6 +319,35 @@ npm run test:emulateurs
 - [x] États chargement / vide / erreur ; tuiles lisibles à 360 px
 - [x] Couleurs neutres ; le signe et le texte portent l'information
 
+## Bloc 2.7 — Finitions ergonomiques (demandées le 2026-10-25, après #32)
+**Objectif :** affiner l'ergonomie à l'usage, sans toucher au métier.
+
+**Livrables**
+1. **Historique et barre de navigation**
+   - Boutons de ligne en **icônes** : ✏️ stylo « Modifier » ; 🗑️ poubelle **sur fond rouge** « Supprimer ». Chaque icône a un nom accessible et une info-bulle. La confirmation en deux temps est conservée (« Confirmer la suppression »).
+   - Grand écran : **espace** entre le bandeau du haut et la barre de navigation.
+   - Le contenu **ne défile plus visiblement sous les barres** : bandeau et navigation forment une seule zone collante, opaque, sur toute la largeur. Sur mobile, la barre du bas est déjà opaque ; on vérifie qu'aucun contenu n'apparaît derrière.
+2. **Notes sur le graphique**
+   - Une pesée avec une note est dessinée comme un **point mis en évidence** : couleur `--highlight`, un peu plus gros.
+   - **Au survol, info-bulle** avec la date, le poids et la note.
+   - `--highlight` est un **jeton de couleur** (pas un jaune en dur), défini pour chaque thème avec la **même intensité perçue** sur fond clair et sur fond sombre (contraste ≥ 3:1 avec le fond du graphique).
+   - Légende : « ● pesée avec note ».
+3. **Thème clair / sombre**
+   - Réglages → **Thème : Système · Clair · Sombre** (« Système » par défaut : suit le réglage du téléphone ou de l'ordinateur).
+   - Préférence enregistrée dans le `PreferencesStore` (propre à l'appareil), appliquée **instantanément** via `data-theme` sur `<html>`, sans rechargement.
+   - Toutes les couleurs passent par les jetons CSS (`--bg`, `--fg`, `--accent`, `--highlight`…), redéfinis par thème. `theme-color` (barre du navigateur mobile) suit le thème.
+
+**Décisions proposées (à valider avec la PR #32)**
+- D41 : thème à trois choix (Système / Clair / Sombre), « Système » par défaut, par appareil.
+- D42 : mise en évidence des notes par un jeton `--highlight` par thème, d'intensité équivalente ; info-bulle native (`<title>` SVG) pour commencer.
+
+**Critères d'acceptation**
+- [ ] Modifier / Supprimer reconnaissables sans texte, utilisables au clavier et au lecteur d'écran
+- [ ] Aucun contenu visible entre ou sous les barres en défilant (mobile et grand écran)
+- [ ] Les pesées avec note se repèrent sur le graphique, la note s'affiche au survol
+- [ ] Le thème change instantanément, persiste au rechargement, et « Système » suit le réglage de l'appareil
+- [ ] Contrastes lisibles dans les deux thèmes (texte ≥ 4,5:1, éléments graphiques ≥ 3:1)
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0`.
  
 ---
@@ -463,6 +493,8 @@ Déclenché sur un tag `v*` :
 | D36 | 2026-10-25 | Fourchettes de projection par la loi de Student (n − 2 ddl) à 95 % (tuile + cône) et 99 % (cône pâle autour), au lieu du facteur fixe 2 (`T_FOURCHETTE`) ; cônes sur la tendance, pas sur les pesées futures | Avec 14 à 28 pesées, le facteur 2 sous-estime l'incertitude (~10 %) ; deux niveaux montrent la zone probable et la zone extrême | Facteur 2 et 2,6 ; intervalle de prédiction des pesées (trop large, bruité) |
 | D37 | 2026-10-25 | Règles : la mise à jour d'une pesée remplace tout le document, `createdAt` compris (plus d'immuabilité) | Trouvé par le test de conflit du 2.5 : une saisie hors ligne sur un jour rempli ailleurs était refusée au retour du réseau, contrairement à D6 | `createdAt` immuable côté serveur |
 | D38 | 2026-10-25 | `overrides` npm : `@grpc/grpc-js` ≥ 1.14.6 sous `@firebase/firestore` ; en-têtes HTTP de sécurité et de cache sur Hosting (sans `X-Frame-Options` pour l'instant) | Alertes `npm audit` (côté serveur Node, absentes du bundle web) sans rétrograder Firebase ; cache long des fichiers versionnés, `index.html` revalidé | `npm audit fix --force` (rétrograde Firebase en 9.x) |
+| D39 | 2026-10-25 | Navigation : bandeau du haut (nom, puce de synchro, avatar + menu : verrouiller, réglages, déconnexion), barre fixe en bas sur mobile / en haut dès 760 px (Tableau de bord · Historique · Réglages), bouton « + » et saisie du jour en fenêtre ; confirmations brèves (toasts) ; focus visible, cibles ≥ 44 px, `aria-current` | Usage à une main sur téléphone, actions fréquentes à portée (#27) | Onglets en haut, réglages et déconnexion dans le contenu |
+| D40 | 2026-10-25 | Écrans Historique et Réglages chargés à la demande (`React.lazy`) | Demandé en test (#29) ; gain mesuré négligeable (≈ 4 Ko sur ≈ 890) : le poids vient de Firebase, nécessaire au démarrage | Découpage de Firebase en fichier séparé (cache entre déploiements) |
  
 ## ⚠️ Risques
  
@@ -505,3 +537,5 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 2.5 | Hors ligne et conflits automatisés sous émulateur (SDK coupé du réseau, deux appareils, session perdue puis retrouvée). Bug trouvé et corrigé : règle `createdAt` immuable qui cassait D6 (D37). Indicateur : nombre de modifications en attente. Fin du jalon 2 → `v0.2.0`. |
 | 2026-10-25 | Polish | Audit : README racine, CLAUDE.md et docs à jour, arborescence réelle dans le plan ; dates unifiées (`core/analyse/dates`), `stats.ts` → `periodes.ts` + `csv.ts`, constantes mortes retirées, `platform.ts` explicite ; `tests/rules` → `tests/emulateurs` (`npm run test:emulateurs`) ; 0 vulnérabilité en prod (D38) ; favicon et méta-données ; en-têtes Hosting. |
 | 2026-10-25 | 0.1 | Coché (#30) : environnement opérationnel via VS Code Flatpak (D9). Écarts notés dans `plan-installation-outils.md`. D1 à D5 datées du 2026-10-23. |
+| 2026-10-25 | Ergonomie | Bandeau profil, barre de navigation, bouton « + » et fenêtre de saisie du jour, toasts, accessibilité (D39) ; écrans secondaires à la demande (D40). |
+| 2026-10-25 | 2.7 | Plan des finitions proposé (icônes historique, barres, notes sur le graphique, thème clair / sombre) : à valider avec #32. |

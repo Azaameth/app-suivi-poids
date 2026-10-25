@@ -26,19 +26,299 @@
 
 body {
   margin: 0;
-  padding: 1rem;
   background: var(--bg);
   color: var(--fg);
+  --nav-h: 4rem;
 }
 
-/* Utilisable dès 360 px de large ; centré au-delà. */
+/* Utilisable dès 360 px de large ; centré au-delà. Place réservée à la barre du bas. */
 main {
   max-width: 40rem;
   margin: 0 auto;
+  padding: 0 1rem calc(var(--nav-h) + 5rem + env(safe-area-inset-bottom));
 }
 
-h1 {
-  font-size: 1.5rem;
+/* ---- Bandeau du haut ---- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.app-header .row {
+  margin: 0;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.puce-synchro {
+  margin: 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  background: var(--accent-soft);
+  white-space: nowrap;
+}
+
+.puce-synchro::before {
+  content: '●';
+  margin-right: 0.3rem;
+  color: var(--accent);
+}
+
+.puce-synchro[data-state='offline']::before {
+  content: '○';
+}
+
+.puce-synchro[data-state='pending']::before {
+  content: '↻';
+}
+
+.profil {
+  position: relative;
+}
+
+.avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  font-weight: 700;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  min-width: 14rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+}
+
+.menu button {
+  text-align: left;
+  border: none;
+  background: transparent;
+}
+
+.menu button:hover {
+  background: var(--accent-soft);
+}
+
+.identite {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 0.25rem;
+  padding: 0.25rem 0.5rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Navigation : en bas sur mobile (pouce), en haut sur grand écran ---- */
+.navbar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  height: var(--nav-h);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--card);
+  border-top: 1px solid var(--border);
+}
+
+.navbar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.navbar svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.navbar button[aria-current='page'] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (min-width: 760px) {
+  body {
+    --nav-h: 0rem;
+  }
+
+  .navbar {
+    position: sticky;
+    top: 3.75rem;
+    height: auto;
+    max-width: 40rem;
+    margin: 0.75rem auto 0;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+  }
+
+  .navbar button {
+    flex-direction: row;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+  }
+
+  .navbar button[aria-current='page'] {
+    background: var(--accent-soft);
+  }
+}
+
+.titre-ecran {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.3rem;
+}
+
+/* ---- Bouton flottant « + » ---- */
+.fab {
+  position: fixed;
+  right: max(1rem, calc(50vw - 20rem + 1rem));
+  bottom: calc(var(--nav-h) + 1rem + env(safe-area-inset-bottom));
+  z-index: 11;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: 1rem;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 2rem;
+  line-height: 1;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+}
+
+/* ---- Fenêtre modale (saisie du jour) ---- */
+.modal-fond {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 40rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  border-radius: 1rem 1rem 0 0;
+  background: var(--bg);
+}
+
+.modal h2 {
+  margin: 0;
+}
+
+.modal .card {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+@media (min-width: 760px) {
+  .modal-fond {
+    align-items: center;
+  }
+
+  .modal {
+    border-radius: 1rem;
+  }
+}
+
+/* ---- Confirmations brèves ---- */
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-h) + 5.5rem + env(safe-area-inset-bottom));
+  z-index: 30;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast {
+  margin: 0;
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--fg);
+  color: var(--bg);
+  white-space: nowrap;
+  animation: apparition 0.2s ease-out;
+}
+
+@keyframes apparition {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+/* ---- Accessibilité ---- */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 h2 {
@@ -55,12 +335,25 @@ textarea {
 }
 
 button {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0.4rem 0.8rem;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--bg);
   cursor: pointer;
+}
+
+button.principal {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+button.icone {
+  min-width: 2.75rem;
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
 }
 
 button[aria-pressed='true'] {
@@ -118,11 +411,13 @@ label.inline {
   margin: 0.5rem 0;
 }
 
-.tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin: 1rem 0;
+.row.espace {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vide {
+  text-align: center;
 }
 
 .hint {

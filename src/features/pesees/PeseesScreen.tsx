@@ -1,40 +1,37 @@
-import { useState } from 'react'
-import type { Pesee } from '../../core/pesees'
-import { DevTools } from '../dev/DevTools'
-import { SettingsPanel } from '../prefs/SettingsPanel'
+import { lazy, Suspense, useState } from 'react'
+import { Modal } from '../shell/Modal'
+import { NavBar } from '../shell/NavBar'
+import { TABS, type Tab } from '../shell/onglets'
+import { useToast } from '../shell/toast'
+import { SaisieDuJour } from '../tableau-de-bord/SaisiePesee'
 import { TableauDeBord } from '../tableau-de-bord/TableauDeBord'
-import { ExportPanel } from './ExportPanel'
-import { PeseeForm } from './PeseeForm'
-import { PeseeList } from './PeseeList'
 import { usePesees } from './usePesees'
 
-const TABS = {
-  tableau: 'Tableau de bord',
-  historique: 'Historique',
-  reglages: 'Export & réglages',
-} as const
-type Tab = keyof typeof TABS
+// Écrans secondaires chargés à la demande (#29) : le tableau de bord s'affiche sans les attendre.
+const HistoriqueScreen = lazy(() =>
+  import('./HistoriqueScreen').then((m) => ({ default: m.HistoriqueScreen })),
+)
+const ReglagesScreen = lazy(() =>
+  import('../prefs/ReglagesScreen').then((m) => ({ default: m.ReglagesScreen })),
+)
 
-export function PeseesScreen() {
+/** Écran principal, coffre déverrouillé : contenu de l'onglet, navigation, saisie du jour. */
+export function PeseesScreen({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
   const { state, repo } = usePesees()
-  const [tab, setTab] = useState<Tab>('tableau')
-  const [editing, setEditing] = useState<Pesee | undefined>()
+  const [saisie, setSaisie] = useState(false)
   const [removeError, setRemoveError] = useState(false)
+  const notify = useToast()
 
   function remove(date: string) {
     setRemoveError(false)
+    notify('Pesée supprimée')
     repo.remove(date).synced.catch(() => setRemoveError(true))
   }
 
   return (
     <>
-      <nav className="tabs">
-        {(Object.keys(TABS) as Tab[]).map((key) => (
-          <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)}>
-            {TABS[key]}
-          </button>
-        ))}
-      </nav>
+      <NavBar tab={tab} onChange={onTab} />
+      <h2 className="titre-ecran">{TABS[tab]}</h2>
 
       {state.status === 'loading' && <p>Chargement des pesées…</p>}
       {state.status === 'error' && (
@@ -46,26 +43,33 @@ export function PeseesScreen() {
             <p role="alert">Certaines pesées sont illisibles (donnée altérée) et sont masquées.</p>
           )}
           {removeError && <p role="alert">Le serveur a refusé la suppression.</p>}
-          {tab === 'tableau' && <TableauDeBord pesees={state.pesees} repo={repo} />}
-          {tab === 'historique' && (
-            <>
-              <PeseeForm
-                key={editing?.date ?? 'nouvelle'}
-                pesees={state.pesees}
-                repo={repo}
-                editing={editing}
-                onDone={() => setEditing(undefined)}
-              />
-              <PeseeList pesees={state.pesees} onEdit={setEditing} onRemove={remove} />
-            </>
+          <Suspense fallback={<p>Chargement…</p>}>
+            {tab === 'tableau' && (
+              <TableauDeBord pesees={state.pesees} onSaisir={() => setSaisie(true)} />
+            )}
+            {tab === 'historique' && (
+              <HistoriqueScreen pesees={state.pesees} repo={repo} onRemove={remove} />
+            )}
+            {tab === 'reglages' && <ReglagesScreen pesees={state.pesees} repo={repo} />}
+          </Suspense>
+
+          {tab === 'tableau' && (
+            <button
+              type="button"
+              className="fab"
+              aria-label="Saisir la pesée du jour"
+              onClick={() => setSaisie(true)}
+            >
+              +
+            </button>
           )}
-          {tab === 'reglages' && <ExportPanel pesees={state.pesees} />}
-          {import.meta.env.DEV && tab === 'reglages' && (
-            <DevTools pesees={state.pesees} repo={repo} />
+          {saisie && (
+            <Modal title="Pesée du jour" onClose={() => setSaisie(false)}>
+              <SaisieDuJour pesees={state.pesees} repo={repo} onDone={() => setSaisie(false)} />
+            </Modal>
           )}
         </>
       )}
-      {tab === 'reglages' && <SettingsPanel />}
     </>
   )
 }

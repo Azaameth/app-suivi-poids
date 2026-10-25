@@ -21,9 +21,15 @@ export function fill(label: string | RegExp, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 }
 
+/** Ouvre le menu du profil puis clique sur `action` (« Se déconnecter », « 🔒 Verrouiller »…). */
+export function menuProfil(action: string) {
+  fireEvent.click(screen.getByRole('button', { name: 'Profil de Test' }))
+  fireEvent.click(screen.getByRole('button', { name: action }))
+}
+
 export async function signIn() {
   fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
-  await screen.findByText(/Connecté : Test/)
+  await screen.findByRole('button', { name: 'Profil de Test' })
 }
 
 /** Premier lancement : création du coffre, jusqu'à l'écran des pesées. */
@@ -32,5 +38,5 @@ export async function createVault() {
   fill('Phrase secrète', PHRASE)
   fill('Confirmation', PHRASE)
   fireEvent.click(screen.getByRole('button', { name: 'Créer mon coffre' }))
-  await screen.findByRole('heading', { name: 'Pesée du jour' }, { timeout: 5000 })
+  await screen.findByRole('heading', { name: 'Tableau de bord' }, { timeout: 5000 })
 }
