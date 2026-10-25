@@ -53,7 +53,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.5 | Fonctionnel | Tests hors ligne et conflits (navigateur) | [x] |
 | 2.6 | Fonctionnel | Tableau de bord : tendance, rythme, projection (`docs/spec-restitution.md`, v1) | [x] |
 | 2.7 | Fonctionnel | Finitions ergonomiques : icônes de l'historique, barre de navigation, notes sur le graphique, thème clair / sombre | [x] |
-| 2.8 | Fonctionnel | Ouverture aux proches : suggestions dans l'appli, version visible, installation (manifeste web), suppression du compte | [ ] |
+| 2.8 | Fonctionnel | Ouverture aux proches : suggestions dans l'appli, version visible, installation (manifeste web), suppression du compte | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -354,7 +354,7 @@ npm run test:emulateurs
 
 **Livrables**
 1. **Suggestions dans l'appli** (D45)
-   - Menu du profil → **« 💬 Suggérer une idée »** : fenêtre avec un texte (10 à 2 000 caractères) et un type (idée / problème).
+   - Bouton **🗨️ dans le bandeau**, à gauche de l'avatar (choix d'Azaameth) → **« Suggérer une idée »** : fenêtre avec un texte (10 à 2 000 caractères) et un type (idée / problème).
    - Stockage `users/{uid}/suggestions/{id}` : `{ type, texte, version, createdAt }`. **Non chiffré** (pour que Maxime puisse le lire) : l'écran prévient de ne pas y mettre d'information de santé.
    - Règles : le propriétaire crée, relit et supprime ses suggestions ; forme et tailles validées ; tests sous émulateur.
    - Lecture par Maxime dans la console Firebase ; un script pourra ensuite les transformer en issues GitHub.
@@ -363,18 +363,18 @@ npm run test:emulateurs
 4. **Accueil des nouveaux** : rappel renforcé à la création de la phrase secrète (« perte = données perdues »), conseil d'export CSV régulier dans les Réglages.
 5. **Supprimer mon compte et mes données** (Réglages, D47) : confirmation forte (saisie de « SUPPRIMER »), puis effacement des pesées, des suggestions, de `meta/keys`, et du compte Firebase Auth (reconnexion Google demandée si la session est ancienne).
 
-**Décisions (à valider avec la PR #33)**
+**Décisions (validées avec la PR #33)**
 - D44 : appli ouverte aux proches, inscription libre par Google ; comptes indépendants et cloisonnés, aucun partage. Quotas Spark (50 000 lectures et 20 000 écritures par jour) très au-dessus de l'usage prévu.
 - D45 : suggestions stockées sous `users/{uid}/suggestions`, non chiffrées, avec avertissement ; création, lecture et suppression par leur auteur seulement.
 - D46 : minimisation des données — le profil v1.1 ne demandera que la **taille** (IMC adulte : mêmes seuils pour tous) ; sexe et âge seulement si une fonctionnalité les exige un jour (métabolisme de base, masse grasse), facultatifs et chiffrés.
 - D47 : `meta/keys` devient supprimable par son propriétaire, **uniquement** via le parcours « Supprimer mon compte » (confirmation forte) ; révise D25 (suppression interdite) pour permettre l'effacement complet.
 
 **Critères d'acceptation**
-- [ ] Une suggestion envoyée apparaît dans la console (émulateur puis prod), avec la version ; refusée si vide, trop longue ou pour un autre compte
-- [ ] La version s'affiche dans le menu
-- [ ] « Ajouter à l'écran d'accueil » installe l'appli avec son icône (Android et iPhone)
-- [ ] La suppression du compte efface toutes les données Firestore de l'utilisateur et son compte Auth
-- [ ] Les données d'un proche restent illisibles et inaccessibles pour les autres (tests de règles existants)
+- [x] Une suggestion envoyée apparaît dans la console (émulateur ; prod après déploiement), avec la version ; refusée si vide, trop longue ou pour un autre compte
+- [x] La version s'affiche dans le menu
+- [ ] « Ajouter à l'écran d'accueil » installe l'appli avec son icône (Android et iPhone) — à vérifier sur téléphone après déploiement
+- [x] La suppression du compte efface toutes les données Firestore de l'utilisateur et son compte Auth (test sous émulateur)
+- [x] Les données d'un proche restent illisibles et inaccessibles pour les autres (tests de règles existants)
 
 **🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
@@ -526,6 +526,10 @@ Déclenché sur un tag `v*` :
 | D41 | 2026-10-25 | Thème à trois choix (Système · Clair · Sombre), « Système » par défaut, mémorisé par appareil | Confort de lecture selon l'environnement ; suit le réglage de l'appareil sans action (validé avec #32) | Thème sombre seul ; bascule clair / sombre sans « Système » |
 | D42 | 2026-10-25 | Pesées avec note mises en évidence sur le graphique par un jeton `--highlight` d'intensité équivalente dans chaque thème ; note en info-bulle native | Repérer d'un coup d'œil les jours commentés, sans couleur codée en dur (validé avec #32) | Jaune fixe ; liste des notes à part |
 | D43 | 2026-10-25 | Clé d'API web Firebase (`apiKey`) **publique par conception**, mais **restreinte** dans Google Cloud : référents `https://machimoto.web.app/*` et `https://machimoto.firebaseapp.com/*` ; API Identity Toolkit, Token Service et Cloud Firestore seulement. Alerte GitHub *secret scanning* #1 fermée en « won't fix » | La clé identifie le projet sans donner d'accès : la sécurité repose sur les règles Firestore (testées) et le chiffrement côté client. Vérifié le 2026-10-25 : sans référent → `403 API_KEY_HTTP_REFERRER_BLOCKED`. Android (jalon 3) : clé distincte, restreinte au paquet et à l'empreinte SHA-1 | Retirer la clé du repo (impossible côté web : elle est dans le bundle servi à tous) ; rotation de la clé (inutile : rien n'a fuité au sens d'un secret) |
+| D44 | 2026-10-25 | Appli ouverte aux proches : inscription libre par Google, comptes indépendants et cloisonnés, aucun partage (cadrage 0.2 révisé) | Recueillir des suggestions réelles avant l'APK ; données chiffrées et cloisonnées par les règles ; quotas Spark très au-dessus de l'usage | Liste d'invités (e-mails dans Firestore) ; utilisateur unique |
+| D45 | 2026-10-25 | Suggestions dans l'appli (🗨️ du bandeau) sous `users/{uid}/suggestions`, non chiffrées avec avertissement, version jointe ; création, lecture et suppression par l'auteur, pas de modification | Proches sans compte GitHub ; lecture par Maxime dans la console | Lien `mailto:` ; issues GitHub |
+| D46 | 2026-10-25 | Minimisation : le profil v1.1 ne demandera que la taille (IMC adulte, mêmes seuils pour tous) ; sexe et âge seulement si une fonctionnalité les exige, facultatifs et chiffrés | RGPD et esprit de l'appli : ne collecter que l'utile | Collecter sexe et âge d'emblée |
+| D47 | 2026-10-25 | `meta/keys` supprimable par son propriétaire, uniquement via « Supprimer mon compte » (saisie de « SUPPRIMER », réseau obligatoire) ; révise D25 | Permettre l'effacement complet d'un compte | Suppression interdite (D25) |
  
 ## ⚠️ Risques
  
@@ -573,3 +577,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | Sécurité | Alerte GitHub « Google API Key – Public leak » sur `src/firebase.config.ts` : clé web Firebase, publique par conception. Clé restreinte par référent et par API dans Google Cloud (vérifié : 403 hors référent), alerte fermée (D43). Relevé #28 : en-têtes personnalisés non appliqués à `/__/auth/*` → `X-Frame-Options` possible. |
 | 2026-10-25 | 2.7 | Finitions : icônes ✏️ / 🗑️ (fond rouge), navigation intégrée au bandeau (zone collante unique, espacée), notes mises en évidence sur le graphique (`--highlight` équilibré : 4,55 / 5,09:1), thème Système · Clair · Sombre (D41, D42). `X-Frame-Options: DENY` ajouté (#28, sans risque pour `/__/auth/*`). |
 | 2026-10-25 | 2.8 | Plan « Ouverture aux proches » (inscription ouverte, suggestions dans l'appli, version, manifeste web, suppression du compte) ; cadrage 0.2 révisé ; IMC reportée en v1.1 avec la taille, sexe non collecté (minimisation). À valider avec #33. |
+| 2026-10-25 | 2.8 | Ouverture aux proches : 🗨️ suggestions (règles + tests), version 0.2.1 dans le menu, manifeste web et icônes (192 / 512 / maskable / Apple 180, générées avec `rsvg-convert`), suppression du compte (D44 à D47). Bug évité : `lireIds` appelait `stop` avant son affectation avec l'implémentation mémoire. |

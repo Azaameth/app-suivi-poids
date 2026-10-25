@@ -1,6 +1,8 @@
 import {
   GoogleAuthProvider,
+  deleteUser,
   onAuthStateChanged,
+  reauthenticateWithPopup,
   signInWithPopup,
   signOut,
   type User,
@@ -38,5 +40,18 @@ export class WebAuthService implements AuthService {
 
   async signOut() {
     await signOut(auth)
+  }
+
+  async deleteAccount() {
+    const user = auth.currentUser
+    if (!user) return
+    try {
+      await deleteUser(user)
+    } catch (error) {
+      // Firebase exige une connexion récente pour supprimer un compte : on la redemande.
+      if ((error as { code?: string }).code !== 'auth/requires-recent-login') throw error
+      await reauthenticateWithPopup(user, new GoogleAuthProvider())
+      await deleteUser(user)
+    }
   }
 }

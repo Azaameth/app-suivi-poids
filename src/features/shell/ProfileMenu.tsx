@@ -58,6 +58,7 @@ export function ProfileMenu({
           <p className="identite">
             <strong>{name}</strong>
             {user.email && user.email !== name && <span className="hint">{user.email}</span>}
+            <span className="hint">Version {__APP_VERSION__}</span>
           </p>
           {onLock && (
             <button type="button" onClick={run(onLock)}>
