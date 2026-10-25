@@ -16,6 +16,9 @@ updates:
       # Node reste en LTS (D11) : les types suivent la version de Node utilisée.
       - dependency-name: '@types/node'
         update-types: [version-update:semver-major]
+      # TypeScript 7 : attendre que typescript-eslint le prenne en charge (#59 refusée par npm).
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
