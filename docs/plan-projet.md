@@ -59,6 +59,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 2.11 | Fonctionnel | Démarrage hors ligne : copie locale chiffrée (option « Garder mes données sur cet appareil ») | [x] |
 | 2.12 | Fonctionnel | Import CSV (reprise de pesées existantes, #39) | [x] |
 | 2.13 | Fonctionnel | Connexion par e-mail et mot de passe (en plus de Google) | [x] |
+| 2.14 | Fonctionnel | Appli disponible hors ligne (service worker), nouvelles versions proposées | [x] |
 | 3.1 | APK | Ajout de Capacitor Android | [ ] |
 | 3.2 | APK | Configuration Firebase Android (SHA-1) | [ ] |
 | 3.3 | APK | Adaptateurs natifs | [ ] |
@@ -462,6 +463,20 @@ npm run test:emulateurs
 - [x] Codes d'erreur réels de Firebase Auth traduits (test sous émulateur)
 - [x] Suppression : mauvais mot de passe → rien n'est effacé
 
+## Bloc 2.14 — Appli disponible hors ligne (décidé le 2026-10-25)
+**Objectif :** ouvrir l'appli **à froid** sans réseau. Le bloc 2.11 rendait les données disponibles hors ligne, mais pas l'appli elle-même : sans service worker, le navigateur doit retélécharger `index.html` à chaque ouverture (D54).
+
+**Livrables**
+- `vite-plugin-pwa` (Workbox, `generateSW`) : copie locale de l'appli (HTML, JS, CSS, icônes, manifeste), **aucune donnée** ; pages `/__/` (connexion Firebase) exclues.
+- Nouvelle version **proposée** (« Mettre à jour » / « Plus tard »), jamais imposée : recharger reverrouille le coffre. Vérification au démarrage puis toutes les heures ; sans action, installation à la prochaine ouverture.
+- `sw.js` servi sans cache (`firebase.json`) ; contrôlé par `verifier-prod`.
+- Enregistrement dans `src/adapters/web/miseAJour.ts`, exposé aux écrans par `MiseAJourContext` (aucune mise à jour proposée en test ni, plus tard, dans l'APK).
+
+**Critères d'acceptation**
+- [x] Précache complet (écrans chargés à la demande compris), sans Firestore ni pages `/__/`
+- [x] Bandeau de mise à jour testé (appliquer, plus tard)
+- [ ] En prod : ouverture à froid en mode avion, déverrouillage, saisie en attente (issue de suivi)
+
 **🏁 Fin du jalon 2 :** tag `v0.2.0` ; après 2.7 et 2.8 : tag `v0.2.1` (web ouvert aux proches).
  
 ---
@@ -637,6 +652,7 @@ Déclenché sur un tag `v*` :
 | D51 | 2026-10-25 | Build web : Firebase, React et Zod dans des fichiers séparés (codeSplitting Rolldown) ; seuil d'avertissement de taille à 700 kB ; révise D40 [à valider par Azaameth] | Une mise à jour de l'appli ne fait plus retélécharger les bibliothèques (cache d'un an, D38) : code de l'appli ≈ 41 kB au lieu de 884 kB ; plus d'avertissement au build | Fichier unique (D40) ; découpage plus fin de Firebase (impossible proprement) |
 | D52 | 2026-10-25 | Durcissement : CSP en mode Report-Only sur Hosting (sources Firebase listées), notes CSV commençant par = + - @ préfixées d'une apostrophe à l'export (retirée au réimport), texte des suggestions traité comme donnée par Claude | Défense en profondeur sans risque de casser la connexion Google : la CSP passera en mode bloquant après une semaine sans violation dans la console | CSP bloquante d'emblée ; échapper les notes à l'import seulement |
 | D53 | 2026-10-25 | Connexion par e-mail et mot de passe en plus de Google ; message d'erreur indistinct (e-mail ou mot de passe), réinitialisation sans révéler l'existence du compte ; pas de vérification d'e-mail obligatoire ; révise D15 | Ouvrir l'appli aux proches sans compte Google ; les données restent protégées par la phrase secrète, indépendante du mot de passe | Lien magique par e-mail (Firebase Dynamic Links arrêté : compliqué sur Android) ; vérification d'e-mail bloquante ; Google seul (D15) |
+| D54 | 2026-10-25 | Service worker (vite-plugin-pwa, Workbox generateSW) : copie locale de l'appli sans aucune donnée, pages /__/ exclues, nouvelle version proposée et non imposée ; sw.js sans cache | Ouvrir l'appli à froid sans réseau (le bloc 2.11 ne couvrait que les données) ; recharger d'office reverrouillerait le coffre en pleine saisie | Service worker écrit à la main ; mise à jour automatique (autoUpdate) ; attendre l'APK |
  
 ## ⚠️ Risques
  
@@ -695,3 +711,4 @@ Déclenché sur un tag `v*` :
 | 2026-10-25 | 4.5 | Bloc ajouté à la demande d'Azaameth : vérification développeur Android, obligatoire en 2027 pour installer un APK hors Play Store sans le parcours avancé ; compte à distribution limitée (20 appareils) visé. |
 | 2026-10-25 | Sécurité | Revue « injection » : pas d'injection possible côté Firestore (pas de requête texte, chemin = date validée par Zod et par les règles), pas de XSS (React, aucun innerHTML) ; durcissement : CSP Report-Only, injection de formule CSV neutralisée, consigne anti-injection dans trier-suggestions (D52). |
 | 2026-10-25 | 2.13 | Connexion par e-mail (création, connexion, mot de passe oublié), suppression d'un compte e-mail avec mot de passe vérifié avant effacement ; codes Firebase traduits et vérifiés sous émulateur (D53). |
+| 2026-10-25 | 2.14 | Service worker : l'appli s'ouvre sans réseau (le 2.11 ne rendait hors ligne que les données, ma checklist du 2.11 était fausse sur ce point) ; nouvelles versions proposées par un bandeau ; sw.js sans cache, contrôlé par verifier-prod (D54). |

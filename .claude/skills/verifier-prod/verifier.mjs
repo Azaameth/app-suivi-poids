@@ -82,6 +82,13 @@ for (const icone of icones ?? []) {
   const r = await entetes(`${SITE}/${icone.src}`)
   ok(r.h('content-type') === 'image/png', `icône ${icone.src} (${icone.sizes}, ${icone.purpose})`)
 }
+// Service worker (bloc 2.14) : en JavaScript, jamais en cache (sinon nouvelles versions invisibles).
+const sw = await entetes(`${SITE}/sw.js`)
+ok(
+  sw.statut === 200 && !!sw.h('content-type')?.includes('javascript'),
+  'sw.js servi en JavaScript (pas la page d’accueil)',
+)
+ok(sw.h('cache-control') === 'no-cache', `sw.js sans cache (${sw.h('cache-control')})`)
 
 // 4. Clé d'API restreinte
 const config = readFileSync('src/firebase.config.ts', 'utf8').match(/apiKey: '([^']+)'/)?.[1]
