@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.2.1",
   "description": "Professeur Machimoto — suivi de poids chiffré (web + Android), synchronisé avec Firebase.",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "vite --config config/vite.config.ts",
@@ -13,12 +14,13 @@
     "typecheck": "tsc -b",
     "test": "vitest run --config config/vite.config.ts",
     "test:watch": "vitest --config config/vite.config.ts",
-    "test:emulateurs": "firebase emulators:exec --config firebase/firebase.tests.json --only auth,firestore --project demo-suivi-poids \"vitest run --config config/vitest.emulateurs.config.ts\"",
+    "test:emulateurs": "firebase emulators:exec --config firebase/firebase.tests.json --only auth,firestore --project demo-suivi-poids \"vitest run --config config/vitest.emulateurs.config.ts\" && node scripts/empreinte.mjs marquer emulateurs",
     "emulators": "firebase emulators:start --project demo-suivi-poids --import=.emulator-data --export-on-exit=.emulator-data",
     "check:secrets": "node scripts/check-secrets.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "verify": "npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run build",
-    "deploy": "npm run verify && npm run test:emulateurs && firebase deploy --project machimoto --only hosting,firestore:rules"
+    "verify": "npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run test:outils && npm run build && node scripts/empreinte.mjs marquer verify",
+    "deploy": "npm run verify && npm run test:emulateurs && firebase deploy --project machimoto --only hosting,firestore:rules",
+    "test:outils": "node --test \".claude/hooks/*.test.mjs\" \"scripts/*.test.mjs\""
   },
   "dependencies": {
     "firebase": "^13.1.0",
