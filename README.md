@@ -56,3 +56,8 @@ En développement, l'onglet « Export & réglages » propose de générer des do
 - [`docs/plan-projet.md`](docs/plan-projet.md) : plan, décisions, journal, arborescence
 - [`docs/spec-restitution.md`](docs/spec-restitution.md) : calculs du tableau de bord
 - [`docs/plan-installation-outils.md`](docs/plan-installation-outils.md) : environnement de dev
+
+## Licence
+
+[GNU AGPL v3](LICENSE) — Copyright © 2026 Azaameth. Toute version modifiée, redistribuée **ou
+hébergée** doit publier son code source sous la même licence.
