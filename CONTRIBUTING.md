@@ -108,6 +108,8 @@ npm run dev         # appli sur http://localhost:5173
   account ».
 - Les données des émulateurs sont gardées dans `.emulator-data/` (ignoré par Git) d'une session à
   l'autre. Supprimez ce dossier pour repartir de zéro.
+- Le **service worker** (appli hors ligne, bloc 2.14) est désactivé en dev. Pour l'essayer :
+  `npm run build && npm run preview`, puis DevTools → Application → Service workers.
 - **Réglages → Outils de dev** génère des pesées fictives (absent du build de production).
 
 **Contrôle final** avant de coder :
@@ -281,15 +283,16 @@ Les **suggestions** des proches (🗨️) se lisent dans la console Firestore, s
 
 ## 9. Dépannage
 
-| Symptôme                                     | Cause probable et solution                                                                             |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| « Connexion au serveur impossible » en dev   | Les émulateurs ne tournent pas : `npm run emulators`                                                   |
-| `npm run emulators` : _Could not spawn java_ | Java 21 absent ou hors du `PATH` : `java -version`                                                     |
-| Port 8080, 9099 ou 4000 déjà utilisé         | Un ancien émulateur tourne encore : fermez-le (Linux/macOS : `lsof -i :8080` pour le trouver)          |
-| `npm warn Unknown env config "nodedir"`      | Spécifique au VS Code Flatpak du poste d'origine : sans effet                                          |
-| Commit refusé par _check-secrets_            | Un motif de secret a été détecté : retirez le fichier ou la valeur, ne contournez pas le hook          |
-| Test d'interface instable                    | Une requête part avant la fin du chargement : `findBy…`, ou attendre la disparition de « Chargement… » |
-| `npm run deploy` : _permission denied_       | `npx firebase login` avec le bon compte Google                                                         |
+| Symptôme                                         | Cause probable et solution                                                                                                                       |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| « Connexion au serveur impossible » en dev       | Les émulateurs ne tournent pas : `npm run emulators`                                                                                             |
+| `npm run emulators` : _Could not spawn java_     | Java 21 absent ou hors du `PATH` : `java -version`                                                                                               |
+| Port 8080, 9099 ou 4000 déjà utilisé             | Un ancien émulateur tourne encore : fermez-le (Linux/macOS : `lsof -i :8080` pour le trouver)                                                    |
+| Ancienne version de l'appli après un déploiement | Le service worker attend : bandeau « Mettre à jour », ou fermer tous les onglets ; en dev, DevTools → Application → Service workers → Unregister |
+| `npm warn Unknown env config "nodedir"`          | Spécifique au VS Code Flatpak du poste d'origine : sans effet                                                                                    |
+| Commit refusé par _check-secrets_                | Un motif de secret a été détecté : retirez le fichier ou la valeur, ne contournez pas le hook                                                    |
+| Test d'interface instable                        | Une requête part avant la fin du chargement : `findBy…`, ou attendre la disparition de « Chargement… »                                           |
+| `npm run deploy` : _permission denied_           | `npx firebase login` avec le bon compte Google                                                                                                   |
 
 ## 10. Travailler avec Claude Code
 

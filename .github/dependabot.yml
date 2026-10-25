@@ -23,3 +23,6 @@ updates:
       interval: monthly
     commit-message:
       prefix: ci
+    groups:
+      actions:
+        patterns: ['*']

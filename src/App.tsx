@@ -4,6 +4,7 @@ import { useAuthUser } from './features/auth/useAuthUser'
 import { PeseesScreen } from './features/pesees/PeseesScreen'
 import { useAppliquerTheme } from './features/prefs/useAppliquerTheme'
 import { AppHeader } from './features/shell/AppHeader'
+import { BandeauMiseAJour } from './features/shell/BandeauMiseAJour'
 import { NavBar } from './features/shell/NavBar'
 import type { Tab } from './features/shell/onglets'
 import { ToastProvider } from './features/shell/Toasts'
@@ -16,6 +17,7 @@ export function App({ autoLockMs }: { autoLockMs?: number }) {
 
   return (
     <ToastProvider>
+      <BandeauMiseAJour />
       {user ? (
         // key : changer de compte recrée le coffre (et verrouille l'ancien).
         <VaultGate

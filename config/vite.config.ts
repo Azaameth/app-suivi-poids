@@ -3,13 +3,32 @@ import react from '@vitejs/plugin-react'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
 
 export default defineConfig({
   // Ce fichier vit dans config/ : la racine du projet est le dossier parent.
   root: fileURLToPath(new URL('..', import.meta.url)),
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Service worker (bloc 2.14, D54) : garde une copie de l'appli (HTML, JS, CSS, icônes) pour
+    // l'ouvrir sans réseau. Aucune donnée : elles restent dans le cache Firestore chiffré (D49).
+    VitePWA({
+      registerType: 'prompt', // nouvelle version proposée, jamais imposée en pleine saisie
+      injectRegister: false, // enregistrement par src/adapters/web/miseAJour.ts
+      manifest: false, // public/manifest.webmanifest reste la référence
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        navigateFallback: 'index.html',
+        // Pages de connexion Firebase : toujours servies par le réseau.
+        navigateFallbackDenylist: [/^\/__\//],
+        cleanupOutdatedCaches: true,
+        // `favicon.svg?v=2` (contournement du cache, index.html) : même fichier que `favicon.svg`.
+        ignoreURLParametersMatching: [/^v$/, /^utm_/, /^fbclid$/],
+      },
+    }),
+  ],
   // Chemins relatifs : requis pour que le build fonctionne aussi dans la WebView Capacitor (jalon 3).
   base: './',
   // Version affichée dans le menu et jointe aux suggestions (bloc 2.8).
