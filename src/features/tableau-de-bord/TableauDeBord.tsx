@@ -1,5 +1,6 @@
 import type { Pesee } from '../../core/pesees'
 import { formatFixed, formatSigned } from '../commun/format'
+import { Mascotte } from '../commun/Mascotte'
 import { GraphiquePesees } from './GraphiquePesees'
 import { PeseeDuJour } from './SaisiePesee'
 import { Tuile } from './Tuile'
@@ -14,6 +15,7 @@ export function TableauDeBord({ pesees, onSaisir }: { pesees: Pesee[]; onSaisir:
     return (
       <>
         <section className="card vide">
+          <Mascotte taille={96} />
           <p>
             Bienvenue ! Saisis ta première pesée : la tendance, le rythme et la projection
             apparaîtront au fil des jours.

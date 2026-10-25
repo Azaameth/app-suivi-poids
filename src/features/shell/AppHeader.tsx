@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { AuthUser } from '../../core'
 import { SuggestionButton } from '../suggestions/SuggestionButton'
 import { SyncIndicator } from '../sync/SyncIndicator'
+import { Mascotte } from '../commun/Mascotte'
 import { ProfileMenu } from './ProfileMenu'
 
 /**
@@ -23,7 +24,10 @@ export function AppHeader({
   return (
     <header className="app-header">
       <div className="barre-haut">
-        <h1>Professeur Machimoto</h1>
+        <h1>
+          <Mascotte taille={30} />
+          Professeur Machimoto
+        </h1>
         {user && (
           <div className="row">
             <SyncIndicator />

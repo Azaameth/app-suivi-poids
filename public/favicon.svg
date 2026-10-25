@@ -1,6 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Professeur Machimoto : une courbe de tendance qui se stabilise -->
-  <rect width="64" height="64" rx="14" fill="#6750a4"/>
-  <path d="M12 20 C24 22 26 38 36 40 S48 42 52 42" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="52" cy="42" r="5" fill="#e8def8"/>
+  <!-- Professeur Machimoto : une bulle bienveillante à lunettes (dessin original) -->
+  <path d="M32 5C48.6 5 59 14.8 59 27.5S48.6 50 32 50c-2.4 0-4.6-.2-6.7-.6L12 58.5l3.4-12C9.2 42.4 5 35.5 5 27.5 5 14.8 15.4 5 32 5Z"
+        fill="#fff" stroke="#1d1b20" stroke-width="3.6" stroke-linejoin="round"/>
+  <!-- lunettes -->
+  <g fill="#fff" stroke="#3b2716" stroke-width="3.4" stroke-linejoin="round">
+    <rect x="11.5" y="17" width="17.5" height="14" rx="4.5"/>
+    <rect x="35" y="17" width="17.5" height="14" rx="4.5"/>
+  </g>
+  <path d="M29 22.5c2-1.6 4-1.6 6 0" fill="none" stroke="#3b2716" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M12 18.6h16.5M35.5 18.6h16.5" stroke="#3b2716" stroke-width="3.2" stroke-linecap="round"/>
+  <!-- yeux -->
+  <g fill="#3b2716">
+    <ellipse cx="20.3" cy="24.8" rx="3.3" ry="4"/>
+    <ellipse cx="43.7" cy="24.8" rx="3.3" ry="4"/>
+  </g>
+  <g fill="#b07a3e">
+    <circle cx="21.4" cy="23.3" r="1.2"/>
+    <circle cx="44.8" cy="23.3" r="1.2"/>
+  </g>
+  <!-- sourire -->
+  <path d="M21.5 35.5h21c0 6.2-4.6 10.5-10.5 10.5S21.5 41.7 21.5 35.5Z" fill="#3b2716"/>
+  <path d="M26.2 43.2c1.6-1.9 10-1.9 11.6 0-1.6 1.8-3.6 2.8-5.8 2.8s-4.2-1-5.8-2.8Z" fill="#f07c7c"/>
 </svg>
