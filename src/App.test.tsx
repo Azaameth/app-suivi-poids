@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, screen } from '@testing-library/react'
 import { afterEach, expect, test } from 'vitest'
 import { createMemoryServices } from './adapters/memory'
 import type { MemoryDataStore } from './adapters/memory/MemoryDataStore'
-import { PHRASE, createVault, fill, renderApp, signIn } from './test/appHarness'
+import { PHRASE, createVault, fill, menuProfil, renderApp, signIn } from './test/appHarness'
 
 afterEach(cleanup)
 
@@ -14,8 +14,8 @@ test('affiche le titre', () => {
 test('connexion Google puis déconnexion', async () => {
   renderApp()
   fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
-  expect(await screen.findByText(/Connecté : Test/)).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: 'Se déconnecter' }))
+  expect(await screen.findByRole('button', { name: 'Profil de Test' })).toBeTruthy()
+  menuProfil('Se déconnecter')
   expect(await screen.findByRole('button', { name: 'Se connecter avec Google' })).toBeTruthy()
 })
 
@@ -42,10 +42,9 @@ test('premier lancement : création du coffre, verrouillage, déverrouillage', a
   await signIn()
   await createVault()
 
-  fireEvent.click(screen.getByRole('button', { name: 'Export & réglages' }))
-  fireEvent.click(screen.getByRole('button', { name: '🔒 Verrouiller' }))
+  menuProfil('🔒 Verrouiller')
   await screen.findByRole('heading', { name: 'Coffre verrouillé' })
-  expect(screen.queryByRole('heading', { name: 'Pesée du jour' })).toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Tableau de bord' })).toBeNull()
 
   fill('Phrase secrète', 'pas la bonne phrase')
   fireEvent.click(screen.getByRole('button', { name: 'Déverrouiller' }))
@@ -55,7 +54,7 @@ test('premier lancement : création du coffre, verrouillage, déverrouillage', a
 
   fill('Phrase secrète', PHRASE)
   fireEvent.click(screen.getByRole('button', { name: 'Déverrouiller' }))
-  await screen.findByRole('heading', { name: 'Pesée du jour' }, { timeout: 5000 })
+  await screen.findByRole('heading', { name: 'Tableau de bord' }, { timeout: 5000 })
 }, 15_000)
 
 test('création refusée si la confirmation diffère', async () => {
@@ -79,7 +78,7 @@ test('la déconnexion verrouille le coffre', async () => {
   const services = renderApp()
   await signIn()
   await createVault()
-  fireEvent.click(screen.getByRole('button', { name: 'Se déconnecter' }))
+  menuProfil('Se déconnecter')
   await screen.findByRole('button', { name: 'Se connecter avec Google' })
   expect(await services.keys.load()).toBeNull()
   await signIn()

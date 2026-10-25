@@ -1,23 +1,27 @@
-import type { Pesee, PeseeRepository } from '../../core/pesees'
+import type { Pesee } from '../../core/pesees'
 import { formatFixed, formatSigned } from '../commun/format'
 import { GraphiquePesees } from './GraphiquePesees'
-import { SaisiePesee } from './SaisiePesee'
+import { PeseeDuJour } from './SaisiePesee'
 import { Tuile } from './Tuile'
 import { useAnalyse } from './useAnalyse'
 
 /** Tableau de bord (spec § 5) : 4 tuiles, graphique, pesée du jour. Couleurs neutres (v1). */
-export function TableauDeBord({ pesees, repo }: { pesees: Pesee[]; repo: PeseeRepository }) {
+export function TableauDeBord({ pesees, onSaisir }: { pesees: Pesee[]; onSaisir: () => void }) {
   const analyse = useAnalyse(pesees)
   const { actuelle, rythme, variation, projection, peseesManquantes } = analyse
 
   if (!actuelle) {
     return (
       <>
-        <p className="hint">
-          Bienvenue ! Saisis ta première pesée : la tendance, le rythme et la projection
-          apparaîtront au fil des jours.
-        </p>
-        <SaisiePesee pesees={pesees} repo={repo} />
+        <section className="card vide">
+          <p>
+            Bienvenue ! Saisis ta première pesée : la tendance, le rythme et la projection
+            apparaîtront au fil des jours.
+          </p>
+          <button type="button" className="principal" onClick={onSaisir}>
+            Saisir ma première pesée
+          </button>
+        </section>
       </>
     )
   }
@@ -58,7 +62,7 @@ export function TableauDeBord({ pesees, repo }: { pesees: Pesee[]; repo: PeseeRe
         />
       </div>
       <GraphiquePesees pesees={pesees} analyse={analyse} />
-      <SaisiePesee pesees={pesees} repo={repo} />
+      <PeseeDuJour pesees={pesees} onSaisir={onSaisir} />
     </>
   )
 }

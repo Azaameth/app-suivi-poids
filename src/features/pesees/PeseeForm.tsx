@@ -10,6 +10,7 @@ import {
 import { dateLocale, evaluerPlausibilite } from '../../core/analyse'
 import { formatDay } from '../commun/format'
 import { messageAvis } from '../commun/plausibilite'
+import { useToast } from '../shell/toast'
 
 /**
  * Saisie d'une pesée (une par jour). Une date déjà saisie remplace la pesée existante ;
@@ -28,6 +29,7 @@ export function PeseeForm({
   editing?: Pesee
   /** Date figée sur aujourd'hui (saisie du jour, tableau de bord). */
   lockDate?: boolean
+  /** Titre du formulaire ; `''` : aucun (déjà porté par une fenêtre). */
   title?: string
   onDone?: () => void
 }) {
@@ -35,6 +37,7 @@ export function PeseeForm({
   const [poids, setPoids] = useState(editing ? String(editing.poids) : '')
   const [note, setNote] = useState(editing?.note ?? '')
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
+  const notify = useToast()
   const existing = pesees.find((p) => p.date === date)
   const chronologie = useMemo(
     () => [...pesees].sort((a, b) => a.date.localeCompare(b.date)),
@@ -63,7 +66,7 @@ export function PeseeForm({
       synced.catch(() =>
         setMessage({ kind: 'error', text: 'Le serveur a refusé l’enregistrement. Réessaie.' }),
       )
-      setMessage({ kind: 'ok', text: `Pesée du ${formatDay(date)} enregistrée.` })
+      notify(`Pesée du ${formatDay(date)} enregistrée ✓`)
       setPoids('')
       setNote('')
       onDone?.()
@@ -78,7 +81,7 @@ export function PeseeForm({
 
   return (
     <form onSubmit={submit} className="card">
-      <h2>{title ?? (editing ? 'Modifier la pesée' : 'Nouvelle pesée')}</h2>
+      {title !== '' && <h2>{title ?? (editing ? 'Modifier la pesée' : 'Nouvelle pesée')}</h2>}
       <label>
         Date
         <input

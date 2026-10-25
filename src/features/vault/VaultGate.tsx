@@ -28,10 +28,13 @@ async function readState(vault: Vault): Promise<State> {
 export function VaultGate({
   uid,
   autoLockMs,
+  header,
   children,
 }: {
   uid: string
   autoLockMs?: number
+  /** Bandeau affiché dans tous les états ; reçoit le coffre s'il est déverrouillé. */
+  header?: (vault: UnlockedVault | null) => ReactNode
   children: ReactNode
 }) {
   const { data, keys } = useServices()
@@ -73,75 +76,85 @@ export function VaultGate({
     [state, lock, vault, uid],
   )
 
-  switch (state.kind) {
-    case 'loading':
-      return <p>Chargement du coffre…</p>
-    case 'error':
-      return (
-        <section>
-          <p role="alert">{state.message}</p>
-          <button type="button" onClick={refresh}>
-            Réessayer
-          </button>
-        </section>
-      )
-    case 'setup':
-      return (
-        <PassphraseForm
-          fields={[
-            { name: 'phrase', label: 'Phrase secrète', autoComplete: 'new-password' },
-            { name: 'confirmation', label: 'Confirmation', autoComplete: 'new-password' },
-          ]}
-          submitLabel="Créer mon coffre"
-          busyLabel="Création…"
-          onSubmit={async ({ phrase, confirmation }) => {
-            if (phrase !== confirmation) return 'Les deux phrases ne correspondent pas.'
-            try {
-              setState({ kind: 'unlocked', key: await vault.setup(phrase) })
-            } catch (error) {
-              if (error instanceof VaultAlreadyExistsError) return void refresh()
-              return messageErreur(error)
-            }
-          }}
-        >
-          <h2>Choisis ta phrase secrète</h2>
-          <p>
-            Elle chiffre tes pesées : personne d’autre, ni Google ni Firebase, ne peut les lire. Au
-            moins {MIN_PASSPHRASE_LENGTH} caractères ; une suite de mots est idéale.
-          </p>
-          <p>
-            <strong>
-              ⚠️ Si tu la perds, tes données sont perdues : aucune récupération possible.
-            </strong>{' '}
-            Range-la dans un gestionnaire de mots de passe.
-          </p>
-        </PassphraseForm>
-      )
-    case 'locked':
-      return (
-        <PassphraseForm
-          fields={[{ name: 'phrase', label: 'Phrase secrète', autoComplete: 'current-password' }]}
-          submitLabel="Déverrouiller"
-          busyLabel="Déverrouillage…"
-          onSubmit={async ({ phrase }) => {
-            try {
-              setState({ kind: 'unlocked', key: await vault.unlock(phrase) })
-            } catch (error) {
-              return messageErreur(error)
-            }
-          }}
-        >
-          <h2>Coffre verrouillé</h2>
-        </PassphraseForm>
-      )
-    case 'unlocked':
-      return (
-        <VaultContext.Provider value={unlocked}>
-          <AutoLock onIdle={lock} timeoutMs={idleMs} />
-          {children}
-        </VaultContext.Provider>
-      )
+  /** Contenu selon l'état du coffre. */
+  const contenu = () => {
+    switch (state.kind) {
+      case 'loading':
+        return <p>Chargement du coffre…</p>
+      case 'error':
+        return (
+          <section>
+            <p role="alert">{state.message}</p>
+            <button type="button" onClick={refresh}>
+              Réessayer
+            </button>
+          </section>
+        )
+      case 'setup':
+        return (
+          <PassphraseForm
+            fields={[
+              { name: 'phrase', label: 'Phrase secrète', autoComplete: 'new-password' },
+              { name: 'confirmation', label: 'Confirmation', autoComplete: 'new-password' },
+            ]}
+            submitLabel="Créer mon coffre"
+            busyLabel="Création…"
+            onSubmit={async ({ phrase, confirmation }) => {
+              if (phrase !== confirmation) return 'Les deux phrases ne correspondent pas.'
+              try {
+                setState({ kind: 'unlocked', key: await vault.setup(phrase) })
+              } catch (error) {
+                if (error instanceof VaultAlreadyExistsError) return void refresh()
+                return messageErreur(error)
+              }
+            }}
+          >
+            <h2>Choisis ta phrase secrète</h2>
+            <p>
+              Elle chiffre tes pesées : personne d’autre, ni Google ni Firebase, ne peut les lire.
+              Au moins {MIN_PASSPHRASE_LENGTH} caractères ; une suite de mots est idéale.
+            </p>
+            <p>
+              <strong>
+                ⚠️ Si tu la perds, tes données sont perdues : aucune récupération possible.
+              </strong>{' '}
+              Range-la dans un gestionnaire de mots de passe.
+            </p>
+          </PassphraseForm>
+        )
+      case 'locked':
+        return (
+          <PassphraseForm
+            fields={[{ name: 'phrase', label: 'Phrase secrète', autoComplete: 'current-password' }]}
+            submitLabel="Déverrouiller"
+            busyLabel="Déverrouillage…"
+            onSubmit={async ({ phrase }) => {
+              try {
+                setState({ kind: 'unlocked', key: await vault.unlock(phrase) })
+              } catch (error) {
+                return messageErreur(error)
+              }
+            }}
+          >
+            <h2>Coffre verrouillé</h2>
+          </PassphraseForm>
+        )
+      case 'unlocked':
+        return (
+          <VaultContext.Provider value={unlocked}>
+            <AutoLock onIdle={lock} timeoutMs={idleMs} />
+            {children}
+          </VaultContext.Provider>
+        )
+    }
   }
+
+  return (
+    <>
+      {header?.(unlocked)}
+      <main>{contenu()}</main>
+    </>
+  )
 }
 
 function AutoLock({ onIdle, timeoutMs }: { onIdle: () => void; timeoutMs: number }) {

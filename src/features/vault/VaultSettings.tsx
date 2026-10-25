@@ -4,16 +4,11 @@ import { PassphraseForm } from './PassphraseForm'
 import { useUnlockedVault } from './VaultContext'
 
 export function VaultSettings() {
-  const { lock, changePassphrase } = useUnlockedVault()
+  const { changePassphrase } = useUnlockedVault()
   const [changed, setChanged] = useState(false)
 
   return (
     <section>
-      <p>
-        <button type="button" onClick={lock}>
-          🔒 Verrouiller
-        </button>
-      </p>
       <details>
         <summary>Changer de phrase secrète</summary>
         <PassphraseForm

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, test } from 'vitest'
 import { createMemoryServices } from '../../adapters/memory'
 import type { MemoryFileExporter } from '../../adapters/memory/MemoryFileExporter'
@@ -16,7 +16,17 @@ async function start(services: Services = createMemoryServices()) {
   return services
 }
 
-const tab = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
+/** Change d'onglet et attend la fin du chargement à la demande de l'écran. */
+async function tab(name: string) {
+  fireEvent.click(screen.getByRole('button', { name }))
+  await waitFor(() => expect(screen.queryByText('Chargement…')).toBeNull())
+}
+
+/** Ouvre la saisie du jour (bouton « + ») et renvoie la fenêtre. */
+function saisieDuJour() {
+  fireEvent.click(screen.getByRole('button', { name: 'Saisir la pesée du jour' }))
+  return screen.getByRole('dialog', { name: 'Pesée du jour' })
+}
 const history = () => screen.getByRole('list', { name: 'Historique des pesées' })
 const tuile = (name: string) => screen.getByRole('region', { name })
 
@@ -43,7 +53,7 @@ async function seed(services: Services, jours: number, poids: (i: number) => num
 describe('historique', () => {
   test('état vide, puis saisie (virgule acceptée) visible et stockée chiffrée', async () => {
     const services = await start()
-    tab('Historique')
+    await tab('Historique')
     expect(screen.getByText(/Aucune pesée pour l’instant/)).toBeTruthy()
 
     await addPesee('2026-10-24', '72,4', 'après le footing')
@@ -54,7 +64,7 @@ describe('historique', () => {
 
   test('poids manquant ou hors bornes refusé', async () => {
     await start()
-    tab('Historique')
+    await tab('Historique')
     fill('Poids (kg)', '')
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
     expect((await screen.findByRole('alert')).textContent).toMatch(/Indique un poids/)
@@ -65,7 +75,7 @@ describe('historique', () => {
 
   test('même jour : avertissement puis remplacement (une seule pesée par jour)', async () => {
     await start()
-    tab('Historique')
+    await tab('Historique')
     await addPesee('2026-10-24', '72.4')
     fill('Date', '2026-10-24')
     expect(screen.getByText(/elle sera remplacée/)).toBeTruthy()
@@ -75,7 +85,7 @@ describe('historique', () => {
 
   test('modifier puis supprimer depuis l’historique', async () => {
     await start()
-    tab('Historique')
+    await tab('Historique')
     await addPesee('2026-10-24', '72.4')
     fireEvent.click(within(history()).getByRole('button', { name: 'Modifier' }))
     await screen.findByRole('heading', { name: 'Modifier la pesée' })
@@ -99,12 +109,19 @@ describe('tableau de bord', () => {
 
   test('pesée du jour : saisie, puis « Pesée du jour : X kg — modifier » pré-rempli', async () => {
     await start()
+    const fenetre = saisieDuJour()
+    expect((within(fenetre).getByLabelText('Date') as HTMLInputElement).disabled).toBe(true)
     fill('Poids (kg)', '78,6')
-    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    fireEvent.click(within(fenetre).getByRole('button', { name: 'Ajouter' }))
     await screen.findByText('78,6 kg', { selector: 'strong' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByText(/enregistrée ✓/)).toBeTruthy()
+
     fireEvent.click(screen.getByRole('button', { name: 'Modifier' }))
-    expect((screen.getByLabelText('Poids (kg)') as HTMLInputElement).value).toBe('78.6')
-    expect((screen.getByLabelText('Date') as HTMLInputElement).disabled).toBe(true)
+    const modif = screen.getByRole('dialog', { name: 'Pesée du jour' })
+    expect((within(modif).getByLabelText('Poids (kg)') as HTMLInputElement).value).toBe('78.6')
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
   }, 15_000)
 
   test('peu de pesées : rythme et projection masqués, historique insuffisant', async () => {
@@ -134,7 +151,7 @@ describe('tableau de bord', () => {
     // Période par défaut 90 j : les 40 pesées sont visibles.
     expect(chart.querySelectorAll('circle.pesee')).toHaveLength(40)
 
-    tab('7 j')
+    await tab('7 j')
     expect(screen.getByRole('img').querySelectorAll('circle.pesee')).toHaveLength(7)
     fireEvent.click(screen.getByLabelText('Axe depuis 0'))
     expect(services.prefs.get().chart).toEqual({ period: '7j', fromZero: true })
@@ -152,9 +169,9 @@ describe('tableau de bord', () => {
 describe('export et réglages', () => {
   test('export CSV en clair, via le FileExporter', async () => {
     const services = await start()
-    tab('Historique')
+    await tab('Historique')
     await addPesee('2026-10-24', '72.4', 'footing')
-    tab('Export & réglages')
+    await tab('Réglages')
     fireEvent.click(screen.getByRole('button', { name: 'Exporter en CSV' }))
     await screen.findByText('1 pesée(s) exportée(s).')
     const [file] = (services.files as MemoryFileExporter).files
@@ -164,7 +181,7 @@ describe('export et réglages', () => {
 
   test('délai de verrouillage réglable', async () => {
     const services = await start()
-    tab('Export & réglages')
+    await tab('Réglages')
     fireEvent.change(screen.getByLabelText(/Verrouillage automatique après/), {
       target: { value: '15' },
     })
@@ -188,28 +205,28 @@ describe('outils de dev', () => {
     const { fakeBaisseReguliere } = await import('../dev/fakePesees')
     const attendu = fakeBaisseReguliere().length
     await start()
-    tab('Export & réglages')
+    await tab('Réglages')
     fireEvent.click(screen.getByRole('button', { name: 'Générer un an de données fictives' }))
     await screen.findByText(/Génération : \d+ pesée/, undefined, { timeout: 10_000 })
     fireEvent.click(screen.getByRole('button', { name: 'Scénario : baisse régulière (90 j)' }))
     await screen.findByText(`Génération : ${attendu} pesée(s), synchronisé.`, undefined, {
       timeout: 10_000,
     })
-    tab('Tableau de bord')
+    await tab('Tableau de bord')
     expect(within(tuile('Rythme')).getByText(/^−0,\d\d kg\/sem$/)).toBeTruthy()
     expect(screen.getByRole('img').querySelector('polygon.cone99')).toBeTruthy()
   }, 30_000)
 
   test('générer puis tout effacer', async () => {
     await start()
-    tab('Export & réglages')
+    await tab('Réglages')
     fireEvent.click(screen.getByRole('button', { name: 'Générer un an de données fictives' }))
     await screen.findByText(/Génération : \d+ pesée\(s\), synchronisé/, undefined, {
       timeout: 10_000,
     })
-    tab('Historique')
+    await tab('Historique')
     expect(within(history()).getAllByRole('listitem').length).toBeGreaterThan(250)
-    tab('Export & réglages')
+    await tab('Réglages')
     fireEvent.click(screen.getByRole('button', { name: 'Tout effacer' }))
     await screen.findByText(/Effacement : \d+ pesée\(s\), synchronisé/)
   }, 30_000)
@@ -219,7 +236,7 @@ describe('saisies improbables (avertir sans bloquer)', () => {
   test('faute de frappe : avertissement pendant la frappe, enregistrement possible, ⚠️ dans l’historique', async () => {
     const services = await start()
     await seed(services, 10, () => 78.4)
-    tab('Historique')
+    await tab('Historique')
     await screen.findByRole('list', { name: 'Historique des pesées' })
 
     fill('Date', dateLocale())
@@ -238,6 +255,7 @@ describe('saisies improbables (avertir sans bloquer)', () => {
 
   test('valeur hors des habitudes : avertie même sans historique', async () => {
     await start()
+    saisieDuJour()
     fill('Poids (kg)', '450')
     expect(screen.getByText(/Valeur inhabituelle \(hors 20 – 300 kg\)/)).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Ajouter' }) as HTMLButtonElement).disabled).toBe(
