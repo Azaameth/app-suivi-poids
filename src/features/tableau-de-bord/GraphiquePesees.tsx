@@ -174,8 +174,12 @@ function Trace({
   useEffect(() => () => clearTimeout(minuteur.current), [])
 
   const enDirect = !navigation || navigation.decalage === 0
-  // Fenêtre fixe (période décalable) ; « Tout » : de la première à la dernière pesée.
-  const debut = navigation ? ajouterJours(finFenetre, -(navigation.jours - 1)) : visibles[0].date
+  // Fenêtre fixe (période décalable), mais jamais avant la toute première pesée : un historique
+  // plus court que la période occupe toute la largeur au lieu d'être tassé à droite.
+  // « Tout » : de la première à la dernière pesée.
+  const premiere = analyse.mesures[0]?.date ?? visibles[0].date
+  const debutPeriode = navigation ? ajouterJours(finFenetre, -(navigation.jours - 1)) : premiere
+  const debut = navigation && debutPeriode < premiere ? premiere : debutPeriode
   const tendance = analyse.tendance.filter((p) => p.date >= debut && p.date <= finFenetre)
   // La projection part d'aujourd'hui : seulement quand la fenêtre l'inclut.
   const projection = enDirect ? (analyse.projection ?? []) : []
@@ -438,7 +442,7 @@ function Trace({
         objectif={cible !== null && !zone}
         zone={zone !== null}
         imc={bandes.length > 0}
-        explorable={navigation !== null}
+        glissable={navigation !== null && navigation.max > 0}
       />
       {lu && (
         <p className="sr-only" role="status">
@@ -493,7 +497,7 @@ function Legende(props: {
   objectif: boolean
   zone: boolean
   imc: boolean
-  explorable: boolean
+  glissable: boolean
 }) {
   return (
     <div className="legende hint">
@@ -545,9 +549,10 @@ function Legende(props: {
           )}
         </p>
       )}
-      {props.explorable && (
-        <p className="geste">Glisse pour remonter le temps · appui long pour lire une pesée</p>
-      )}
+      <p className="geste">
+        {props.glissable ? 'Glisse pour remonter le temps · appui long' : 'Appui long'} pour lire
+        une pesée
+      </p>
     </div>
   )
 }
