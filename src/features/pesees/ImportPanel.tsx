@@ -86,8 +86,11 @@ export function ImportPanel({ pesees, repo }: { pesees: Pesee[]; repo: PeseeRepo
     <section className="card">
       <h2>Import CSV</h2>
       <p className="hint">
-        Colonnes : date (2026-10-25 ou 25/10/2026), poids en kg, note facultative. Un export de
-        l’appli se réimporte tel quel. Rien n’est écrit avant ta confirmation.
+        Il faut une colonne date (2026-10-25 ou 25/10/2026, avec ou sans heure) et une colonne poids
+        en kg ; la note est facultative. Les colonnes sont reconnues par leur nom (Date, Poids,
+        Weight, Note…) dans n’importe quel ordre ; les autres mesures (masse grasse, tendance…) sont
+        ignorées. Un export de l’appli se réimporte tel quel. Rien n’est écrit avant ta
+        confirmation.
       </p>
       <label className="bouton-fichier">
         Choisir un fichier CSV
