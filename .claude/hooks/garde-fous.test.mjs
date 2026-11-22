@@ -35,6 +35,13 @@ test('signature GitHub : refus si absente, par variable ou par stdin ; accord si
   assert.equal(examiner('gh pr view 3 --json state'), null)
 })
 
+test('pkill -f : refusé si le motif se reconnaît lui-même, accepté avec des crochets', () => {
+  assert.match(examiner('pkill -f "emulators:start"; sleep 1'), /pkill -f refusé/)
+  assert.match(examiner('pkill -fx vite'), /pkill -f refusé/)
+  assert.equal(examiner('pkill -f "[e]mulators:start"'), null)
+  assert.equal(examiner('pkill node'), null)
+})
+
 test('commandes sans rapport : autorisées', () => {
   assert.equal(examiner('ls -la && npm run verify'), null)
 })

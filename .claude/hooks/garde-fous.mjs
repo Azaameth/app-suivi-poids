@@ -3,7 +3,9 @@
 //  1. git commit sans `npm run verify` réussi sur cet état du code (+ test:emulateurs si les
 //     règles ou les tests sous émulateur changent) ;
 //  2. suppression d'une branche dont la PR est encore ouverte ;
-//  3. texte posté sur GitHub sans la signature « 🤖 Claude ».
+//  3. texte posté sur GitHub sans la signature « 🤖 Claude » ;
+//  4. `pkill -f <motif>` dont le motif se retrouve dans la ligne de commande du shell lancé
+//     par Claude : la commande se tue elle-même (vécu au bloc 6.1).
 // Entrée : JSON sur stdin ({ tool_input: { command } }). Refus : JSON permissionDecision « deny ».
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -143,6 +145,22 @@ function verifierSignature(args) {
   return null
 }
 
+/** `pkill -f motif` : le motif figure aussi dans `bash -c "…pkill -f motif…"`, qui est tué. */
+function verifierPkill(args) {
+  if (args[0] !== 'pkill' || !args.some((a) => /^-\w*f/.test(a) || a === '--full')) return null
+  const motif =
+    args
+      .slice(1)
+      .filter((a) => !a.startsWith('-'))
+      .at(-1) ?? ''
+  if (/\[[^\]]+\]/.test(motif)) return null // `[f]irebase` ne se reconnaît pas lui-même
+  return (
+    `pkill -f refusé : le motif « ${motif} » correspond aussi au shell de cette commande, qui ` +
+    'serait tué. Écris la 1re lettre entre crochets (« [f]irebase… »), ou pour l’appli : ' +
+    'node .claude/skills/voir-appli/env-dev.mjs stop'
+  )
+}
+
 export function examiner(commande) {
   for (const args of sousCommandes(commande)) {
     if (args[0] === 'git' && args[1] === 'commit') {
@@ -154,7 +172,7 @@ export function examiner(commande) {
       const refus = verifierBranches(branches)
       if (refus) return refus
     }
-    const refus = verifierSignature(args)
+    const refus = verifierSignature(args) ?? verifierPkill(args)
     if (refus) return refus
   }
   return null

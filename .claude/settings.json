@@ -32,7 +32,9 @@
       "Bash(gh pr diff*)",
       "Bash(gh api repos/Azaameth/app-suivi-poids/*)",
       "Bash(node scripts/*)",
-      "Bash(node .claude/*)"
+      "Bash(node .claude/*)",
+      "Bash(git worktree list*)",
+      "Bash(git stash list*)"
     ],
     "deny": [
       "Read(./.env)",
@@ -71,6 +73,17 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/formater.mjs\"",
             "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/demarrage.mjs\"",
+            "timeout": 10
           }
         ]
       }

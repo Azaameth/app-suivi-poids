@@ -5,6 +5,9 @@ description: Ouvrir une PR de bout en bout (vérifications, commit, push, descri
 
 # Ouvrir une PR
 
+0. Une autre session ou Azaameth travaille déjà dans le dossier (hook de démarrage : worktrees,
+   rebase en cours, ports pris) → travailler dans un **worktree** :
+   `git worktree add ../app-suivi-poids-<sujet> -b <branche> origin/main` puis `npm ci` dedans.
 1. Branche : `feat/<bloc>-<sujet>`, `fix/…`, `chore/…`, `docs/…` partie de `origin/main`
    (ou de la branche d'une PR encore ouverte si le travail en dépend : PR **empilée**, à signaler).
 2. `npm run verify` — et `npm run test:emulateurs` si `firebase/`, `tests/emulateurs/`, `src/core/` ou
@@ -19,7 +22,11 @@ description: Ouvrir une PR de bout en bout (vérifications, commit, push, descri
    En cas d'échec : `gh run view <id> --log-failed`, corriger, recommencer à l'étape 2.
 7. Commenter les issues liées (texte signé, `--body-file`) ; `Closes #n` dans la description si la PR
    les résout.
-8. Résumer à Azaameth : ce qui change, décisions à valider, commandes de test, ordre de merge.
+8. Interface touchée : vérifier en captures (skill `voir-appli`) et l'indiquer dans la PR.
+9. Plusieurs PR ouvertes en même temps : elles ajoutent toutes des lignes au 📝 Journal et au
+   🗂️ Registre → conflit pour la 2e fusionnée. Résolution : garder **toutes** les lignes, et
+   renuméroter les décisions en double (Dxx suivant libre) dans le texte de la PR concernée.
+10. Résumer à Azaameth : ce qui change, décisions à valider, commandes de test, ordre de merge.
 
 # Après une fusion
 
