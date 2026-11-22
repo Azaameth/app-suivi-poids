@@ -1,10 +1,10 @@
 # Documentation
 
-| Document | Contenu |
-|---|---|
-| [`plan-projet.md`](plan-projet.md) | **Source de vérité** : blocs et critères (📍 Suivi), 🗂️ Registre des décisions, 📝 Journal, arborescence |
-| [`spec-restitution.md`](spec-restitution.md) | Tableau de bord : tendance, rythme, projection ; arbitrages du 25/10/2026 en fin de document |
-| [`plan-installation-outils.md`](plan-installation-outils.md) | Installation pas à pas sur Arch Linux (poste d'origine ; écart assumé : VS Code en Flatpak, D9) |
+| Document                                                     | Contenu                                                                                                  |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| [`plan-projet.md`](plan-projet.md)                           | **Source de vérité** : blocs et critères (📍 Suivi), 🗂️ Registre des décisions, 📝 Journal, arborescence |
+| [`spec-restitution.md`](spec-restitution.md)                 | Tableau de bord : tendance, rythme, projection ; arbitrages du 25/10/2026 en fin de document             |
+| [`plan-installation-outils.md`](plan-installation-outils.md) | Installation pas à pas sur Arch Linux (poste d'origine ; écart assumé : VS Code en Flatpak, D9)          |
 
 À la racine du dépôt :
 

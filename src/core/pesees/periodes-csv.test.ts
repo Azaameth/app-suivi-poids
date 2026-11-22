@@ -1,6 +1,6 @@
 import { dateLocale } from '../analyse'
 import { describe, expect, test } from 'vitest'
-import { filterByPeriod, toCsv, type Pesee } from '.'
+import { decalageMax, filterByPeriod, toCsv, type Pesee } from '.'
 import { parsePreferences } from '../prefs/Preferences'
 
 const p = (date: string, poids: number, note?: string): Pesee => ({
@@ -30,6 +30,23 @@ describe('statistiques', () => {
     expect(dates('30j')).toEqual(['2026-09-25', '2026-10-24'])
     expect(dates('90j')).toEqual(['2026-07-27', '2026-09-25', '2026-10-24'])
     expect(dates('tout')).toEqual(['2025-10-01', '2026-07-27', '2026-09-25', '2026-10-24'])
+  })
+
+  test('fenêtre décalée dans le passé : bornée des deux côtés', () => {
+    const pesees = [p('2026-10-24', 72), p('2026-09-25', 74), p('2026-09-20', 75)]
+    expect(filterByPeriod(pesees, '7j', '2026-09-26').map((x) => x.date)).toEqual([
+      '2026-09-20',
+      '2026-09-25',
+    ])
+  })
+
+  test('décalage maximal : la fenêtre s’arrête à la première pesée', () => {
+    const pesees = [p('2026-10-24', 72), p('2026-07-27', 76)]
+    // 89 jours entre les deux : une fenêtre de 30 j peut reculer de 89 − 29 = 60 jours.
+    expect(decalageMax(pesees, '30j', '2026-10-24')).toBe(60)
+    expect(decalageMax(pesees, '1an', '2026-10-24')).toBe(0)
+    expect(decalageMax(pesees, 'tout', '2026-10-24')).toBe(0)
+    expect(decalageMax([], '7j', '2026-10-24')).toBe(0)
   })
 
   test('CSV : BOM, en-tête, tri, guillemets autour des notes à virgule ou guillemets', () => {

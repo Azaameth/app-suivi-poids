@@ -169,6 +169,50 @@ describe('tableau de bord', () => {
   }, 15_000)
 })
 
+describe('graphique explorable', () => {
+  test('flèches : remonter le temps, projection masquée, « Aujourd’hui » pour revenir', async () => {
+    const services = await start()
+    await seed(services, 120, (i) => 85 - 0.05 * i)
+    await within(await screen.findByRole('region', { name: 'Rythme' })).findByText(/kg\/sem/)
+    const graphique = () => screen.getByRole('img', { name: /Tendance du/ })
+    expect(graphique().querySelector('polyline.projection')).toBeTruthy()
+    // Légende par couche.
+    const legende = () => document.querySelector<HTMLElement>('.legende')!
+    expect(within(legende()).getByText('Mesures')).toBeTruthy()
+    expect(within(legende()).getByText('Projection')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: '30 j' }))
+    fireEvent.keyDown(graphique(), { key: 'ArrowLeft' })
+    fireEvent.keyDown(graphique(), { key: 'ArrowLeft' })
+    // 2 pas d'environ 8 jours : fenêtre passée, sans projection.
+    expect(graphique().querySelector('polyline.projection')).toBeNull()
+    expect(within(legende()).queryByText('Projection')).toBeNull()
+    expect(screen.getByText(/^Du .+ au .+ \d{4}$/)).toBeTruthy()
+    expect(graphique().querySelectorAll('circle.pesee')).toHaveLength(30)
+
+    fireEvent.keyDown(graphique(), { key: 'Home' }) // au plus loin : première pesée
+    fireEvent.keyDown(graphique(), { key: 'ArrowLeft' }) // bornée : pas avant la première
+    expect(graphique().querySelectorAll('circle.pesee')).toHaveLength(30)
+
+    fireEvent.click(screen.getByRole('button', { name: '↻ Aujourd’hui' }))
+    expect(graphique().querySelector('polyline.projection')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '↻ Aujourd’hui' })).toBeNull()
+  }, 20_000)
+
+  test('appui long : curseur de lecture avec la pesée et la tendance', async () => {
+    const services = await start()
+    await seed(services, 20, () => 80)
+    await within(await screen.findByRole('region', { name: 'Rythme' })).findByText('Stable')
+    const graphique = screen.getByRole('img', { name: /Tendance du/ })
+    fireEvent.pointerDown(graphique, { pointerId: 1, pointerType: 'touch', clientX: 0 })
+    await waitFor(() => expect(graphique.querySelector('.curseur')).toBeTruthy(), { timeout: 2000 })
+    expect(within(graphique).getByText(/· 80 kg$/)).toBeTruthy()
+    expect(within(graphique).getByText('tendance 80,0 kg')).toBeTruthy()
+    fireEvent.pointerUp(graphique, { pointerId: 1, pointerType: 'touch' })
+    expect(graphique.querySelector('.curseur')).toBeNull()
+  }, 15_000)
+})
+
 describe('objectif (bloc 6.1)', () => {
   test('invitation, puis objectif « perdre » : tuile Objectif, IMC, accents et ligne de cible', async () => {
     const services = await start()
@@ -252,7 +296,7 @@ describe('finitions (bloc 2.7)', () => {
     expect(notes).toHaveLength(1)
     expect(notes[0].querySelector('title')?.textContent).toMatch(/79,6 kg — repas de famille/)
     expect(chart.querySelectorAll('circle.pesee')).toHaveLength(3)
-    expect(screen.getByText(/pesée avec note/)).toBeTruthy()
+    expect(screen.getByText(/avec note/)).toBeTruthy()
   }, 15_000)
 
   test('historique : modifier et supprimer en icônes, avec un nom accessible', async () => {
