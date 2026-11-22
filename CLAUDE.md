@@ -67,7 +67,7 @@
 
 ### Firebase
 
-- Règles en **liste explicite** (D19) : `meta/keys`, `pesees/{date}`, `suggestions/{id}` (D45) ; tout le reste refusé.
+- Règles en **liste explicite** (D19) : `meta/keys`, `meta/profil` (D55), `pesees/{date}`, `suggestions/{id}` (D45) ; tout le reste refusé.
 - Dev et tests **uniquement sur émulateurs** (projet `demo-suivi-poids`, D8, D18).
 - **Déploiement : par Maxime uniquement** (`npm run deploy`, interdit à Claude dans `.claude/settings.json`).
 - Rester en Spark ; `onSnapshot` plutôt que des relectures.
@@ -85,20 +85,20 @@
 
 - **Jalon 1** (socle web) : terminé, tag `v0.1.0`.
 - **Jalon 2** (fonctionnel, blocs 2.1 → 2.12) : terminé et en production ; tags `v0.2.0`, `v0.2.1`. Les blocs 2.9 à 2.12 (code de secours, Machimoto, hors ligne, import CSV) attendent un tag `v0.3.0` (à proposer à Maxime).
-- Restitution : v1 faite (2.6) ; **v1.1 (objectif, profil, IMC) = bloc 6.1, avancé avant le jalon 3 (D55), en PR** ; Q1 tranchée (D56) ; infobulles d'explication proposées (#44).
-- **Prochain :** validation du bloc 6.1 (et des PR import CSV / ergonomie), graphique interactif (idée d'Azaameth, à cadrer), puis **jalon 3 (APK)** : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb) puis bloc 3.1 Capacitor.
+- Restitution : v1 faite (2.6) ; **v1.1 (objectif, profil, IMC) = bloc 6.1, avancé avant le jalon 3 (D55), fusionné (#66), à clôturer (`fin-de-bloc`)** ; Q1 tranchée (D56) ; infobulles d'explication proposées (#44). Import CSV robuste et export « Pour Excel » (#64, D59) ; ergonomie coffre / graphique (#65).
+- **Prochain :** clôturer 6.1, proposer le tag `v0.3.0`, #62 (accélérer les tests sans changer leur comportement), graphique interactif (idée d'Azaameth, à cadrer), puis **jalon 3 (APK)** : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb) puis bloc 3.1 Capacitor.
 
 ---
 
 ## 5. Commandes
 
-| Commande                            | Rôle                                                                                                  |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `npm run dev` + `npm run emulators` | Appli en dev contre les émulateurs (UI : http://localhost:4000)                                       |
-| `npm run verify`                    | Secrets, lint, types, tests unitaires, tests des outils, build                                        |
-| `npm run test:emulateurs`           | Règles, stockage, hors ligne, session (son propre émulateur, ports 8181 / 9199)                       |
-| `npm run suggestions`               | Maxime : lit les suggestions des proches en prod (SDK Admin, lecture seule ; `--aide`, `--emulateur`) |
-| `npm run deploy`                    | Maxime uniquement : verify + test:emulateurs + Hosting et règles                                      |
+| Commande                            | Rôle                                                                                                                        |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev` + `npm run emulators` | Appli en dev contre les émulateurs (UI : http://localhost:4000)                                                             |
+| `npm run verify`                    | Secrets, lint, types, tests unitaires, tests des outils, build                                                              |
+| `npm run test:emulateurs`           | Règles, stockage, hors ligne, session (son propre émulateur, ports 8181 / 9199)                                             |
+| `npm run suggestions`               | Suggestions des proches en prod (SDK Admin, lecture seule ; `--aide`, `--emulateur`) : Maxime, ou Claude **sur sa demande** |
+| `npm run deploy`                    | Maxime uniquement : verify + test:emulateurs + Hosting et règles                                                            |
 
 En dev, l'onglet « Réglages » propose des **outils de dev** (données fictives, absents du build de prod).
 
@@ -108,21 +108,23 @@ En dev, l'onglet « Réglages » propose des **outils de dev** (données fictive
 
 **Hooks** (`.claude/settings.json`, garanties automatiques — nés d'erreurs réelles) :
 
-| Hook                              | Effet                                                                                                                                                                                                                                                                                                                                   |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `garde-fous.mjs` (avant Bash)     | Refuse : un `git commit` sans `npm run verify` réussi sur l'état exact du code (+ `test:emulateurs` si `firebase/`, `tests/emulateurs/`, `src/core/`, `src/adapters/` changent ; docs seules dispensées) ; la suppression d'une branche dont la PR est ouverte ; un texte `gh` non signé ou passé par variable (utiliser `--body-file`) |
-| `formater.mjs` (après Edit/Write) | Prettier sur le fichier modifié                                                                                                                                                                                                                                                                                                         |
-| `env`                             | `npm_config_loglevel=error` (masque les `npm warn` du Flatpak)                                                                                                                                                                                                                                                                          |
+| Hook                               | Effet                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `garde-fous.mjs` (avant Bash)      | Refuse : un `git commit` sans `npm run verify` réussi sur l'état exact du code (+ `test:emulateurs` si `firebase/`, `tests/emulateurs/`, `src/core/`, `src/adapters/` changent ; docs seules dispensées) ; la suppression d'une branche dont la PR est ouverte ; un texte `gh` non signé ou passé par variable (utiliser `--body-file`) ; un `pkill -f <motif>` sans crochets (le shell se tuerait lui-même) |
+| `formater.mjs` (après Edit/Write)  | Prettier sur le fichier modifié                                                                                                                                                                                                                                                                                                                                                                              |
+| `demarrage.mjs` (début de session) | 2-3 lignes : poste, Node / `node_modules`, `gh`, Java, branche, rebase en cours, worktrees, ports déjà pris                                                                                                                                                                                                                                                                                                  |
+| `env`                              | `npm_config_loglevel=error` (masque les `npm warn` du Flatpak)                                                                                                                                                                                                                                                                                                                                               |
 
 **Skills** (`.claude/skills/`) :
 
-| Skill               | Quand                                                                                                                          |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `lire-retours`      | « regarde les issues », « j'ai répondu », « PR validée » : commentaires, revues, cases cochées, **messages de merge**, alertes |
-| `ouvrir-pr`         | Ouvrir une PR de bout en bout ; ménage après fusion (PR empilées, branches)                                                    |
-| `fin-de-bloc`       | Clôturer un bloc : vérifications + `scripts/plan.mjs`                                                                          |
-| `verifier-prod`     | Après chaque `npm run deploy` d'Azaameth (lecture seule)                                                                       |
-| `trier-suggestions` | Suggestions des proches → issues, après accord                                                                                 |
+| Skill               | Quand                                                                                                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lire-retours`      | « regarde les issues », « j'ai répondu », « PR validée » : commentaires, revues, cases cochées, **messages de merge**, alertes                                    |
+| `ouvrir-pr`         | Ouvrir une PR de bout en bout ; ménage après fusion (PR empilées, branches)                                                                                       |
+| `fin-de-bloc`       | Clôturer un bloc : vérifications + `scripts/plan.mjs`                                                                                                             |
+| `verifier-prod`     | Après chaque `npm run deploy` d'Azaameth (lecture seule)                                                                                                          |
+| `trier-suggestions` | Suggestions des proches → issues, après accord                                                                                                                    |
+| `voir-appli`        | Changement d'interface ou défaut visuel : émulateurs + Vite en arrière-plan (`env-dev.mjs`), captures Playwright mobile / bureau, clair / sombre (`captures.mjs`) |
 
 **Agent** (`.claude/agents/`) : `inspecteur-visuel` (Sonnet) lit des captures et renvoie un compte
 rendu court. Il garde le contexte léger mais coûte plus de tokens au total (≈ 49 k pour 4 images,
