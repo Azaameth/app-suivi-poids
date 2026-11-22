@@ -63,6 +63,11 @@ main {
   padding: 0 1rem calc(var(--nav-h) + 5rem + env(safe-area-inset-bottom));
 }
 
+/* Même respiration sous le bandeau pour tous les écrans (coffre, accueil…) que pour les cartes. */
+main > :first-child:not(.card) {
+  margin-top: 1rem;
+}
+
 /* ---- Bandeau du haut ---- */
 /* Bandeau + navigation (grand écran) : une seule zone collante, opaque, pleine largeur. */
 .app-header {
@@ -810,4 +815,48 @@ label.inline {
   background: var(--accent-soft);
   color: var(--fg);
   text-align: center;
+}
+
+/* ---- Réglages du graphique : au-dessus du cadre, en contrôle segmenté ---- */
+.graphique-reglages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.segments {
+  display: flex;
+  flex: 1 1 18rem;
+  max-width: 24rem;
+}
+
+.segments button {
+  flex: 1;
+  min-width: 0;
+  padding-inline: 0.25rem;
+  border-radius: 0;
+  margin-left: -1px;
+  white-space: nowrap;
+}
+
+.segments button:first-child {
+  margin-left: 0;
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.segments button:last-child {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Le bouton choisi passe au-dessus de ses voisins : sa bordure reste entière. */
+.segments button[aria-pressed='true'] {
+  position: relative;
+  z-index: 1;
+}
+
+.card.graphique {
+  margin-top: 0;
 }
