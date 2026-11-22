@@ -22,7 +22,8 @@ const M = { top: 12, right: 12, bottom: 26, left: 40 }
 
 /**
  * Graphique en ligne (spec § 5.1) : pesées en petits points discrets, tendance en trait
- * principal, projection en pointillés avec son cône. Période et axe depuis 0 réglables.
+ * principal, projection en pointillés avec son cône. Période et axe depuis 0 réglables, au-dessus
+ * du cadre (retour d'Azaameth : le graphique garde toute la place).
  */
 export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse: Analyse }) {
   const [preferences, update] = usePreferences()
@@ -31,35 +32,39 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
   const visibles = filterByPeriod(pesees, options.period, analyse.aujourdhui)
 
   return (
-    <section className="card">
-      <div className="row" role="group" aria-label="Période">
-        {PERIODS.map((period) => (
-          <button
-            key={period}
-            type="button"
-            aria-pressed={options.period === period}
-            onClick={() => set({ period })}
-          >
-            {PERIOD_LABELS[period]}
-          </button>
-        ))}
+    <>
+      <div className="graphique-reglages">
+        <div className="segments" role="group" aria-label="Période">
+          {PERIODS.map((period) => (
+            <button
+              key={period}
+              type="button"
+              aria-pressed={options.period === period}
+              onClick={() => set({ period })}
+            >
+              {PERIOD_LABELS[period]}
+            </button>
+          ))}
+        </div>
+        <label className="inline">
+          <input
+            type="checkbox"
+            checked={options.fromZero}
+            onChange={(e) => set({ fromZero: e.target.checked })}
+          />
+          Axe depuis 0
+        </label>
       </div>
-      <label className="inline">
-        <input
-          type="checkbox"
-          checked={options.fromZero}
-          onChange={(e) => set({ fromZero: e.target.checked })}
-        />
-        Axe depuis 0
-      </label>
-      {visibles.length < 2 ? (
-        <MachimotoDit expression="pensif" taille={48}>
-          <p>Pas assez de pesées sur cette période (2 au minimum).</p>
-        </MachimotoDit>
-      ) : (
-        <Trace visibles={visibles} analyse={analyse} fromZero={options.fromZero} />
-      )}
-    </section>
+      <section className="card graphique" aria-label="Graphique des pesées">
+        {visibles.length < 2 ? (
+          <MachimotoDit expression="pensif" taille={48}>
+            <p>Pas assez de pesées sur cette période (2 au minimum).</p>
+          </MachimotoDit>
+        ) : (
+          <Trace visibles={visibles} analyse={analyse} fromZero={options.fromZero} />
+        )}
+      </section>
+    </>
   )
 }
 
