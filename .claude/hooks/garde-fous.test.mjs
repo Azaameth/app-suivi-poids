@@ -42,6 +42,22 @@ test('pkill -f : refusé si le motif se reconnaît lui-même, accepté avec des 
   assert.equal(examiner('pkill node'), null)
 })
 
+test('prettier --write : refusé sans --ignore-path, accepté avec ; --check libre', () => {
+  assert.match(
+    examiner('npx prettier --config config/prettier.json --write docs src'),
+    /prettier --write refusé/,
+  )
+  assert.match(examiner('node_modules/.bin/prettier -w x.md'), /prettier --write refusé/)
+  assert.equal(
+    examiner(
+      'npx prettier --config config/prettier.json --ignore-path config/prettierignore --write docs',
+    ),
+    null,
+  )
+  assert.equal(examiner('npx prettier --check .'), null)
+  assert.equal(examiner('npm run format'), null)
+})
+
 test('commandes sans rapport : autorisées', () => {
   assert.equal(examiner('ls -la && npm run verify'), null)
 })

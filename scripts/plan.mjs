@@ -37,12 +37,15 @@ export function appliquer(texte, [commande, ...args]) {
   switch (commande) {
     case 'cocher': {
       const [bloc] = args
+      // Colonnes éventuellement alignées par un formateur : espaces libres autour des cellules.
+      const echappe = bloc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const debut = new RegExp(`^\\|\\s*${echappe}\\s*\\|`)
       const idx = lignes.flatMap((l, i) =>
-        l.startsWith(`| ${bloc} |`) && l.trim().endsWith('| [ ] |') ? [i] : [],
+        debut.test(l) && /\|\s*\[ \]\s*\|\s*$/.test(l) ? [i] : [],
       )
       if (idx.length !== 1)
         echec(`bloc « ${bloc} » non coché introuvable (ou ambigu) dans le Suivi`)
-      lignes[idx[0]] = lignes[idx[0]].replace(/\| \[ \] \|\s*$/, '| [x] |')
+      lignes[idx[0]] = lignes[idx[0]].replace(/\|(\s*)\[ \](\s*)\|\s*$/, '|$1[x]$2|')
       break
     }
     case 'critere': {

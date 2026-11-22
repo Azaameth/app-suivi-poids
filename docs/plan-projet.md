@@ -72,7 +72,7 @@ Tu accompagnes l'utilisateur dans la réalisation de ce projet.
 | 4.4  | Distribution | Première release + Obtainium                                                                                                                 | [ ]  |
 | 4.5  | Distribution | Vérification développeur Android (installation sans avertissement « développeur non vérifié »)                                               | [ ]  |
 | 5.1  | Maintenance  | Dépendances, sauvegardes, surveillance                                                                                                       | [ ]  |
-| 6.1  | v1.1         | Profil (usage, cible, tolérance, **taille**), objectif, couleurs liées à l'usage, **repères d'IMC** (`docs/spec-restitution.md`, v1.1 ; D46) | [ ]  |
+| 6.1  | v1.1         | Profil (usage, cible, tolérance, **taille**), objectif, couleurs liées à l'usage, **repères d'IMC** (`docs/spec-restitution.md`, v1.1 ; D46) | [x]  |
 
 ---
 
@@ -817,4 +817,5 @@ Déclenché sur un tag `v*` :
 | 2026-11-22 | 2.12      | Retour d'un proche (export « invalide », date prise pour le poids) : l'export se relisait bien, l'import non dès que les colonnes ne sont pas date puis poids. Colonnes reconnues par leur nom ou leur contenu, date avec heure ou fuseau, commentaires #, lignes entre guillemets ; export « Pour Excel » (; et virgule décimale) en plus de D28.                                                      |
 | 2026-11-22 | Ergonomie | Retours d'Azaameth (suggestions en prod) : marge sous le bandeau pour les écrans hors carte (coffre verrouillé, accueil) ; sélecteur de période en contrôle segmenté et « Axe depuis 0 » sortis du cadre du graphique. Vérifié en captures (Playwright, 412 px et bureau).                                                                                                                              |
 | 2026-11-22 | 6.1       | Profil chiffré (meta/profil, règles + 13 tests émulateur), estimerObjectif (9 états, Student D36), IMC et bandes de corpulence, tuile Objectif, ligne de cible / zone, accents, carte Réglages → Objectif. Vérifié en captures (Playwright, 412 px, clair et sombre). Piège : l'émulateur de dev garde parfois d'anciennes règles après un changement de branche, le relancer.                          |
+| 2026-11-22 | 6.1 | Clôturé : fusionné (#66), déployé et validé à l'usage par Azaameth (2026-11-22). Cas obligatoires de la spec § 7 (objectif, données, règles) couverts par les tests unitaires et sous émulateur. plan.mjs rendu tolérant aux tableaux alignés. Suite : graphique explorable (#70). |
 | 2026-11-22 | Graphique | Retours d'Azaameth après déploiement : légende par couche (Mesures / Projection / Repères) et graphique explorable (glisser, appui long, clavier). Glissement vérifié dans Chromium en vrais événements pointeur ; captures voir-appli 412 px. |

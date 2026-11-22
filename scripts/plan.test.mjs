@@ -30,6 +30,13 @@ test('cocher un bloc et un critère', () => {
   assert.match(t, /- \[ \] Critère A/)
 })
 
+test('cocher : tableau aligné par un formateur (espaces autour des cellules), 2.1 ≠ 2.10', () => {
+  const aligne = '| 2.1  | A | x | [ ]  |\n| 2.10 | A | y | [ ]  |\n'
+  const t = appliquer(aligne, ['cocher', '2.1'])
+  assert.match(t, /^\| 2\.1  \| A \| x \| \[x\]  \|$/m)
+  assert.match(t, /^\| 2\.10 \| A \| y \| \[ \]  \|$/m)
+})
+
 test('journal et décision ajoutés en fin de tableau, barres échappées, numéro suivant', () => {
   const t = appliquer(appliquer(PLAN, ['journal', '2.8', 'a | b']), ['decision', 'D', 'R', 'A'])
   const lignes = t.split('\n')
