@@ -49,6 +49,20 @@ export class WebDataStore implements DataStore {
     )
   }
 
+  watchDoc(
+    uid: string,
+    name: string,
+    id: string,
+    onChange: (data: DocData | null) => void,
+    onError?: (error: Error) => void,
+  ) {
+    return onSnapshot(
+      doc(this.db, 'users', uid, name, id),
+      (snapshot) => onChange(snapshot.exists() ? snapshot.data() : null),
+      onError,
+    )
+  }
+
   watchSyncState(listener: (state: SyncState, pendingWrites: number) => void) {
     return this.sync.watch(listener)
   }

@@ -30,6 +30,14 @@ export interface DataStore {
     onChange: (docs: StoredDoc[]) => void,
     onError?: (error: Error) => void,
   ): Unsubscribe
+  /** Temps réel sur un seul document (`null` s'il n'existe pas), ex. `meta/profil`. */
+  watchDoc(
+    uid: string,
+    collection: string,
+    id: string,
+    onChange: (data: DocData | null) => void,
+    onError?: (error: Error) => void,
+  ): Unsubscribe
   /**
    * Appelé immédiatement avec l'état courant, puis à chaque changement. `pendingWrites` :
    * écritures appliquées localement mais pas encore confirmées par le serveur.

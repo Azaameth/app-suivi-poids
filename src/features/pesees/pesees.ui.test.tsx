@@ -157,7 +157,7 @@ describe('tableau de bord', () => {
     await tab('7 j')
     expect(screen.getByRole('img').querySelectorAll('circle.pesee')).toHaveLength(7)
     fireEvent.click(screen.getByLabelText('Axe depuis 0'))
-    expect(services.prefs.get().chart).toEqual({ period: '7j', fromZero: true })
+    expect(services.prefs.get().chart).toEqual({ period: '7j', fromZero: true, imc: true })
   }, 20_000)
 
   test('poids stable : « Stable », pas de projection', async () => {
@@ -166,6 +166,74 @@ describe('tableau de bord', () => {
     await within(await screen.findByRole('region', { name: 'Rythme' })).findByText('Stable')
     expect(within(tuile('Projection')).getByText('Stable')).toBeTruthy()
     expect(screen.getByRole('img').querySelector('polyline.projection')).toBeNull()
+  }, 15_000)
+})
+
+describe('objectif (bloc 6.1)', () => {
+  test('invitation, puis objectif « perdre » : tuile Objectif, IMC, accents et ligne de cible', async () => {
+    const services = await start()
+    await seed(services, 40, (i) => 82 - 0.05 * i)
+    await within(await screen.findByRole('region', { name: 'Rythme' })).findByText('−0,35 kg/sem')
+    expect(tuile('Projection')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fixer un objectif' }))
+    const carte = await screen.findByRole('region', { name: '🎯 Objectif' })
+    fireEvent.click(within(carte).getByRole('button', { name: 'Perdre' }))
+    fireEvent.change(within(carte).getByLabelText('Poids visé (kg)'), { target: { value: '78,5' } })
+    fireEvent.change(within(carte).getByLabelText(/Taille/), { target: { value: '180' } })
+    fireEvent.click(within(carte).getByRole('button', { name: 'Enregistrer' }))
+    await screen.findByText('Objectif enregistré')
+
+    // Stocké chiffré : ni la cible ni la taille ne sont lisibles.
+    const brut = await services.data.get('uid-test', 'meta', 'profil')
+    expect(brut).toMatchObject({ usage: 'perdre' })
+    expect(JSON.stringify(brut)).not.toMatch(/78\.5|180/)
+
+    await tab('Tableau de bord')
+    const objectif = await screen.findByRole('region', { name: 'Objectif' })
+    expect(within(objectif).getByText(/^Objectif vers (début |mi-|fin )/)).toBeTruthy()
+    expect(
+      within(tuile('Tendance')).getByText(/^IMC 2\d,\d · (corpulence normale|surpoids)$/),
+    ).toBeTruthy()
+    expect(tuile('Rythme').className).toContain('favorable')
+    expect(within(tuile('Rythme')).getByText(/vers l’objectif/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Fixer un objectif' })).toBeNull()
+
+    const chart = screen.getByRole('img', { name: /Tendance du/ })
+    expect(chart.querySelector('.cible line')).toBeTruthy()
+    expect(chart.querySelectorAll('.imc rect').length).toBeGreaterThan(0)
+    fireEvent.click(screen.getByLabelText('Repères IMC'))
+    expect(screen.getByRole('img', { name: /Tendance du/ }).querySelector('.imc rect')).toBeNull()
+  }, 20_000)
+
+  test('maintenir : zone sur le graphique, statut de zone dans la tuile', async () => {
+    const services = await start()
+    await seed(services, 20, () => 70)
+    await tab('Réglages')
+    const carte = await screen.findByRole('region', { name: '🎯 Objectif' })
+    fireEvent.click(within(carte).getByRole('button', { name: 'Maintenir' }))
+    fireEvent.change(within(carte).getByLabelText('Poids à maintenir (kg)'), {
+      target: { value: '70' },
+    })
+    fireEvent.change(within(carte).getByLabelText('Zone acceptée'), { target: { value: '1.5' } })
+    fireEvent.click(within(carte).getByRole('button', { name: 'Enregistrer' }))
+    await screen.findByText('Objectif enregistré')
+    await tab('Tableau de bord')
+    const objectif = await screen.findByRole('region', { name: 'Objectif' })
+    expect(within(objectif).getByText('Dans la zone depuis 19 jours')).toBeTruthy()
+    expect(within(objectif).getByText('68,5 – 71,5 kg')).toBeTruthy()
+    expect(
+      screen.getByRole('img', { name: /Tendance du/ }).querySelector('rect.zone-maintien'),
+    ).toBeTruthy()
+  }, 20_000)
+
+  test('usage sans poids visé : refusé avec un message', async () => {
+    await start()
+    await tab('Réglages')
+    const carte = await screen.findByRole('region', { name: '🎯 Objectif' })
+    fireEvent.click(within(carte).getByRole('button', { name: 'Gagner' }))
+    fireEvent.click(within(carte).getByRole('button', { name: 'Enregistrer' }))
+    expect(within(carte).getByRole('alert').textContent).toMatch(/poids visé/)
   }, 15_000)
 })
 

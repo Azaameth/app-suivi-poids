@@ -5,6 +5,7 @@ import { TABS, type Tab } from '../shell/onglets'
 import { useToast } from '../shell/toast'
 import { SaisieDuJour } from '../tableau-de-bord/SaisiePesee'
 import { TableauDeBord } from '../tableau-de-bord/TableauDeBord'
+import { profilOuNull, useProfil } from '../profil/useProfil'
 import { usePesees } from './usePesees'
 
 // Écrans secondaires chargés à la demande (#29) : le tableau de bord s'affiche sans les attendre.
@@ -18,8 +19,9 @@ const ReglagesScreen = lazy(() =>
 )
 
 /** Écran principal, coffre déverrouillé : contenu de l'onglet et saisie du jour. */
-export function PeseesScreen({ tab }: { tab: Tab }) {
+export function PeseesScreen({ tab, onTab }: { tab: Tab; onTab?: (tab: Tab) => void }) {
   const { state, repo } = usePesees()
+  const profil = useProfil()
   const [saisie, setSaisie] = useState(false)
   const [removeError, setRemoveError] = useState(false)
   const notify = useToast()
@@ -52,12 +54,19 @@ export function PeseesScreen({ tab }: { tab: Tab }) {
           {removeError && <p role="alert">Le serveur a refusé la suppression.</p>}
           <Suspense fallback={<p>Chargement…</p>}>
             {tab === 'tableau' && (
-              <TableauDeBord pesees={state.pesees} onSaisir={() => setSaisie(true)} />
+              <TableauDeBord
+                pesees={state.pesees}
+                profil={profilOuNull(profil.state)}
+                onSaisir={() => setSaisie(true)}
+                onFixerObjectif={onTab && (() => onTab('reglages'))}
+              />
             )}
             {tab === 'historique' && (
               <HistoriqueScreen pesees={state.pesees} repo={repo} onRemove={remove} />
             )}
-            {tab === 'reglages' && <ReglagesScreen pesees={state.pesees} repo={repo} />}
+            {tab === 'reglages' && (
+              <ReglagesScreen pesees={state.pesees} repo={repo} profil={profil} />
+            )}
           </Suspense>
 
           {tab === 'tableau' && (

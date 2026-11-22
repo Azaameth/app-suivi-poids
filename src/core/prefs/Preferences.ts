@@ -25,8 +25,10 @@ export const preferencesSchema = z.object({
       period: z.enum(PERIODS).catch('90j'),
       /** Axe des poids qui part de 0 (sinon : zoom sur l'intervalle des valeurs). */
       fromZero: z.boolean().catch(false),
+      /** Bandes de corpulence (IMC) en fond, si la taille est connue (v1.1). */
+      imc: z.boolean().catch(true),
     })
-    .catch({ period: '90j', fromZero: false }),
+    .catch({ period: '90j', fromZero: false, imc: true }),
 })
 
 export type Preferences = z.infer<typeof preferencesSchema>
