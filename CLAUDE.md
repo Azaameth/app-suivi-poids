@@ -91,6 +91,7 @@
 | `npm run dev` + `npm run emulators` | Appli en dev contre les émulateurs (UI : http://localhost:4000) |
 | `npm run verify` | Secrets, lint, types, tests unitaires, tests des outils, build |
 | `npm run test:emulateurs` | Règles, stockage, hors ligne, session (son propre émulateur, ports 8181 / 9199) |
+| `npm run suggestions` | Maxime : lit les suggestions des proches en prod (SDK Admin, lecture seule ; `--aide`, `--emulateur`) |
 | `npm run deploy` | Maxime uniquement : verify + test:emulateurs + Hosting et règles |
 
 En dev, l'onglet « Réglages » propose des **outils de dev** (données fictives, absents du build de prod).
