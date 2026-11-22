@@ -5,8 +5,10 @@ export {
   bandesImc,
   calculerImc,
   categorieImc,
+  palierImc,
   type BandeImc,
   type CategorieImc,
+  type SeuilImc,
 } from './imc'
 export {
   estimerObjectif,

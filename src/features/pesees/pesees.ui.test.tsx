@@ -262,6 +262,16 @@ describe('objectif (bloc 6.1)', () => {
     expect(chart.querySelectorAll('.imc rect').length).toBeGreaterThan(0)
     fireEvent.click(screen.getByLabelText('Repères IMC'))
     expect(screen.getByRole('img', { name: /Tendance du/ }).querySelector('.imc rect')).toBeNull()
+
+    // Objectif + taille : l'axe descend jusqu'au prochain palier IMC (≈ 80 kg à 180 cm → IMC
+    // 24,7 → 18,5, soit 59,9 kg), pas jusqu'à 0.
+    fireEvent.click(screen.getByLabelText('Axe jusqu’à IMC 18,5'))
+    expect(services.prefs.get().chart.fromZero).toBe(true)
+    const graduations = [
+      ...screen.getByRole('img', { name: /Tendance du/ }).querySelectorAll('.grid text'),
+    ].map((t) => Number(t.textContent))
+    expect(Math.min(...graduations)).toBeLessThanOrEqual(59.94)
+    expect(Math.min(...graduations)).toBeGreaterThan(0)
   }, 20_000)
 
   test('maintenir : zone sur le graphique, statut de zone dans la tuile', async () => {

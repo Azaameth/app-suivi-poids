@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bandesImc, calculerImc, categorieImc } from './imc'
+import { bandesImc, calculerImc, categorieImc, palierImc } from './imc'
 
 describe('IMC (OMS, adulte)', () => {
   test('poids / taille²', () => {
@@ -24,5 +24,30 @@ describe('IMC (OMS, adulte)', () => {
     expect(bandes[1].maxKg).toBeCloseTo(81, 2)
     expect(bandes[5]).toMatchObject({ categorie: 'obésité massive', maxKg: null })
     for (let i = 1; i < bandes.length; i++) expect(bandes[i].minKg).toBe(bandes[i - 1].maxKg)
+  })
+})
+
+describe('palier IMC dans le sens de l’objectif', () => {
+  // 180 cm : 18,5 → 59,94 kg ; 25 → 81 kg ; 30 → 97,2 kg.
+  test('perdre : le seuil sous la tendance', () => {
+    expect(palierImc('perdre', 85, 180)).toEqual([{ imc: 25, kg: expect.closeTo(81, 2) }])
+  })
+
+  test('gagner : le seuil au-dessus', () => {
+    expect(palierImc('gagner', 85, 180)).toEqual([{ imc: 30, kg: expect.closeTo(97.2, 2) }])
+  })
+
+  test('maintenir : les deux bornes de la catégorie actuelle', () => {
+    expect(palierImc('maintenir', 70, 180).map((s) => s.imc)).toEqual([18.5, 25])
+  })
+
+  test('tendance pile sur un seuil : le palier suivant', () => {
+    expect(palierImc('perdre', 81, 180).map((s) => s.imc)).toEqual([18.5])
+  })
+
+  test('pas de palier de ce côté : vide (ou une seule borne)', () => {
+    expect(palierImc('perdre', 55, 180)).toEqual([])
+    expect(palierImc('gagner', 140, 180)).toEqual([])
+    expect(palierImc('maintenir', 140, 180).map((s) => s.imc)).toEqual([40])
   })
 })

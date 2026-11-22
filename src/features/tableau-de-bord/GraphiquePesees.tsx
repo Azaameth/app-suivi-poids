@@ -1,5 +1,12 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { ajouterJours, bandesImc, jourEnMs, zoneMaintien } from '../../core/analyse'
+import {
+  ajouterJours,
+  bandesImc,
+  jourEnMs,
+  palierImc,
+  zoneMaintien,
+  type SeuilImc,
+} from '../../core/analyse'
 import {
   PERIODS,
   PERIOD_DAYS,
@@ -20,6 +27,8 @@ import {
 } from './exploration'
 import { reperesTemporels } from './reperes'
 import type { Analyse } from './useAnalyse'
+
+const formatImc = (imc: number) => imc.toLocaleString('fr-FR')
 
 const PERIOD_LABELS = {
   '7j': '7 j',
@@ -69,6 +78,20 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
           deplacer: (d) => setDecalage(Math.min(max, Math.max(0, d))),
         }
 
+  // « Axe depuis 0 » devient « jusqu'au prochain palier IMC » quand un objectif et une taille
+  // le permettent ; sans palier de ce côté, retour à 0.
+  const { profil, actuelle } = analyse
+  const paliers =
+    profil?.usage && profil.cible !== undefined && profil.taille && actuelle
+      ? palierImc(profil.usage, actuelle.tendance, profil.taille)
+      : []
+  const libelleAxe =
+    paliers.length === 0
+      ? 'Axe depuis 0'
+      : paliers.length === 1
+        ? `Axe jusqu’à IMC ${formatImc(paliers[0].imc)}`
+        : `Axe IMC ${formatImc(paliers[0].imc)} – ${formatImc(paliers[1].imc)}`
+
   function choisirPeriode(period: Period) {
     set({ period })
     setDecalage(0)
@@ -95,7 +118,7 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
             checked={options.fromZero}
             onChange={(e) => set({ fromZero: e.target.checked })}
           />
-          Axe depuis 0
+          {libelleAxe}
         </label>
         {analyse.profil?.taille && (
           <label className="inline">
@@ -134,6 +157,7 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
             visibles={visibles}
             analyse={analyse}
             fromZero={options.fromZero}
+            paliers={paliers}
             imc={options.imc}
             fin={fin}
             navigation={navigation}
@@ -153,6 +177,7 @@ function Trace({
   visibles,
   analyse,
   fromZero,
+  paliers,
   imc,
   fin: finFenetre,
   navigation,
@@ -160,6 +185,7 @@ function Trace({
   visibles: Pesee[]
   analyse: Analyse
   fromZero: boolean
+  paliers: SeuilImc[]
   imc: boolean
   fin: string
   navigation: Navigation | null
@@ -202,11 +228,12 @@ function Trace({
   const portee = Math.max(5, dataMax - dataMin)
   const cibleProche = cible !== null && cible >= dataMin - portee && cible <= dataMax + portee
   const bornesObjectif = !cibleProche ? [] : zone ? [zone.bas, zone.haut] : [cible!]
+  const seuilsAxe = fromZero ? paliers.map((p) => p.kg) : []
   const echelle =
     echelleFigee ??
     niceScale(
-      fromZero ? 0 : Math.min(dataMin, ...bornesObjectif),
-      Math.max(dataMax, ...bornesObjectif),
+      fromZero && paliers.length === 0 ? 0 : Math.min(dataMin, ...bornesObjectif, ...seuilsAxe),
+      Math.max(dataMax, ...bornesObjectif, ...seuilsAxe),
     )
   const { ticks, min: yMin, max: yMax } = echelle
 
