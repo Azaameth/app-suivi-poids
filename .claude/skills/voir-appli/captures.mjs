@@ -5,7 +5,8 @@
 //   node .claude/skills/voir-appli/captures.mjs --installer     (une fois par poste)
 //
 // Écrans : accueil, tableau, historique, reglages, coffre, saisie,
-//          objectif-perdre, objectif-gagner, objectif-maintenir
+//          objectif-perdre, objectif-gagner, objectif-maintenir,
+//          exploration (fenêtre remontée dans le temps), curseur (appui long sur le graphique)
 //          (+ « tableau@1an », « tableau@7j »… pour choisir la période)
 // Options : --format mobile|bureau|les-deux (mobile = Pixel 7 Pro, 412 px)
 //           --theme clair|sombre   --donnees an|baisse|aucune (défaut : an)
@@ -158,11 +159,30 @@ async function parcours(navigateur, format) {
     else if (nom === 'objectif-perdre') await objectif('Perdre', '72')
     else if (nom === 'objectif-gagner') await objectif('Gagner', '80')
     else if (nom === 'objectif-maintenir') await objectif('Maintenir', '76')
-    else {
+    else if (nom === 'exploration') {
+      await onglet('Tableau de bord')
+      const graphique = page.getByRole('img', { name: /Tendance du/ })
+      // La période d'abord : la choisir remet la fenêtre sur aujourd'hui.
+      if (periode)
+        await page.getByRole('button', { name: PERIODES[periode] ?? periode, exact: true }).click()
+      await graphique.focus()
+      for (let i = 0; i < 3; i++) await graphique.press('ArrowLeft')
+    } else if (nom === 'curseur') {
+      await onglet('Tableau de bord')
+      const graphique = page.getByRole('img', { name: /Tendance du/ })
+      const boite = await graphique.boundingBox()
+      const evt = { pointerId: 7, pointerType: 'touch', isPrimary: true, button: 0 }
+      const point = { clientX: boite.x + boite.width * 0.4, clientY: boite.y + boite.height / 2 }
+      await graphique.dispatchEvent('pointerdown', { ...evt, ...point })
+      await page.waitForTimeout(700) // appui long
+      await capture(ecran.replace('@', '-'))
+      await graphique.dispatchEvent('pointerup', { ...evt, ...point })
+      continue
+    } else {
       console.error(`Écran inconnu : ${nom}`)
       continue
     }
-    if (periode)
+    if (periode && nom !== 'exploration')
       await page.getByRole('button', { name: PERIODES[periode] ?? periode, exact: true }).click()
     await capture(ecran.replace('@', '-'))
     if (nom === 'saisie') await page.keyboard.press('Escape')

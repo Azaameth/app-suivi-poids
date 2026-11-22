@@ -8,7 +8,7 @@ export {
   type LigneIgnoree,
   type PlanImport,
 } from './import-csv'
-export { PERIODS, filterByPeriod, type Period } from './periodes'
+export { PERIODS, PERIOD_DAYS, decalageMax, filterByPeriod, type Period } from './periodes'
 export {
   NOTE_MAX,
   PESEES,
