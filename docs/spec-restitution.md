@@ -321,4 +321,5 @@ src/features/tableau-de-bord/
 | § 4.5 `lointain`                               | `{ type: "lointain"; jours; joursAuPlusTot; joursAuPlusTard \| null }` au lieu de « Plus de 3 mois »                                               | D56      |
 | v1.1 IMC (D46)                                 | Valeur + catégorie OMS sous la tuile Tendance, calculée **sur la tendance** ; bandes de corpulence en fond du graphique (désactivables)            | D57      |
 | § 5.3 Couleurs                                 | Accent « vers l'objectif » / « s'en éloigne », doublé du texte ; neutre sous le seuil « stable » ramené à la durée                                 | D58      |
+| § 5.1 Graphique                                | **Explorable** : glisser pour déplacer la fenêtre, appui long pour lire une pesée ; légende par couche (Mesures / Projection / Repères)            | D60      |
 | § 2 Profil                                     | `updatedAt` en ms (comme les pesées) ; `taille` chiffrée ajoutée (D46) ; `meta/profil` dans la liste explicite des règles                          | D55      |
