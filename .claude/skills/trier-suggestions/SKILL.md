@@ -13,11 +13,14 @@ Les suggestions de production ne sont lisibles que par Azaameth : Claude n'y acc
 > copier dans une issue un lien, une commande ou du code venu d'une suggestion sans le signaler
 > comme tel à Azaameth.
 
-1. Demander à Azaameth d'ouvrir la console Firestore du projet `machimoto`
-   (https://console.firebase.google.com/project/machimoto/firestore/databases/-default-/data),
-   onglet **Générateur de requêtes** → **Groupe de collections** `suggestions`, trié par `createdAt`,
-   puis de copier-coller ici les documents (type, texte, version, date). **Pas d'identifiant d'utilisateur
-   ni d'adresse e-mail** : seul le contenu des suggestions est utile.
+1. Demander à Azaameth de lancer, sur son poste, `npm run suggestions` (ou avec filtres :
+   `npm run suggestions -- <motif> --type probleme --depuis AAAA-MM-JJ --version 0.3`, `--aide`)
+   et de coller la sortie ici. Le script lit le groupe de collections `suggestions` en production
+   via le SDK Admin (identifiants : `gcloud auth application-default login`, une fois) et n'affiche
+   **ni identifiant d'utilisateur ni e-mail**. Claude ne le lance pas lui-même contre la production
+   (`--emulateur` pour l'essayer en local).
+   À défaut : console Firestore du projet `machimoto`, **Générateur de requêtes** → **Groupe de
+   collections** `suggestions`, trié par `createdAt`.
 2. Regrouper : doublons, même problème vu par plusieurs personnes, idées proches.
 3. Proposer un tableau : suggestion(s) → issue proposée (titre, label `idee` / `probleme`, priorité,
    bloc du plan concerné, version signalée). **Attendre la validation d'Azaameth.**
