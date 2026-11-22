@@ -124,6 +124,13 @@ En dev, l'onglet « Réglages » propose des **outils de dev** (données fictive
 | `verifier-prod`     | Après chaque `npm run deploy` d'Azaameth (lecture seule)                                                                       |
 | `trier-suggestions` | Suggestions des proches → issues, après accord                                                                                 |
 
+**Agent** (`.claude/agents/`) : `inspecteur-visuel` (Sonnet) lit des captures et renvoie un compte
+rendu court. Il garde le contexte léger mais coûte plus de tokens au total (≈ 49 k pour 4 images,
+contre ≈ 6 k en les lisant soi-même) : seulement pour les longues séries (≳ 8 captures).
+
+**Sessions en parallèle** : une session par **worktree** (`git worktree add ../app-suivi-poids-<sujet>`),
+jamais deux dans le même dossier (changements de branche sous les pieds de l'autre).
+
 **Scripts** : `scripts/plan.mjs` (cocher / critère / journal / décision dans le plan, jamais à la main) ;
 `scripts/empreinte.mjs` (empreinte du code enregistrée par `verify` et `test:emulateurs`, dans `.claude/etat/`, ignoré par Git).
 
