@@ -41,3 +41,29 @@ export function bandesImc(tailleCm: number): BandeImc[] {
     maxKg: Number.isFinite(c.jusqua) ? c.jusqua * metres2 : null,
   }))
 }
+
+export interface SeuilImc {
+  imc: number
+  kg: number
+}
+
+/**
+ * Prochain palier IMC dans le sens de l'objectif, pour borner l'axe du graphique : sous la
+ * tendance pour « perdre », au-dessus pour « gagner », les deux bornes de la catégorie
+ * actuelle pour « maintenir ». Vide s'il n'y a pas de palier de ce côté.
+ */
+export function palierImc(
+  usage: 'perdre' | 'gagner' | 'maintenir',
+  tendanceKg: number,
+  tailleCm: number,
+): SeuilImc[] {
+  const metres2 = (tailleCm / 100) ** 2
+  const imc = tendanceKg / metres2
+  const seuils = CATEGORIES_IMC.map((c) => c.jusqua).filter(Number.isFinite)
+  const dessous = seuils.filter((s) => s < imc).at(-1)
+  const dessus = seuils.find((s) => s > imc)
+  const choisis = usage === 'perdre' ? [dessous] : usage === 'gagner' ? [dessus] : [dessous, dessus]
+  return choisis
+    .filter((s): s is number => s !== undefined)
+    .map((s) => ({ imc: s, kg: s * metres2 }))
+}

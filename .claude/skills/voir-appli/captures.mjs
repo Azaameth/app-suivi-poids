@@ -6,7 +6,8 @@
 //
 // Écrans : accueil, tableau, historique, reglages, coffre, saisie,
 //          objectif-perdre, objectif-gagner, objectif-maintenir,
-//          exploration (fenêtre remontée dans le temps), curseur (appui long sur le graphique)
+//          exploration (fenêtre remontée dans le temps), curseur (appui long sur le graphique),
+//          axe (coche « Axe depuis 0 » / « jusqu'au palier IMC » ; après objectif-… pour le palier)
 //          (+ « tableau@1an », « tableau@7j »… pour choisir la période)
 // Options : --format mobile|bureau|les-deux (mobile = Pixel 7 Pro, 412 px)
 //           --theme clair|sombre   --donnees an|baisse|aucune (défaut : an)
@@ -159,7 +160,10 @@ async function parcours(navigateur, format) {
     else if (nom === 'objectif-perdre') await objectif('Perdre', '72')
     else if (nom === 'objectif-gagner') await objectif('Gagner', '80')
     else if (nom === 'objectif-maintenir') await objectif('Maintenir', '76')
-    else if (nom === 'exploration') {
+    else if (nom === 'axe') {
+      await onglet('Tableau de bord')
+      await page.getByLabel(/^Axe /).check()
+    } else if (nom === 'exploration') {
       await onglet('Tableau de bord')
       const graphique = page.getByRole('img', { name: /Tendance du/ })
       // La période d'abord : la choisir remet la fenêtre sur aujourd'hui.
