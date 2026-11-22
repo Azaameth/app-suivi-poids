@@ -199,6 +199,20 @@ describe('graphique explorable', () => {
     expect(screen.queryByRole('button', { name: '↻ Aujourd’hui' })).toBeNull()
   }, 20_000)
 
+  test('historique plus court que la période : l’axe commence à la première pesée', async () => {
+    const services = await start()
+    await seed(services, 60, (i) => 90 - 0.1 * i)
+    await within(await screen.findByRole('region', { name: 'Rythme' })).findByText(/kg\/sem/)
+    for (const periode of ['90 j', '1 an']) {
+      fireEvent.click(screen.getByRole('button', { name: periode }))
+      const cercles = screen
+        .getByRole('img', { name: /Tendance du/ })
+        .querySelectorAll<SVGCircleElement>('circle.pesee')
+      // Première pesée au bord gauche de la zone de tracé (marge de 40), pas tassée à droite.
+      expect(Number(cercles[0].getAttribute('cx'))).toBeCloseTo(40, 0)
+    }
+  }, 20_000)
+
   test('appui long : curseur de lecture avec la pesée et la tendance', async () => {
     const services = await start()
     await seed(services, 20, () => 80)
