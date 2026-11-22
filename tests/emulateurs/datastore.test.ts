@@ -9,6 +9,7 @@ import { MemoryKeyStore } from '../../src/adapters/memory/MemoryKeyStore'
 import { PeseeRepository, type Pesee } from '../../src/core/pesees'
 import { Vault } from '../../src/core/vault'
 import { SuggestionRepository } from '../../src/core/suggestions'
+import { ProfilRepository, type Profil } from '../../src/core/profil'
 import { supprimerCompte } from '../../src/core/compte/supprimerCompte'
 import type { AuthService } from '../../src/core'
 
@@ -58,6 +59,29 @@ describe('WebDataStore + PeseeRepository (émulateur, règles actives)', () => {
     })
   })
 
+  test('profil (v1.1) : cible et taille illisibles dans la console, relu en clair', async () => {
+    const repo = new ProfilRepository(storeFor('alice'), 'alice', await generateDataKey())
+    await (
+      await repo.save({ usage: 'perdre', cible: 68.3, taille: 177 })
+    ).synced
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const raw = (await getDoc(doc(ctx.firestore(), 'users/alice/meta/profil'))).data()
+      expect(raw).toMatchObject({ usage: 'perdre' })
+      expect(raw?.cible).toMatch(/^v1:/)
+      expect(raw?.taille).toMatch(/^v1:/)
+      expect(JSON.stringify(raw)).not.toMatch(/68\.3|177/)
+    })
+    const profil = await new Promise<Profil | null>((resolve) => {
+      const stop = repo.watch((p) => {
+        if (p) {
+          stop()
+          resolve(p)
+        }
+      })
+    })
+    expect(profil).toMatchObject({ usage: 'perdre', cible: 68.3, taille: 177 })
+  })
+
   test('le propriétaire relit ses pesées en clair, en temps réel', async () => {
     const repo = new PeseeRepository(storeFor('alice'), 'alice', await generateDataKey())
     const { synced } = await repo.save({ date: '2026-10-24', poids: 72.4 })
@@ -105,6 +129,9 @@ describe('WebDataStore + PeseeRepository (émulateur, règles actives)', () => {
     await (
       await new PeseeRepository(store, 'alice', key).save({ date: '2026-10-25', poids: 75 })
     ).synced
+    await (
+      await new ProfilRepository(store, 'alice', key).save({ usage: null, taille: 170 })
+    ).synced
     await new SuggestionRepository(store, 'alice', '0.2.1').envoyer({
       type: 'probleme',
       texte: 'Le graphique est trop petit sur mon téléphone',
@@ -121,6 +148,7 @@ describe('WebDataStore + PeseeRepository (émulateur, règles actives)', () => {
         expect((await getDocs(collection(db, `users/alice/${chemin}`))).size).toBe(0)
       }
       expect((await getDoc(doc(db, 'users/alice/meta/keys'))).exists()).toBe(false)
+      expect((await getDoc(doc(db, 'users/alice/meta/profil'))).exists()).toBe(false)
     })
   })
 })

@@ -1,5 +1,6 @@
 import type { Services } from '../index'
 import { PESEES } from '../pesees/model'
+import { PROFIL_DOC } from '../profil/model'
 import { SUGGESTIONS } from '../suggestions/Suggestions'
 import { KEYS_DOC, META } from '../vault/Vault'
 import type { DataStore } from '../data/DataStore'
@@ -21,7 +22,8 @@ function lireIds(data: DataStore, uid: string, collection: string): Promise<stri
 }
 
 /**
- * Supprime le compte et toutes ses données (D47) : pesées, suggestions, `meta/keys`, puis le
+ * Supprime le compte et toutes ses données (D47) : pesées, suggestions, `meta/profil`,
+ * `meta/keys`, puis le
  * compte d'authentification. Chaque effacement attend la confirmation du serveur.
  * À appeler en ligne uniquement ; l'interface demande une confirmation forte.
  * Compte e-mail : le mot de passe est vérifié **avant** tout effacement, pour ne jamais
@@ -38,6 +40,7 @@ export async function supprimerCompte(
     const ids = await lireIds(data, uid, collection)
     await Promise.all(ids.map((id) => data.remove(uid, collection, id)))
   }
+  await data.remove(uid, META, PROFIL_DOC)
   await data.remove(uid, META, KEYS_DOC)
   await keys.clear()
   await auth.deleteAccount()

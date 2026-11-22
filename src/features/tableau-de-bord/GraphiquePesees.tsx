@@ -1,7 +1,7 @@
-import { jourEnMs } from '../../core/analyse'
+import { bandesImc, jourEnMs, zoneMaintien } from '../../core/analyse'
 import { PERIODS, filterByPeriod, type Pesee } from '../../core/pesees'
 import { usePreferences } from '../prefs/usePreferences'
-import { formatDay, formatShortDay, formatWeight } from '../commun/format'
+import { formatDay, formatFixed, formatShortDay, formatWeight } from '../commun/format'
 import { MachimotoDit } from '../commun/Mascotte'
 import { courbeMonotone } from './courbe'
 import { reperesTemporels } from './reperes'
@@ -54,6 +54,16 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
           />
           Axe depuis 0
         </label>
+        {analyse.profil?.taille && (
+          <label className="inline">
+            <input
+              type="checkbox"
+              checked={options.imc}
+              onChange={(e) => set({ imc: e.target.checked })}
+            />
+            Repères IMC
+          </label>
+        )}
       </div>
       <section className="card graphique" aria-label="Graphique des pesées">
         {visibles.length < 2 ? (
@@ -61,7 +71,12 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
             <p>Pas assez de pesées sur cette période (2 au minimum).</p>
           </MachimotoDit>
         ) : (
-          <Trace visibles={visibles} analyse={analyse} fromZero={options.fromZero} />
+          <Trace
+            visibles={visibles}
+            analyse={analyse}
+            fromZero={options.fromZero}
+            imc={options.imc}
+          />
         )}
       </section>
     </>
@@ -72,10 +87,12 @@ function Trace({
   visibles,
   analyse,
   fromZero,
+  imc,
 }: {
   visibles: Pesee[]
   analyse: Analyse
   fromZero: boolean
+  imc: boolean
 }) {
   const debut = visibles[0].date
   const tendance = analyse.tendance.filter((p) => p.date >= debut)
@@ -89,17 +106,38 @@ function Trace({
     ...tendance.map((p) => p.tendance),
     ...projection.flatMap((p) => [p.bas99, p.haut99]),
   ]
+  // Objectif (v1.1) : ligne de cible, ou zone pour « maintenir ». Inclus dans l'échelle s'il
+  // est proche des données ; trop loin, un repère au bord du graphique l'indique.
+  const { profil } = analyse
+  const cible = profil?.usage && profil.cible !== undefined ? profil.cible : null
+  const zone =
+    cible !== null && profil?.usage === 'maintenir' ? zoneMaintien(cible, profil.tolerance) : null
+  const [dataMin, dataMax] = [Math.min(...valeurs), Math.max(...valeurs)]
+  const portee = Math.max(5, dataMax - dataMin)
+  const cibleProche = cible !== null && cible >= dataMin - portee && cible <= dataMax + portee
+  const bornesObjectif = !cibleProche ? [] : zone ? [zone.bas, zone.haut] : [cible!]
   const {
     ticks,
     min: yMin,
     max: yMax,
-  } = niceScale(fromZero ? 0 : Math.min(...valeurs), Math.max(...valeurs))
+  } = niceScale(
+    fromZero ? 0 : Math.min(dataMin, ...bornesObjectif),
+    Math.max(dataMax, ...bornesObjectif),
+  )
 
   const plotW = W - M.left - M.right
   const plotH = H - M.top - M.bottom
   const x = (day: string) => M.left + ((jourEnMs(day) - xMin) / (xMax - xMin || 1)) * plotW
   const y = (kg: number) => M.top + (1 - (kg - yMin) / (yMax - yMin)) * plotH
   const pt = (day: string, kg: number) => `${x(day).toFixed(1)},${y(kg).toFixed(1)}`
+  const borne = (kg: number) => Math.min(yMax, Math.max(yMin, kg))
+  // Bandes de corpulence (carnet de santé) : seulement la partie visible.
+  const bandes =
+    imc && profil?.taille
+      ? bandesImc(profil.taille)
+          .map((b) => ({ ...b, haut: borne(b.maxKg ?? yMax), bas: borne(b.minKg ?? yMin) }))
+          .filter((b) => b.haut > b.bas)
+      : []
   const dateTicks = [0, 1 / 3, 2 / 3, 1].map((f) =>
     new Date(xMin + f * (xMax - xMin)).toISOString().slice(0, 10),
   )
@@ -112,6 +150,25 @@ function Trace({
         role="img"
         aria-label={`Tendance du ${formatDay(debut)} au ${formatDay(derniere.date)} : ${formatWeight(Math.round(derniere.tendance * 10) / 10)}`}
       >
+        {bandes.map((b) => (
+          <g key={b.categorie} className={`imc imc-${b.rang}`}>
+            <rect x={M.left} width={plotW} y={y(b.haut)} height={y(b.bas) - y(b.haut)} />
+            {y(b.bas) - y(b.haut) >= 9 && (
+              <text x={W - M.right - 3} y={y(b.haut) + 8} textAnchor="end">
+                {b.categorie}
+              </text>
+            )}
+          </g>
+        ))}
+        {zone && cibleProche && (
+          <rect
+            className="zone-maintien"
+            x={M.left}
+            width={plotW}
+            y={y(borne(zone.haut))}
+            height={y(borne(zone.bas)) - y(borne(zone.haut))}
+          />
+        )}
         {ticks.map((tick) => (
           <g key={tick} className="grid">
             <line x1={M.left} x2={W - M.right} y1={y(tick)} y2={y(tick)} />
@@ -186,6 +243,24 @@ function Trace({
           className="tendance"
           d={courbeMonotone(tendance.map((p) => [x(p.date), y(p.tendance)]))}
         />
+        {cible !== null && cibleProche && !zone && (
+          <g className="cible">
+            <line x1={M.left} x2={W - M.right} y1={y(cible)} y2={y(cible)} />
+            <text x={M.left + 3} y={y(cible) - 3}>
+              objectif {formatFixed(cible)} kg
+            </text>
+          </g>
+        )}
+        {cible !== null && !cibleProche && (
+          <text
+            className="cible-lointaine"
+            x={W - M.right - 3}
+            y={cible < yMin ? H - M.bottom - 4 : M.top + 8}
+            textAnchor="end"
+          >
+            objectif {formatFixed(cible)} kg {cible < yMin ? '↓' : '↑'}
+          </text>
+        )}
       </svg>
       <p className="legende hint">
         <span className="trait" /> tendance
@@ -197,6 +272,19 @@ function Trace({
           </>
         )}{' '}
         <span className="point" /> pesées
+        {cible !== null && !zone && (
+          <>
+            {' '}
+            <span className="trait-cible" /> objectif
+          </>
+        )}
+        {zone && (
+          <>
+            {' '}
+            <span className="zone-maintien" /> zone à maintenir
+          </>
+        )}
+        {bandes.length > 0 && <> · fond : corpulence (IMC, repères OMS adultes)</>}
         {visibles.some((p) => p.note) && (
           <>
             {' '}

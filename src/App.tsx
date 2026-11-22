@@ -33,7 +33,7 @@ export function App({ autoLockMs }: { autoLockMs?: number }) {
             />
           )}
         >
-          <PeseesScreen tab={tab} />
+          <PeseesScreen tab={tab} onTab={setTab} />
         </VaultGate>
       ) : (
         <>

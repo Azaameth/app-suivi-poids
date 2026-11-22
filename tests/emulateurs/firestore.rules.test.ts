@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, beforeEach, describe, test } from 'vitest'
 import { generateDataKey } from '../../src/core/crypto/keys'
 import { encodePesee } from '../../src/core/pesees'
+import { encodeProfil } from '../../src/core/profil'
 
 // Les refus attendus sont vérifiés par les tests : inutile que le SDK les journalise.
 setLogLevel('silent')
@@ -179,8 +180,57 @@ describe('users/{uid}/meta/keys', () => {
     await assertFails(setDoc(keys(), { ...validMeta, secours: 'K7Q2-…' }))
   })
 
-  test('aucun autre document dans meta/', async () => {
+  test('aucun autre document dans meta/ que keys et profil', async () => {
     await assertFails(setDoc(doc(alice(), 'users/alice/meta/other'), validMeta))
+  })
+})
+
+describe('users/{uid}/meta/profil (v1.1)', () => {
+  const profil = (db = alice()) => doc(db, 'users/alice/meta/profil')
+  const valide = {
+    usage: 'maintenir',
+    cible: 'v1:AAAAAAAAAAAAAAAA:BBBBBBBB',
+    tolerance: 1.5,
+    taille: 'v1:AAAAAAAAAAAAAAAA:CCCCCCCC',
+    updatedAt: 1793000000000,
+  }
+
+  test('un profil chiffré par core/profil est accepté, relu et supprimé par son propriétaire', async () => {
+    const key = await generateDataKey()
+    const chiffre = await encodeProfil(key, {
+      usage: 'perdre',
+      cible: 72.5,
+      taille: 178,
+      updatedAt: 1793000000000,
+    })
+    await assertSucceeds(setDoc(profil(), chiffre))
+    await assertSucceeds(getDoc(profil()))
+    await assertSucceeds(setDoc(profil(), valide))
+    await assertSucceeds(setDoc(profil(), { usage: null, updatedAt: 1793000000000 }))
+    await assertSucceeds(deleteDoc(profil()))
+  })
+
+  test('les autres comptes et les visiteurs sont refusés', async () => {
+    await assertFails(setDoc(profil(bob()), valide))
+    await assertFails(getDoc(profil(bob())))
+    await assertFails(getDoc(profil(anonymous())))
+  })
+
+  test.each([
+    ['tolérance trop petite', { tolerance: 0.25 }],
+    ['tolérance trop grande', { tolerance: 3.5 }],
+    ['tolérance hors pas de 0,5', { tolerance: 1.2 }],
+    ['tolérance hors « maintenir »', { usage: 'perdre' }],
+    ['usage inconnu', { usage: 'grossir' }],
+    ['cible en clair', { cible: 70 }],
+    ['taille en clair', { taille: 178 }],
+    ['champ en trop', { sexe: 'F' }],
+  ])('refuse : %s', async (_, change) => {
+    await assertFails(setDoc(profil(), { ...valide, ...change }))
+  })
+
+  test('refuse un usage sans cible', async () => {
+    await assertFails(setDoc(profil(), { usage: 'perdre', updatedAt: 1793000000000 }))
   })
 })
 

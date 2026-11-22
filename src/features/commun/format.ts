@@ -35,3 +35,19 @@ export function formatSigned(value: number, digits = 1): string {
   if (rounded === 0) return formatFixed(0, digits)
   return `${rounded > 0 ? '+' : '−'}${formatFixed(Math.abs(rounded), digits)}`
 }
+
+const moisLong = new Intl.DateTimeFormat('fr-FR', { month: 'long', timeZone: 'UTC' })
+const moisCourt = new Intl.DateTimeFormat('fr-FR', { month: 'short', timeZone: 'UTC' })
+
+/**
+ * Date arrondie au tiers de mois (spec § 5.2 : un jour précis serait de la fausse précision).
+ * `2027-01-14` → « mi-janvier » ; court : « mi-janv. ». L'année s'ajoute si elle diffère de
+ * `reference`.
+ */
+export function formatDateArrondie(jour: string, reference: string, court = false): string {
+  const j = Number(jour.slice(8, 10))
+  const tiers = j <= 10 ? 'début ' : j <= 20 ? 'mi-' : 'fin '
+  const mois = (court ? moisCourt : moisLong).format(jourEnMs(jour))
+  const annee = jour.slice(0, 4) === reference.slice(0, 4) ? '' : ` ${jour.slice(0, 4)}`
+  return `${tiers}${mois}${annee}`
+}

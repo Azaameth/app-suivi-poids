@@ -11,7 +11,10 @@ export const MIN_PESEES_RYTHME = 14
 export const SEUIL_STABLE_KG_SEMAINE = 0.1
 /** 4 semaines. */
 export const HORIZON_PROJECTION_JOURS = 28
-/** [À VALIDER] v1.1 : au-delà, pas de date d'objectif affichée (question Q1). */
+/**
+ * v1.1 (Q1, 2026-11-22) : jusqu'à cet horizon, date d'objectif arrondie ; au-delà, fourchette
+ * en mois (une date précise serait de la fausse précision).
+ */
 export const HORIZON_MAX_OBJECTIF_JOURS = 90
 /** v1.1 : tolérance de la zone « maintenir », en kg. */
 export const TOLERANCE = { defaut: 1.0, min: 0.5, max: 3.0, pas: 0.5 } as const

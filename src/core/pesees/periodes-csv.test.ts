@@ -48,7 +48,7 @@ describe('préférences', () => {
       autoLockMinutes: 5,
       theme: 'systeme',
       horsLigne: true,
-      chart: { period: '90j', fromZero: false },
+      chart: { period: '90j', fromZero: false, imc: true },
     })
     expect(
       parsePreferences({
@@ -60,7 +60,7 @@ describe('préférences', () => {
       autoLockMinutes: 5,
       theme: 'systeme',
       horsLigne: true,
-      chart: { period: '90j', fromZero: true },
+      chart: { period: '90j', fromZero: true, imc: true },
     })
   })
 })

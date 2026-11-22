@@ -9,13 +9,15 @@ service cloud.firestore {
         return request.auth != null && request.auth.uid == uid;
       }
 
-      // Méta-données de la clé de données : seul document autorisé dans meta/.
-      // Suppression réservée au parcours « Supprimer mon compte » (confirmation forte, D47) :
-      // perdre wrappedKey rend toutes les données illisibles.
+      // meta/ : deux documents seulement.
+      // - keys : clé de données encapsulée. Suppression réservée au parcours « Supprimer mon
+      //   compte » (confirmation forte, D47) : perdre wrappedKey rend toutes les données illisibles.
+      // - profil (v1.1) : objectif et taille, cible et taille chiffrées (spec § 2, D46).
       match /meta/{docId} {
-        allow read: if isOwner() && docId == 'keys';
-        allow create, update: if isOwner() && docId == 'keys' && isValidKeyMeta(request.resource.data);
-        allow delete: if isOwner() && docId == 'keys';
+        allow read, delete: if isOwner() && docId in ['keys', 'profil'];
+        allow create, update: if isOwner()
+          && ((docId == 'keys' && isValidKeyMeta(request.resource.data))
+            || (docId == 'profil' && isValidProfil(request.resource.data)));
       }
 
       // Suggestions (D45) : non chiffrées, créées, relues et supprimées par leur auteur seul.
@@ -53,6 +55,23 @@ service cloud.firestore {
             || (data.secours is map
               && data.secours.keys().hasOnly(['wrappedKey', 'salt', 'iterations'])
               && isValidEnveloppe(data.secours)));
+      }
+
+      // Miroir de core/profil/model.ts : tolérance de 0,5 à 3 kg par pas de 0,5, et seulement
+      // pour « maintenir » ; une cible dès qu'il y a un usage.
+      function isValidProfil(data) {
+        return data.keys().hasOnly(['usage', 'cible', 'tolerance', 'taille', 'updatedAt'])
+          && data.keys().hasAll(['usage', 'updatedAt'])
+          && (data.usage == null || data.usage in ['perdre', 'gagner', 'maintenir'])
+          && (data.usage == null || 'cible' in data)
+          && (!('cible' in data) || isEncrypted(data.cible))
+          && (!('taille' in data) || isEncrypted(data.taille))
+          && (!('tolerance' in data)
+            || (data.usage == 'maintenir'
+              && data.tolerance is number
+              && data.tolerance >= 0.5 && data.tolerance <= 3.0
+              && (data.tolerance * 2) % 1 == 0))
+          && data.updatedAt is int;
       }
 
       function isValidSuggestion(data) {

@@ -13,6 +13,11 @@
   --danger-plein: #c62828;
   /* Mise en évidence (pesées avec note) : même intensité perçue dans les deux thèmes (D42). */
   --highlight: #9c6300;
+  /* Objectif (v1.1, § 5.3) : accents sobres, jamais de rouge alarmant. */
+  --favorable: #2e6b3f;
+  --defavorable: #855000;
+  /* Bandes de corpulence (IMC) en fond du graphique, comme un carnet de santé. */
+  --imc-opacite: 0.13;
 }
 
 /* Thème (D41) : « Système » suit l'appareil ; Clair / Sombre forcent via data-theme. */
@@ -28,6 +33,9 @@
     --danger: #f2b8b5;
     --danger-plein: #c93a32;
     --highlight: #c98f25;
+    --favorable: #8fd19e;
+    --defavorable: #e6b566;
+    --imc-opacite: 0.16;
   }
 }
 
@@ -43,6 +51,9 @@
   --danger: #f2b8b5;
   --danger-plein: #c93a32;
   --highlight: #c98f25;
+  --favorable: #8fd19e;
+  --defavorable: #e6b566;
+  --imc-opacite: 0.16;
 }
 
 :root[data-theme='clair'] {
@@ -704,6 +715,87 @@ label.inline {
 /* Le cône à 99 % englobe celui à 95 % : plus pâle. */
 .chart .cone99 {
   opacity: 0.09;
+}
+
+/* Bandes de corpulence (IMC, OMS) : teintes douces, du bleu (maigreur) au rouge sourd. */
+.chart .imc rect {
+  opacity: var(--imc-opacite);
+}
+.chart .imc-0 rect {
+  fill: #4f8fd6;
+}
+.chart .imc-1 rect {
+  fill: #3f9d5a;
+}
+.chart .imc-2 rect {
+  fill: #d9a400;
+}
+.chart .imc-3 rect {
+  fill: #e07b20;
+}
+.chart .imc-4 rect {
+  fill: #d1542f;
+}
+.chart .imc-5 rect {
+  fill: #b23a48;
+}
+.chart .imc text {
+  font-size: 8px;
+  opacity: 0.9;
+}
+
+/* Objectif : ligne de cible en tirets, ou zone à maintenir. */
+.chart .cible line {
+  stroke: var(--fg);
+  stroke-width: 1.2;
+  stroke-dasharray: 6 3;
+  opacity: 0.7;
+}
+.chart .cible text,
+.chart .cible-lointaine {
+  fill: var(--fg);
+  font-size: 9px;
+}
+.chart .zone-maintien {
+  fill: var(--accent);
+  opacity: 0.16;
+}
+
+.legende .trait-cible {
+  border-top: 1.5px dashed var(--fg);
+}
+.legende .zone-maintien {
+  height: 0.7rem;
+  background: var(--accent);
+  opacity: 0.3;
+}
+
+.tuile.favorable {
+  border-color: var(--favorable);
+}
+.tuile.favorable .valeur {
+  color: var(--favorable);
+}
+.tuile.defavorable {
+  border-color: var(--defavorable);
+}
+.tuile.defavorable .valeur {
+  color: var(--defavorable);
+}
+
+.invitation-objectif {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+}
+
+form.objectif label {
+  display: block;
+  margin: 0.75rem 0;
+}
+form.objectif label input,
+form.objectif label select {
+  display: block;
+  margin-top: 0.25rem;
 }
 
 /* Tableau de bord : 2 × 2 tuiles, lisible dès 360 px. */

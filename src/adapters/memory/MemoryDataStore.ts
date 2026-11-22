@@ -36,6 +36,12 @@ export class MemoryDataStore implements DataStore {
     }
   }
 
+  watchDoc(uid: string, collection: string, id: string, onChange: (data: DocData | null) => void) {
+    return this.watch(uid, collection, (docs) =>
+      onChange(docs.find((d) => d.id === id)?.data ?? null),
+    )
+  }
+
   watchSyncState(listener: (state: SyncState, pendingWrites: number) => void) {
     this.syncListeners.add(listener)
     listener(this.syncState, this.pendingWrites)
