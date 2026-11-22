@@ -5,7 +5,9 @@
 //  2. suppression d'une branche dont la PR est encore ouverte ;
 //  3. texte posté sur GitHub sans la signature « 🤖 Claude » ;
 //  4. `pkill -f <motif>` dont le motif se retrouve dans la ligne de commande du shell lancé
-//     par Claude : la commande se tue elle-même (vécu au bloc 6.1).
+//     par Claude : la commande se tue elle-même (vécu au bloc 6.1) ;
+//  5. `prettier --write` sans `--ignore-path config/prettierignore` : reformate des fichiers que
+//     le projet exclut (vécu deux fois le 2026-11-22 : docs réécrites, tableaux réalignés).
 // Entrée : JSON sur stdin ({ tool_input: { command } }). Refus : JSON permissionDecision « deny ».
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -161,6 +163,18 @@ function verifierPkill(args) {
   )
 }
 
+/** `prettier --write` (ou `-w`) doit passer par la configuration et les exclusions du projet. */
+function verifierPrettier(args) {
+  const i = args.findIndex((a) => a === 'prettier' || a.endsWith('/prettier'))
+  if (i < 0 || !args.slice(i).some((a) => a === '--write' || a === '-w')) return null
+  if (args.includes('--ignore-path')) return null
+  return (
+    'prettier --write refusé sans --ignore-path : il reformaterait des fichiers exclus par le ' +
+    'projet. Utiliser `npx prettier --config config/prettier.json --ignore-path ' +
+    'config/prettierignore --write <fichiers>` (ou `npm run format`).'
+  )
+}
+
 export function examiner(commande) {
   for (const args of sousCommandes(commande)) {
     if (args[0] === 'git' && args[1] === 'commit') {
@@ -172,7 +186,7 @@ export function examiner(commande) {
       const refus = verifierBranches(branches)
       if (refus) return refus
     }
-    const refus = verifierSignature(args) ?? verifierPkill(args)
+    const refus = verifierSignature(args) ?? verifierPkill(args) ?? verifierPrettier(args)
     if (refus) return refus
   }
   return null
