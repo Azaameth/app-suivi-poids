@@ -222,6 +222,12 @@ describe('export et réglages', () => {
     const [file] = (services.files as MemoryFileExporter).files
     expect(file.fileName).toMatch(/^machimoto-pesees-\d{4}-\d{2}-\d{2}\.csv$/)
     expect(file.content).toContain('2026-10-24,72.4,footing')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exporter pour Excel' }))
+    await waitFor(() => expect((services.files as MemoryFileExporter).files).toHaveLength(2))
+    const excel = (services.files as MemoryFileExporter).files[1]
+    expect(excel.fileName).toMatch(/^machimoto-pesees-\d{4}-\d{2}-\d{2}-excel\.csv$/)
+    expect(excel.content).toContain('2026-10-24;72,4;footing')
   }, 15_000)
 
   test('délai de verrouillage réglable', async () => {

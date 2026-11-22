@@ -1,6 +1,6 @@
 export { InvalidPeseeError, decodePesee, encodePesee } from './codec'
 export { PeseeRepository, type PeseeInput } from './repository'
-export { toCsv } from './csv'
+export { toCsv, type FormatCsv } from './csv'
 export {
   lireCsv,
   planifierImport,
