@@ -1,7 +1,7 @@
 {
   "name": "app-suivi-poids",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Professeur Machimoto — suivi de poids chiffré (web + Android), synchronisé avec Firebase.",
   "license": "AGPL-3.0-or-later",
   "type": "module",

@@ -81,12 +81,13 @@
 
 ---
 
-## 4. Où on en est (2026-11-22)
+## 4. Où on en est (2026-11-23)
 
 - **Jalon 1** (socle web) : terminé, tag `v0.1.0`.
-- **Jalon 2** (fonctionnel, blocs 2.1 → 2.12) : terminé et en production ; tags `v0.2.0`, `v0.2.1`. Les blocs 2.9 à 2.12 (code de secours, Machimoto, hors ligne, import CSV) attendent un tag `v0.3.0` (à proposer à Maxime).
-- Restitution : v1 faite (2.6) ; **v1.1 (objectif, profil, IMC) = bloc 6.1, avancé avant le jalon 3 (D55), terminé et déployé** ; Q1 tranchée (D56) ; infobulles d'explication proposées (#44). Import CSV robuste et export « Pour Excel » (#64, D59) ; ergonomie coffre / graphique (#65) ; graphique explorable et légende par couche (#70, D60, en attente de validation).
-- **Prochain :** validation de #70 (graphique explorable) sur le Pixel, proposer le tag `v0.3.0`, #62 (accélérer les tests sans changer leur comportement), puis **jalon 3 (APK)** : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb) puis bloc 3.1 Capacitor.
+- **Jalon 2** (fonctionnel, blocs 2.1 → 2.14) : terminé et en production ; tags `v0.2.0`, `v0.2.1`, `v0.3.0` (2.9 à 2.14, 6.1, graphique explorable).
+- Restitution : v1 faite (2.6) ; **v1.1 (objectif, profil, IMC) = bloc 6.1, avancé avant le jalon 3 (D55), terminé et déployé** ; Q1 tranchée (D56) ; infobulles d'explication proposées (#44). Import CSV robuste et export « Pour Excel » (#64, D59) ; ergonomie coffre / graphique (#65) ; graphique explorable et légende par couche (#70, D60, validé sur le Pixel le 2026-11-23).
+- **Idée suivante :** cercles de proches, partage chiffré du suivi (#74), après la `v1.0.0` (blocs 6.2 → 6.8 proposés).
+- **Prochain :** #62 (accélérer les tests sans changer leur comportement), puis **jalon 3 (APK)** : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb) puis bloc 3.1 Capacitor.
 
 ---
 
