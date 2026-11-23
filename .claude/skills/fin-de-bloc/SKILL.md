@@ -17,5 +17,7 @@ description: Clôturer un bloc du plan projet — lancer toutes les vérificatio
    - `node scripts/plan.mjs journal <bloc> "<ce qui a été fait, problème, solution>"` ;
    - `node scripts/plan.mjs decision "<décision>" "<raison>" "<alternatives>"` (numéro attribué).
      Un critère qui dépend d'Azaameth (test sur téléphone, console de prod) reste décoché, et la PR le dit.
-4. Mettre à jour `CLAUDE.md` §4 (où on en est) si l'état du projet change.
+4. Mettre à jour `CLAUDE.md` §4 (où on en est) si l'état du projet change, et la documentation
+   des humains si le bloc la touche : `docs/stack.md` (dépendance, outil, version), `README.md`
+   (fonctionnalités, commandes, état), `CONTRIBUTING.md` (installation, workflow, dépannage).
 5. Ouvrir la PR avec le skill `ouvrir-pr`. Toute question pour Azaameth → issue GitHub signée.
