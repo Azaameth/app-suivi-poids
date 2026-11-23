@@ -35,7 +35,17 @@ jobs:
           path: ~/.cache/firebase/emulators
           key: firebase-emulators-${{ hashFiles('package-lock.json') }}
 
-      - run: npm ci
+      # node_modules en cache (#62) : `npm ci` coûtait ≈ 50 s sur ≈ 2 min. Clé = lockfile + Node,
+      # donc toute modification des dépendances refait une installation propre.
+      - name: Cache de node_modules
+        id: node-modules
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('.node-version', 'package-lock.json') }}
+
+      - if: steps.node-modules.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run check:secrets
       - run: npm run lint
       - run: npm run typecheck
