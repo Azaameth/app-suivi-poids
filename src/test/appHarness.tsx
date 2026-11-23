@@ -49,7 +49,7 @@ export async function createVault(): Promise<string> {
 }
 
 /** Écran « Ton code de secours » (D48) : le relève, confirme l'avoir rangé, continue. */
-export async function passerCodeSecours(): Promise<string> {
+async function passerCodeSecours(): Promise<string> {
   await screen.findByRole('heading', { name: 'Ton code de secours' }, { timeout: 5000 })
   const code = screen.getByLabelText('Code de secours').textContent ?? ''
   fireEvent.click(screen.getByLabelText('J’ai rangé mon code en lieu sûr'))

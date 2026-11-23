@@ -8,8 +8,8 @@ import { fromBase64, randomBytes, toBase64 } from './encoding'
  */
 export const PBKDF2_ITERATIONS = 600_000
 export const MIN_PBKDF2_ITERATIONS = 600_000
-export const SALT_LENGTH = 16
-export const KEY_META_VERSION = 1
+const SALT_LENGTH = 16
+const KEY_META_VERSION = 1
 
 /** La clé de données encapsulée par une clé dérivée d'un secret (PBKDF2), format v1:iv:data. */
 export interface Enveloppe {
@@ -44,7 +44,7 @@ export async function generateDataKey(): Promise<CryptoKey> {
 }
 
 /** Clé d'encapsulation dérivée de la phrase secrète (PBKDF2-SHA256 → AES-GCM 256). */
-export async function deriveWrappingKey(
+async function deriveWrappingKey(
   passphrase: string,
   salt: Uint8Array<ArrayBuffer>,
   iterations: number,

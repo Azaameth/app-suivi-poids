@@ -11,8 +11,10 @@ import type { DataStore, DocData, StoredDoc, SyncState } from '../../core'
 import { SyncTracker } from './SyncTracker'
 
 /**
- * Firestore, cache en mémoire (configuré dans firebase.ts) : hors ligne, les écritures sont
- * appliquées localement et partent au retour du réseau, tant que l'onglet reste ouvert.
+ * Firestore, cache configuré dans firebase.ts (D49) : persistant (IndexedDB) si « Garder mes
+ * données sur cet appareil » est actif, sinon en mémoire. Hors ligne, les écritures sont
+ * appliquées localement et partent au retour du réseau (avec le cache mémoire : tant que
+ * l'onglet reste ouvert).
  */
 export class WebDataStore implements DataStore {
   private readonly db: Firestore

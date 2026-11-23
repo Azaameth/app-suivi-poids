@@ -10,7 +10,7 @@ export type Theme = (typeof THEMES)[number]
  * Préférences d'affichage, propres à l'appareil. Rien de secret ici : jamais de clé,
  * de phrase ni de donnée de santé.
  */
-export const preferencesSchema = z.object({
+const preferencesSchema = z.object({
   /** Verrouillage automatique après inactivité (D12). */
   autoLockMinutes: z.number().int().min(1).max(60).catch(5),
   /** Système (suit l'appareil), Clair ou Sombre (D41). */

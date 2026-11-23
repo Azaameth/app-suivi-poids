@@ -99,7 +99,7 @@ export class WebAuthService implements AuthService {
       await deleteUser(user)
     } catch (error) {
       // Firebase exige une connexion récente pour supprimer un compte : on la redemande.
-      if ((error as { code?: string }).code !== 'auth/requires-recent-login') throw error
+      if (codeErreur(error) !== 'auth/requires-recent-login') throw error
       await reauthenticateWithPopup(user, new GoogleAuthProvider())
       await deleteUser(user)
     }
