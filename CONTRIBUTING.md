@@ -1,7 +1,8 @@
 # Contribuer à Professeur Machimoto
 
 Ce guide permet de **reprendre le projet sur un poste neuf** (Windows, macOS ou Linux) et d'y
-contribuer en respectant ses règles. Il complète le [README](README.md), qui présente l'appli.
+contribuer en respectant ses règles. Il complète le [README](README.md), qui présente l'appli,
+et [docs/stack.md](docs/stack.md), qui décrit la **stack technique** brique par brique.
 
 ## Sommaire
 
@@ -20,13 +21,14 @@ contribuer en respectant ses règles. Il complète le [README](README.md), qui p
 
 ## 1. Installer le poste
 
-| Outil                 | Version                      | Pourquoi                                                    |
-| --------------------- | ---------------------------- | ----------------------------------------------------------- |
-| **Git**               | récente                      | Versionnement                                               |
-| **Node.js**           | **24 LTS** (`.node-version`) | Build, tests, CLI Firebase (fournie par `npm install`)      |
-| **Java (JDK)**        | **21**                       | Les émulateurs Firebase (Auth, Firestore) tournent sur Java |
-| **GitHub CLI** (`gh`) | récente, facultatif          | PR, issues, CI depuis le terminal                           |
-| **VS Code**           | facultatif                   | Extensions recommandées proposées à l'ouverture             |
+| Outil                 | Version                      | Pourquoi                                                               |
+| --------------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| **Git**               | récente                      | Versionnement                                                          |
+| **Node.js**           | **24 LTS** (`.node-version`) | Build, tests, CLI Firebase (fournie par `npm install`)                 |
+| **Java (JDK)**        | **21**                       | Les émulateurs Firebase (Auth, Firestore) tournent sur Java            |
+| **GitHub CLI** (`gh`) | récente, facultatif          | PR, issues, CI depuis le terminal                                      |
+| **VS Code**           | facultatif                   | Extensions recommandées proposées à l'ouverture                        |
+| **SDK Android**       | facultatif (APK)             | Construire et tester l'APK : voir [§ 2 › Android](#android-facultatif) |
 
 La **CLI Firebase n'a pas besoin d'être installée globalement** : elle fait partie des
 dépendances de dev, et les scripts `npm` l'utilisent directement (`npx firebase …` sinon).
@@ -112,6 +114,48 @@ npm run dev         # appli sur http://localhost:5173
   `npm run build && npm run preview`, puis DevTools → Application → Service workers.
 - **Réglages → Outils de dev** génère des pesées fictives (absent du build de production).
 
+### Android (facultatif)
+
+Pour construire l'APK et le tester dans un émulateur ou sur un téléphone. Le web suffit pour
+tout le reste. Pas besoin d'Android Studio : les outils en ligne de commande suffisent (D62).
+
+1. **SDK** : télécharger les « Command line tools only » sur
+   [developer.android.com/studio](https://developer.android.com/studio#command-line-tools-only),
+   les décompresser dans `~/Android/Sdk/cmdline-tools/latest/`, puis :
+
+   ```sh
+   export ANDROID_HOME=~/Android/Sdk
+   export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin
+   sdkmanager "platform-tools" "emulator" "platforms;android-36" "build-tools;36.1.0" \
+              "system-images;android-37.0;google_apis_playstore;x86_64"   # accepte les licences
+   avdmanager create avd -n machimoto-pixel7pro -d pixel_7_pro \
+              -k "system-images;android-37.0;google_apis_playstore;x86_64"
+   ```
+
+   Linux : l'émulateur a besoin de KVM (`emulator -accel-check`). Variables durables : voir
+   [docs/plan-installation-outils.md](docs/plan-installation-outils.md) (bloc 3.3).
+
+2. **Lancer**, dans trois terminaux :
+
+   ```sh
+   npm run emulators                    # émulateurs Firebase
+   emulator -avd machimoto-pixel7pro    # téléphone virtuel (ou un téléphone en USB, débogage activé)
+   npm run android                      # build, APK de debug, installation, lancement
+   ```
+
+   `npm run android -- --apk` s'arrête à l'APK (`android/app/build/outputs/apk/debug/`).
+
+3. **Ce que fait `npm run android`**, et pourquoi :
+   - build web en mode `development` : projet Firebase **fictif** (D63) ;
+   - `google-services.json` fictif pour l'APK de debug, régénéré dans `android/app/src/debug/`
+     (D65) ;
+   - **refus** si le build web ou natif contient la config de production ;
+   - `adb reverse` des ports 9099 et 8080 : l'appareil joint les émulateurs Firebase par
+     `localhost` (HTTP en clair autorisé **seulement** vers `localhost`, et seulement en debug).
+
+4. **Déboguer** : `chrome://inspect` dans Chrome ou Chromium montre la WebView de l'appli
+   (console, réseau, DOM). Logs natifs : `adb logcat`.
+
 **Contrôle final** avant de coder :
 
 ```sh
@@ -169,7 +213,8 @@ Les deux commandes doivent finir sans erreur. C'est exactement ce que vérifie l
 
 Les écrans passent par les **5 interfaces** de `Services` (`AuthService`, `KeyStore`,
 `DataStore`, `PreferencesStore`, `FileExporter`), fournies par le contexte React.
-`src/platform.ts` choisit les adaptateurs (web aujourd'hui, natifs au jalon 3).
+`src/platform.ts` choisit les adaptateurs : `web/` dans un navigateur, `native/` dans l'APK
+(`Capacitor.isNativePlatform()`), et ne charge que ceux de la plateforme.
 
 ### Chiffrement (non négociable)
 
@@ -178,12 +223,14 @@ Les écrans passent par les **5 interfaces** de `Services` (`AuthService`, `KeyS
   du chiffré.
 - **Aucun filtre, tri ni index Firestore sur un champ chiffré.** La date, en clair, sert
   d'identifiant et de tri.
-- Sur le web, la clé et la phrase restent **en mémoire uniquement**.
+- Sur le web (et pour l'instant sur Android, #82), la clé et la phrase restent **en mémoire
+  uniquement**.
 - `users/{uid}/meta/keys` n'est **jamais écrasé** (D25).
 
 ### Firestore
 
-- Règles en **liste explicite** (D19) : `meta/keys`, `pesees/{date}`, `suggestions/{id}`.
+- Règles en **liste explicite** (D19) : `meta/keys`, `meta/profil` (D55), `pesees/{date}`,
+  `suggestions/{id}`.
   Tout le reste est refusé.
 - Toute évolution du modèle met à jour **ensemble** : le schéma Zod (`core/`), les règles
   (`firebase/firestore.rules`) et leurs tests (`tests/emulateurs/firestore.rules.test.ts`).
@@ -208,9 +255,12 @@ Les écrans passent par les **5 interfaces** de `Services` (`AuthService`, `KeyS
 | Unitaires et interface | `npm test`                | `src/**/*.test.ts(x)` : Vitest + jsdom, services en mémoire |
 | Sous émulateurs        | `npm run test:emulateurs` | Règles Firestore, stockage, hors ligne, session             |
 | Outils                 | `npm run test:outils`     | Hooks de Claude Code et scripts (`node --test`)             |
+| Android, à la main     | `npm run android`         | Parcours réel dans l'APK (émulateur ou téléphone)           |
 
 - Les tests d'interface utilisent `src/test/appHarness.tsx` (connexion, création du coffre…)
   et les adaptateurs `src/adapters/memory/`.
+- Les adaptateurs natifs (`src/adapters/native/`) sont testés avec des plugins Capacitor
+  **simulés** (`vi.mock`). Leur comportement réel se vérifie dans l'émulateur Android.
 - `test:emulateurs` lance **ses propres émulateurs** (ports 8181 et 9199) : il peut tourner
   pendant que `npm run emulators` est ouvert.
 - Interface asynchrone : préférez `findBy…` et attendez la fin des « Chargement… » ; les tests
@@ -219,14 +269,15 @@ Les écrans passent par les **5 interfaces** de `Services` (`AuthService`, `KeyS
 
 ## 6. Sécurité (repo public)
 
-| Élément                                                | Dans le repo ?                          |
-| ------------------------------------------------------ | --------------------------------------- |
-| Config Firebase client (`apiKey`, `projectId`…)        | ✅ oui, ce n'est pas un secret (D43)    |
-| `firebase/firestore.rules`, `firestore.indexes.json`   | ✅ oui                                  |
-| `google-services.json`                                 | ❌ non, injecté par la CI (jalon 3)     |
-| Keystore `*.jks` / `*.keystore` et leurs mots de passe | ❌ jamais : GitHub Secrets              |
-| `service-account*.json`, `.env*` (sauf `.env.example`) | ❌ jamais                               |
-| **Données réelles** (pesées, exports CSV)              | ❌ jamais : données fictives uniquement |
+| Élément                                                | Dans le repo ?                                                                |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Config Firebase client (`apiKey`, `projectId`…)        | ✅ oui, ce n'est pas un secret (D43)                                          |
+| `firebase/firestore.rules`, `firestore.indexes.json`   | ✅ oui                                                                        |
+| `google-services.json` (vrai, projet `machimoto`)      | ❌ non : `android/app/`, ignoré ; injecté par la CI pour la release (jalon 4) |
+| `google-services.json` fictif de debug                 | ❌ non : régénéré par `npm run android`                                       |
+| Keystore `*.jks` / `*.keystore` et leurs mots de passe | ❌ jamais : GitHub Secrets                                                    |
+| `service-account*.json`, `.env*` (sauf `.env.example`) | ❌ jamais                                                                     |
+| **Données réelles** (pesées, exports CSV)              | ❌ jamais : données fictives uniquement                                       |
 
 `scripts/check-secrets.mjs` tourne en pre-commit et en CI. Relisez quand même `git status`
 avant chaque commit. Pour signaler une faille : [SECURITY.md](SECURITY.md).
@@ -263,7 +314,7 @@ le menu du profil, connexion, déverrouillage, une saisie.
   git tag -a v0.3.0 -m "v0.3.0 : …" && git push origin v0.3.0
   ```
 
-- Android (jalon 3) : `versionCode = MAJEUR*10000 + MINEUR*100 + CORRECTIF` (`v1.2.3` → `10203`).
+- Android : `versionCode = MAJEUR*10000 + MINEUR*100 + CORRECTIF` (`v1.2.3` → `10203`).
   Distribution par GitHub Releases + Obtainium (jalon 4).
 
 ## 8. Configuration des services externes
@@ -271,28 +322,35 @@ le menu du profil, connexion, déverrouillage, une saisie.
 Ces réglages vivent **hors du repo**. Ils ne servent qu'à recréer ou vérifier l'environnement de
 production.
 
-| Service       | Réglage                                                                                                                                                                    | Décision |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| Firebase      | Projet `machimoto`, plan **Spark**, Firestore en `europe-west1`                                                                                                            | D18      |
-| Firebase Auth | Fournisseurs **Google** et **Adresse e-mail/Mot de passe** (D53) ; domaines autorisés : `machimoto.web.app`, `machimoto.firebaseapp.com`, `localhost`                      | D15, D53 |
-| Google Cloud  | Clé d'API web restreinte aux référents `https://machimoto.web.app/*`, `https://machimoto.firebaseapp.com/*`, et aux API Identity Toolkit, Token Service et Cloud Firestore | D43      |
-| GitHub        | Ruleset sur `main` (PR + check `verify`, ni force-push ni suppression) ; secret scanning activé ; Dependabot                                                               | D14      |
+| Service          | Réglage                                                                                                                                                                                   | Décision |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Firebase         | Projet `machimoto`, plan **Spark**, Firestore en `europe-west1`                                                                                                                           | D18      |
+| Firebase Auth    | Fournisseurs **Google** et **Adresse e-mail/Mot de passe** (D53) ; domaines autorisés : `machimoto.web.app`, `machimoto.firebaseapp.com`, `localhost`                                     | D15, D53 |
+| Firebase Android | Appli `io.github.azaameth.machimoto` ; empreintes **SHA-1** des clés de debug et de release (connexion Google native) ; `google-services.json` téléchargé depuis les paramètres du projet | D65      |
+| Google Cloud     | Clé d'API web restreinte aux référents `https://machimoto.web.app/*`, `https://machimoto.firebaseapp.com/*`, et aux API Identity Toolkit, Token Service et Cloud Firestore                | D43      |
+| Google Cloud     | Clé d'API **Android** (créée avec l'appli Android) à restreindre aux applis Android (package + SHA-1) et aux mêmes API                                                                    | #81      |
+| GitHub           | Ruleset sur `main` (PR + check `verify`, ni force-push ni suppression) ; secret scanning activé ; Dependabot                                                                              | D14      |
 
 Les **suggestions** des proches (🗨️) se lisent dans la console Firestore, sous
 `users/{uid}/suggestions`.
 
 ## 9. Dépannage
 
-| Symptôme                                         | Cause probable et solution                                                                                                                       |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| « Connexion au serveur impossible » en dev       | Les émulateurs ne tournent pas : `npm run emulators`                                                                                             |
-| `npm run emulators` : _Could not spawn java_     | Java 21 absent ou hors du `PATH` : `java -version`                                                                                               |
-| Port 8080, 9099 ou 4000 déjà utilisé             | Un ancien émulateur tourne encore : fermez-le (Linux/macOS : `lsof -i :8080` pour le trouver)                                                    |
-| Ancienne version de l'appli après un déploiement | Le service worker attend : bandeau « Mettre à jour », ou fermer tous les onglets ; en dev, DevTools → Application → Service workers → Unregister |
-| `npm warn Unknown env config "nodedir"`          | Spécifique au VS Code Flatpak du poste d'origine : sans effet                                                                                    |
-| Commit refusé par _check-secrets_                | Un motif de secret a été détecté : retirez le fichier ou la valeur, ne contournez pas le hook                                                    |
-| Test d'interface instable                        | Une requête part avant la fin du chargement : `findBy…`, ou attendre la disparition de « Chargement… »                                           |
-| `npm run deploy` : _permission denied_           | `npx firebase login` avec le bon compte Google                                                                                                   |
+| Symptôme                                              | Cause probable et solution                                                                                                                       |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| « Connexion au serveur impossible » en dev            | Les émulateurs ne tournent pas : `npm run emulators`                                                                                             |
+| `npm run emulators` : _Could not spawn java_          | Java 21 absent ou hors du `PATH` : `java -version`                                                                                               |
+| Port 8080, 9099 ou 4000 déjà utilisé                  | Un ancien émulateur tourne encore : fermez-le (Linux/macOS : `lsof -i :8080` pour le trouver)                                                    |
+| Ancienne version de l'appli après un déploiement      | Le service worker attend : bandeau « Mettre à jour », ou fermer tous les onglets ; en dev, DevTools → Application → Service workers → Unregister |
+| `npm warn Unknown env config "nodedir"`               | Spécifique au VS Code Flatpak du poste d'origine : sans effet                                                                                    |
+| Commit refusé par _check-secrets_                     | Un motif de secret a été détecté : retirez le fichier ou la valeur, ne contournez pas le hook                                                    |
+| Test d'interface instable                             | Une requête part avant la fin du chargement : `findBy…`, ou attendre la disparition de « Chargement… »                                           |
+| `npm run deploy` : _permission denied_                | `npx firebase login` avec le bon compte Google                                                                                                   |
+| `npm run android` : « il en faut un »                 | Aucun appareil, ou plusieurs : `adb devices` doit lister exactement un appareil à l'état `device`                                                |
+| `npm run android` : « config de production »          | Garde-fou D63 / D65 : le build de dev viserait la production. Ne pas contourner : vérifier `src/firebase.config.ts` et `android/app/src/debug/`  |
+| Gradle : _SDK location not found_                     | `ANDROID_HOME` absent : `export ANDROID_HOME=~/Android/Sdk`                                                                                      |
+| APK : « Connexion impossible » ou chargement sans fin | Émulateurs Firebase arrêtés, ou `adb reverse` perdu (appareil redémarré) : relancer `npm run emulators` puis `npm run android`                   |
+| Émulateur Android très lent                           | Pas d'accélération : `emulator -accel-check` (KVM sous Linux)                                                                                    |
 
 ## 10. Travailler avec Claude Code
 
@@ -302,7 +360,8 @@ versionné dans `.claude/` et décrit dans [CLAUDE.md](CLAUDE.md) :
 - **Hooks** (garanties automatiques) : pas de commit sans `verify` réussi sur le code exact,
   pas de suppression d'une branche dont la PR est ouverte, textes GitHub signés, formatage
   automatique.
-- **Skills** : `ouvrir-pr`, `fin-de-bloc`, `lire-retours`, `verifier-prod`, `trier-suggestions`.
+- **Skills** : `ouvrir-pr`, `fin-de-bloc`, `lire-retours`, `verifier-prod`, `trier-suggestions`,
+  `voir-appli` (captures web), `android` (émulateur, pilotage de l'APK), `audit-dette`.
 - Claude **ne déploie jamais** (`npm run deploy` lui est interdit) et signe tout texte qu'il
   poste sur GitHub.
 

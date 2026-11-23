@@ -4,6 +4,7 @@
 >
 > - `docs/plan-projet.md` → **source de vérité** (blocs, critères, 🗂️ Registre des décisions, 📝 Journal, arborescence)
 > - `docs/plan-installation-outils.md` → environnement de dev
+> - `docs/stack.md` → **stack technique** détaillée (versions, web / Android, décisions) : à tenir à jour à chaque changement de dépendance ou d'outil
 > - `docs/spec-restitution.md` → tableau de bord (tendance, rythme, projection) et ses arbitrages
 > - `README.md` (présentation) et `CONTRIBUTING.md` (poste neuf, workflow, déploiement) → pour les humains
 >
@@ -24,6 +25,8 @@
 
 ## 2. Stack (décidée — ne pas remettre en cause sans le proposer explicitement)
 
+Résumé ci-dessous ; détail et versions dans `docs/stack.md`.
+
 | Domaine          | Choix                                                                                                                                                                                                            |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Front            | Vite + React + TypeScript, Zod                                                                                                                                                                                   |
@@ -31,7 +34,7 @@
 | Chiffrement      | Web Crypto, AES-GCM 256 sur `poids` / `note` ; clé de données encapsulée par PBKDF2-SHA256 (600 000 itérations)                                                                                                  |
 | Architecture     | 5 interfaces dans `Services` : `AuthService`, `KeyStore`, `DataStore`, `PreferencesStore`, `FileExporter` ; adaptateurs `web/` puis `native/` ; choix dans `src/platform.ts`                                     |
 | Cache            | Web : IndexedDB chiffré si « Garder mes données sur cet appareil » (défaut, D49), sinon mémoire ; effacé à la déconnexion ; service worker pour ouvrir l'appli hors ligne (D54). Android : cache natif Firestore |
-| Mobile (jalon 3) | Capacitor + `@capacitor-firebase/authentication`, `@capacitor-firebase/firestore`, `@aparajita/capacitor-secure-storage`, `@capacitor/network`                                                                   |
+| Mobile (jalon 3) | Capacitor 8 + `@capacitor-firebase/authentication`, `/firestore` (override firebase 13, D66), `@capacitor/network` ; KeyStore natif à trancher (#82). SDK Android en ligne de commande (D62) |
 | Hébergement / CI | Firebase Hosting ; GitHub Actions (repo **public**), `main` protégée (PR + check `verify`)                                                                                                                       |
 | Distribution     | GitHub Releases + Obtainium                                                                                                                                                                                      |
 
