@@ -5,3 +5,5 @@ package-lock.json
 CLAUDE.md
 docs/
 .emulator-data/
+# État local des outils de Claude (ignoré par Git) : pids, captures, empreintes.
+**/.claude/etat/

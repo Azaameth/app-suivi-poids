@@ -47,6 +47,7 @@ jobs:
       - if: steps.node-modules.outputs.cache-hit != 'true'
         run: npm ci
       - run: npm run check:secrets
+      - run: npm run check:exports
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
