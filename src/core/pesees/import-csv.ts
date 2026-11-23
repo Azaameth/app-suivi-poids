@@ -54,7 +54,7 @@ function jourValide(a: string, m: string, j: string): string | null {
  * d'une heure → `2026-10-25`. Avec un fuseau (`2026-10-24T22:30:00Z`), c'est le jour **local**
  * de cet instant qui compte, comme pour une saisie (D16).
  */
-export function lireDate(valeur: string): string | null {
+function lireDate(valeur: string): string | null {
   const iso = DATE_ISO.exec(valeur)
   const fr = iso ? null : DATE_FR.exec(valeur)
   const debut = iso ?? fr

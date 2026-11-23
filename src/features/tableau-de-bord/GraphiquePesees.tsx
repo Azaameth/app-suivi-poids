@@ -1,12 +1,5 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import {
-  ajouterJours,
-  bandesImc,
-  jourEnMs,
-  palierImc,
-  zoneMaintien,
-  type SeuilImc,
-} from '../../core/analyse'
+import { useId, useState } from 'react'
+import { ajouterJours, palierImc } from '../../core/analyse'
 import {
   PERIODS,
   PERIOD_DAYS,
@@ -18,14 +11,21 @@ import {
 import { usePreferences } from '../prefs/usePreferences'
 import { formatDay, formatFixed, formatShortDay, formatWeight } from '../commun/format'
 import { MachimotoDit } from '../commun/Mascotte'
-import { courbeMonotone } from './courbe'
 import {
-  DUREE_APPUI_LONG_MS,
-  SEUIL_GLISSEMENT_PX,
-  decalageApresGlissement,
-  peseeLaPlusProche,
-} from './exploration'
+  H,
+  M,
+  PLOT_H,
+  PLOT_W,
+  W,
+  cadreGraphique,
+  type EntreeCadre,
+  type Echelle,
+  type Navigation,
+} from './cadre'
+import { courbeMonotone } from './courbe'
+import { Legende } from './Legende'
 import { reperesTemporels } from './reperes'
+import { useExploration } from './useExploration'
 import type { Analyse } from './useAnalyse'
 
 const formatImc = (imc: number) => imc.toLocaleString('fr-FR')
@@ -37,21 +37,6 @@ const PERIOD_LABELS = {
   '1an': '1 an',
   tout: 'Tout',
 } as const
-
-// Repère SVG ; le graphique s'adapte à la largeur de l'écran (viewBox).
-const W = 360
-const H = 220
-const M = { top: 12, right: 12, bottom: 26, left: 40 }
-const PLOT_W = W - M.left - M.right
-const PLOT_H = H - M.top - M.bottom
-
-/** Fenêtre affichée et moyens de la déplacer (absent pour « Tout »). */
-interface Navigation {
-  decalage: number
-  max: number
-  jours: number
-  deplacer: (decalage: number) => void
-}
 
 /**
  * Graphique en ligne (spec § 5.1) : pesées en petits points discrets, tendance en trait
@@ -159,7 +144,7 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
             fromZero={options.fromZero}
             paliers={paliers}
             imc={options.imc}
-            fin={fin}
+            finFenetre={fin}
             navigation={navigation}
           />
         )}
@@ -168,158 +153,22 @@ export function GraphiquePesees({ pesees, analyse }: { pesees: Pesee[]; analyse:
   )
 }
 
-type Geste =
-  | { type: 'attente'; id: number; x0: number; decalage0: number }
-  | { type: 'glissement'; id: number; x0: number; decalage0: number }
-  | { type: 'lecture'; id: number }
-
-function Trace({
-  visibles,
-  analyse,
-  fromZero,
-  paliers,
-  imc,
-  fin: finFenetre,
-  navigation,
-}: {
-  visibles: Pesee[]
-  analyse: Analyse
-  fromZero: boolean
-  paliers: SeuilImc[]
-  imc: boolean
-  fin: string
-  navigation: Navigation | null
-}) {
+function Trace(props: EntreeCadre) {
+  const { visibles, analyse, navigation } = props
   const clipId = useId()
-  const svgRef = useRef<SVGSVGElement>(null)
-  const geste = useRef<Geste | null>(null)
-  const minuteur = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const [curseur, setCurseur] = useState<string | null>(null)
   // Échelle des poids figée pendant un glissement : la courbe défile sans « sauter ».
-  const [echelleFigee, setEchelleFigee] = useState<ReturnType<typeof niceScale> | null>(null)
-  useEffect(() => () => clearTimeout(minuteur.current), [])
-
-  const enDirect = !navigation || navigation.decalage === 0
-  // Fenêtre fixe (période décalable), mais jamais avant la toute première pesée : un historique
-  // plus court que la période occupe toute la largeur au lieu d'être tassé à droite.
-  // « Tout » : de la première à la dernière pesée.
-  const premiere = analyse.mesures[0]?.date ?? visibles[0].date
-  const debutPeriode = navigation ? ajouterJours(finFenetre, -(navigation.jours - 1)) : premiere
-  const debut = navigation && debutPeriode < premiere ? premiere : debutPeriode
-  const tendance = analyse.tendance.filter((p) => p.date >= debut && p.date <= finFenetre)
-  // La projection part d'aujourd'hui : seulement quand la fenêtre l'inclut.
-  const projection = enDirect ? (analyse.projection ?? []) : []
-  const derniere = tendance.at(-1) ?? analyse.tendance.at(-1)!
-
-  const fin = projection.at(-1)?.date ?? (navigation ? finFenetre : visibles.at(-1)!.date)
-  const [xMin, xMax] = [jourEnMs(debut), jourEnMs(fin)]
-  const valeurs = [
-    ...visibles.map((p) => p.poids),
-    ...tendance.map((p) => p.tendance),
-    ...projection.flatMap((p) => [p.bas99, p.haut99]),
-  ]
-  // Objectif (v1.1) : ligne de cible, ou zone pour « maintenir ». Inclus dans l'échelle s'il
-  // est proche des données ; trop loin, un repère au bord du graphique l'indique.
-  const { profil } = analyse
-  const cible = profil?.usage && profil.cible !== undefined ? profil.cible : null
-  const zone =
-    cible !== null && profil?.usage === 'maintenir' ? zoneMaintien(cible, profil.tolerance) : null
-  const [dataMin, dataMax] = [Math.min(...valeurs), Math.max(...valeurs)]
-  const portee = Math.max(5, dataMax - dataMin)
-  const cibleProche = cible !== null && cible >= dataMin - portee && cible <= dataMax + portee
-  const bornesObjectif = !cibleProche ? [] : zone ? [zone.bas, zone.haut] : [cible!]
-  const seuilsAxe = fromZero ? paliers.map((p) => p.kg) : []
-  const echelle =
-    echelleFigee ??
-    niceScale(
-      fromZero && paliers.length === 0 ? 0 : Math.min(dataMin, ...bornesObjectif, ...seuilsAxe),
-      Math.max(dataMax, ...bornesObjectif, ...seuilsAxe),
-    )
-  const { ticks, min: yMin, max: yMax } = echelle
-
-  const x = (day: string) => M.left + ((jourEnMs(day) - xMin) / (xMax - xMin || 1)) * PLOT_W
-  const y = (kg: number) => M.top + (1 - (kg - yMin) / (yMax - yMin)) * PLOT_H
-  const pt = (day: string, kg: number) => `${x(day).toFixed(1)},${y(kg).toFixed(1)}`
-  const borne = (kg: number) => Math.min(yMax, Math.max(yMin, kg))
-  // Bandes de corpulence (carnet de santé) : seulement la partie visible.
-  const bandes =
-    imc && profil?.taille
-      ? bandesImc(profil.taille)
-          .map((b) => ({ ...b, haut: borne(b.maxKg ?? yMax), bas: borne(b.minKg ?? yMin) }))
-          .filter((b) => b.haut > b.bas)
-      : []
-  const dateTicks = [0, 1 / 3, 2 / 3, 1].map((f) =>
-    new Date(xMin + f * (xMax - xMin)).toISOString().slice(0, 10),
-  )
-
-  // ---- Exploration : glisser (déplacer), appui long ou survol à la souris (lire) ----
-  /** Position horizontale du pointeur → jour, d'après la taille réelle du graphique. */
-  function jourSous(clientX: number): string {
-    const rect = svgRef.current!.getBoundingClientRect()
-    const vx = ((clientX - rect.left) / (rect.width || 1)) * W
-    const f = Math.min(1, Math.max(0, (vx - M.left) / PLOT_W))
-    return new Date(xMin + f * (xMax - xMin)).toISOString().slice(0, 10)
-  }
-  const lire = (clientX: number) =>
-    setCurseur(peseeLaPlusProche(visibles, jourSous(clientX))?.date ?? null)
-
-  function debutGeste(e: PointerEvent<SVGSVGElement>) {
-    if (e.pointerType === 'mouse' && e.button !== 0) return
-    const id = e.pointerId
-    geste.current = { type: 'attente', id, x0: e.clientX, decalage0: navigation?.decalage ?? 0 }
-    clearTimeout(minuteur.current)
-    const clientX = e.clientX
-    minuteur.current = setTimeout(() => {
-      if (geste.current?.type !== 'attente') return
-      geste.current = { type: 'lecture', id }
-      navigator.vibrate?.(10)
-      lire(clientX)
-    }, DUREE_APPUI_LONG_MS)
-  }
-
-  function mouvement(e: PointerEvent<SVGSVGElement>) {
-    const g = geste.current
-    if (!g || g.id !== e.pointerId) {
-      if (e.pointerType === 'mouse') lire(e.clientX) // survol : lecture directe
-      return
-    }
-    if (g.type === 'lecture') return lire(e.clientX)
-    const dx = e.clientX - g.x0
-    if (g.type === 'attente') {
-      if (Math.abs(dx) < SEUIL_GLISSEMENT_PX || !navigation) return
-      clearTimeout(minuteur.current)
-      geste.current = { ...g, type: 'glissement' }
-      setEchelleFigee(echelle)
-      setCurseur(null)
-      svgRef.current?.setPointerCapture?.(e.pointerId)
-    }
-    if (!navigation) return
-    const largeur = (svgRef.current!.getBoundingClientRect().width * PLOT_W) / W
-    navigation.deplacer(
-      decalageApresGlissement(g.decalage0, dx, largeur, navigation.jours, navigation.max),
-    )
-  }
-
-  function finGeste(e: PointerEvent<SVGSVGElement>) {
-    clearTimeout(minuteur.current)
-    if (geste.current?.type === 'glissement') setEchelleFigee(null)
-    if (e.pointerType !== 'mouse') setCurseur(null)
-    geste.current = null
-  }
-
-  function clavier(e: KeyboardEvent<SVGSVGElement>) {
-    if (!navigation) return
-    const pas = Math.max(1, Math.round(navigation.jours / 4))
-    const cible = {
-      ArrowLeft: navigation.decalage + pas,
-      ArrowRight: navigation.decalage - pas,
-      Home: navigation.max,
-      End: 0,
-    }[e.key]
-    if (cible === undefined) return
-    e.preventDefault()
-    navigation.deplacer(cible)
-  }
+  const [echelleFigee, setEchelleFigee] = useState<Echelle | null>(null)
+  const cadre = cadreGraphique(props, echelleFigee)
+  const { debut, fin, tendance, projection, derniere, cible, zone, cibleProche, echelle } = cadre
+  const { bandes, dateTicks, x, y, pt, borne } = cadre
+  const { ticks, min: yMin } = echelle
+  const { curseur, gestionnaires } = useExploration({
+    navigation,
+    visibles,
+    jourA: cadre.jourA,
+    figer: () => setEchelleFigee(echelle),
+    liberer: () => setEchelleFigee(null),
+  })
 
   const lu = curseur ? visibles.find((p) => p.date === curseur) : undefined
   const tendanceLue = lu && analyse.tendance.find((p) => p.date === lu.date)
@@ -327,18 +176,12 @@ function Trace({
   return (
     <>
       <svg
-        ref={svgRef}
+        {...gestionnaires}
         className={navigation ? 'chart explorable' : 'chart'}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
         tabIndex={navigation ? 0 : undefined}
         aria-label={`Tendance du ${formatDay(debut)} au ${formatDay(derniere.date)} : ${formatWeight(Math.round(derniere.tendance * 10) / 10)}${navigation ? '. Flèches gauche et droite pour remonter le temps.' : ''}`}
-        onPointerDown={debutGeste}
-        onPointerMove={mouvement}
-        onPointerUp={finGeste}
-        onPointerCancel={finGeste}
-        onPointerLeave={(e) => e.pointerType === 'mouse' && !geste.current && setCurseur(null)}
-        onKeyDown={clavier}
       >
         <defs>
           <clipPath id={clipId}>
@@ -515,84 +358,4 @@ function Curseur({
       ))}
     </g>
   )
-}
-
-/** Légende par couche, du premier plan vers le fond ; une ligne par couche affichée. */
-function Legende(props: {
-  projection: boolean
-  notes: boolean
-  objectif: boolean
-  zone: boolean
-  imc: boolean
-  glissable: boolean
-}) {
-  return (
-    <div className="legende hint">
-      <p>
-        <span className="groupe">Mesures</span>
-        <span className="entree">
-          <span className="pastille trait" /> tendance
-        </span>
-        <span className="entree">
-          <span className="pastille point" /> pesées
-        </span>
-        {props.notes && (
-          <span className="entree">
-            <span className="pastille point note" /> avec note
-          </span>
-        )}
-      </p>
-      {props.projection && (
-        <p>
-          <span className="groupe">Projection</span>
-          <span className="entree">
-            <span className="pastille pointilles" /> 4 sem.
-          </span>
-          <span className="entree">
-            <span className="pastille zone" /> 95 %
-          </span>
-          <span className="entree">
-            <span className="pastille zone zone99" /> 99 %
-          </span>
-        </p>
-      )}
-      {(props.objectif || props.zone || props.imc) && (
-        <p>
-          <span className="groupe">Repères</span>
-          {props.objectif && (
-            <span className="entree">
-              <span className="pastille trait-cible" /> objectif
-            </span>
-          )}
-          {props.zone && (
-            <span className="entree">
-              <span className="pastille zone-maintien" /> zone à maintenir
-            </span>
-          )}
-          {props.imc && (
-            <span className="entree">
-              <span className="pastille degrade-imc" /> corpulence (IMC, OMS)
-            </span>
-          )}
-        </p>
-      )}
-      <p className="geste">
-        {props.glissable ? 'Glisse pour remonter le temps · appui long' : 'Appui long'} pour lire
-        une pesée
-      </p>
-    </div>
-  )
-}
-
-/** Graduations « rondes » (pas de 0,5 / 1 / 2 / 5 kg…) qui encadrent les valeurs. */
-function niceScale(low: number, high: number, target = 4) {
-  const span = Math.max(high - low, 1)
-  const raw = span / target
-  const magnitude = 10 ** Math.floor(Math.log10(raw))
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= raw)!
-  const min = Math.max(0, Math.floor(low / step) * step)
-  const max = Math.ceil(high / step) * step
-  const ticks: number[] = []
-  for (let t = min; t <= max + step / 2; t += step) ticks.push(Math.round(t * 100) / 100)
-  return { ticks, min, max: max > min ? max : min + step }
 }

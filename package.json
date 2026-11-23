@@ -17,8 +17,9 @@
     "test:emulateurs": "firebase emulators:exec --config firebase/firebase.tests.json --only auth,firestore --project demo-suivi-poids \"vitest run --config config/vitest.emulateurs.config.ts\" && node scripts/empreinte.mjs marquer emulateurs",
     "emulators": "firebase emulators:start --project demo-suivi-poids --import=.emulator-data --export-on-exit=.emulator-data",
     "check:secrets": "node scripts/check-secrets.mjs",
+    "check:exports": "node scripts/exports-inutiles.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "verify": "npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run test:outils && npm run build && node scripts/empreinte.mjs marquer verify",
+    "verify": "npm run check:secrets && npm run check:exports && npm run lint && npm run typecheck && npm test && npm run test:outils && npm run build && node scripts/empreinte.mjs marquer verify",
     "deploy": "npm run verify && npm run test:emulateurs && firebase deploy --project machimoto --only hosting,firestore:rules",
     "test:outils": "node --test \".claude/hooks/*.test.mjs\" \"scripts/*.test.mjs\"",
     "suggestions": "node scripts/suggestions.mjs"
