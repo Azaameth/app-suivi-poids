@@ -92,7 +92,13 @@ describe('objectif (bloc 6.1)', () => {
     // Stocké chiffré : ni la cible ni la taille ne sont lisibles.
     const brut = await services.data.get('uid-test', 'meta', 'profil')
     expect(brut).toMatchObject({ usage: 'perdre' })
-    expect(JSON.stringify(brut)).not.toMatch(/78\.5|180/)
+    // Champ par champ : chercher « 180 » dans tout le document échouait parfois, le chiffré
+    // aléatoire ou l'horodatage pouvant contenir ces chiffres par hasard.
+    const chiffre = /^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/
+    expect(brut?.cible).toMatch(chiffre)
+    expect(brut?.taille).toMatch(chiffre)
+    expect(Object.values(brut ?? {})).not.toContain(78.5)
+    expect(Object.values(brut ?? {})).not.toContain(180)
 
     await tab('Tableau de bord')
     const objectif = await screen.findByRole('region', { name: 'Objectif' })

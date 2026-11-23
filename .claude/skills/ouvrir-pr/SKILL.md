@@ -10,6 +10,11 @@ description: Ouvrir une PR de bout en bout (vérifications, commit, push, descri
    `git worktree add ../app-suivi-poids-<sujet> -b <branche> origin/main` puis `npm ci` dedans.
 1. Branche : `feat/<bloc>-<sujet>`, `fix/…`, `chore/…`, `docs/…` partie de `origin/main`
    (ou de la branche d'une PR encore ouverte si le travail en dépend : PR **empilée**, à signaler).
+   ⚠️ Azaameth fusionne souvent depuis son téléphone, plusieurs PR d'affilée. Une PR empilée
+   fusionnée **après** sa base atterrit sur une branche morte, pas dans `main` (vécu : #81, reprise
+   par #86). Donc : n'empiler que si c'est indispensable ; titre préfixé `⛓️ après #n` ; et dès
+   qu'une base est fusionnée, lancer `apres-merge.mjs` (qui rebascule la suivante vers `main`)
+   **avant** de lui annoncer la suivante.
 2. `npm run verify` — et `npm run test:emulateurs` si `firebase/`, `tests/emulateurs/`, `src/core/` ou
    `src/adapters/` changent. Les deux enregistrent une empreinte : **le hook refuse tout commit** sans
    vérification réussie sur l'état exact du code (la documentation seule en est dispensée).
