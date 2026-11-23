@@ -34,7 +34,7 @@ export function ReglagesScreen({
       <ImportPanel pesees={pesees} repo={repo} />
       <SettingsPanel />
       <SupprimerCompte />
-      {import.meta.env.DEV && <DevTools pesees={pesees} repo={repo} />}
+      {import.meta.env.MODE !== 'production' && <DevTools pesees={pesees} repo={repo} />}
     </>
   )
 }

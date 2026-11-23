@@ -20,7 +20,13 @@ const demoConfig = {
   appId: 'demo-app-id',
 }
 
-export const firebaseConfig = import.meta.env.PROD ? prodConfig : demoConfig
+/**
+ * Production seulement pour un build explicitement en mode `production` (`npm run build`, par
+ * défaut). Tout autre mode (`development` pour l'APK de dev, `test`) reste sur le projet fictif.
+ * Ne pas se fier à `import.meta.env.PROD` : il vaut `true` pour `vite build --mode development`
+ * (constaté au bloc 3.1, l'APK de dev visait la production).
+ */
+export const firebaseConfig = import.meta.env.MODE === 'production' ? prodConfig : demoConfig
 
 export const emulatorHosts = {
   auth: 'http://127.0.0.1:9099',

@@ -20,5 +20,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["*.ts", "../tests"]
+  "include": ["*.ts", "../tests", "../capacitor.config.ts"]
 }
