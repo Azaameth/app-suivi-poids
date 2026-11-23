@@ -47,8 +47,14 @@ Tu accompagnes l'utilisateur pas à pas dans cette installation.
 
 > **Jalon 3, poste « Bobby II », le 2026-11-23 (D62)** — installé à distance par Claude :
 > - 3.1 : `/dev/kvm` déjà accessible (`emulator -accel-check` : « KVM is installed and usable »), sans ajout au groupe `kvm`.
-> - 3.2 : **pas d'Android Studio**. `commandlinetools-linux-16111833_latest.zip` (somme SHA-1 vérifiée) dans `~/Android/Sdk/cmdline-tools/latest`, puis `sdkmanager "platform-tools" "emulator" "platforms;android-36" "build-tools;36.1.0" "system-images;android-37.0;google_apis_playstore;x86_64"` (4 Go). Licences acceptées avec l'accord de Maxime. `sdkmanager` est annoncé obsolète au profit de `android sdk` (même dossier), mais fonctionne.
-> - Appareil virtuel : `avdmanager create avd -n machimoto-pixel7pro -d pixel_7_pro` (Android 17, Play Store). Démarrage sans fenêtre : `emulator -avd machimoto-pixel7pro -no-window -no-audio -no-boot-anim -no-snapshot-save -gpu swiftshader_indirect` ; captures : `adb exec-out screencap -p > capture.png`.
+> - 3.2 : **pas d'Android Studio**. `commandlinetools-linux-16111833_latest.zip` (somme SHA-1 vérifiée) dans `~/Android/Sdk/cmdline-tools/latest`, puis `sdkmanager "platform-tools" "emulator" "platforms;android-36" "build-tools;36.1.0" "system-images;android-37.0;google_apis_playstore;x86_64"` (4 Go ; 21 Go avec les deux images 16 Ko). Licences acceptées avec l'accord de Maxime. `sdkmanager` est annoncé obsolète au profit de `android sdk` (même dossier), mais fonctionne.
+> - Appareils virtuels (profils Pixel, Play Store, `avdmanager create avd -n <nom> -k <image> -d <profil>`) :
+>   | Nom | Profil | Android | Rôle |
+>   |---|---|---|---|
+>   | `machimoto-pixel7pro` | `pixel_7_pro` | 17 (API 37.0), pages 4 Ko, 2,7 Go | au plus près du téléphone de test |
+>   | `machimoto-moderne` | `pixel_10_pro` | 17 QPR2 (API 37.2), **pages 16 Ko**, 8,2 Go | dernière version stable : nouvelles règles de sécurité, bibliothèques natives alignées sur 16 Ko |
+>   | `machimoto-canary` | `pixel_10_pro` | Canary du 2026-11-04, pages 16 Ko, 8,2 Go | avant-première de la prochaine version ; instable, pour anticiper |
+> - Démarrage sans fenêtre : `emulator -avd <nom> -no-window -no-audio -no-boot-anim -no-snapshot-save -gpu swiftshader_indirect` (17 à 28 s) ; captures : `adb exec-out screencap -p > capture.png` ; arrêt : `adb emu kill`.
 > - 3.3 : `~/.config/environment.d/android.conf` écrit ; effectif à la prochaine ouverture de session KDE.
 > - **Reste (Maxime)** : 3.4 (`sudo pacman -S android-udev`, débogage USB sur le Pixel) ; poste Flatpak (D9) non équipé.
 
