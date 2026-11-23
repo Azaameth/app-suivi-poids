@@ -31,9 +31,9 @@ Tu accompagnes l'utilisateur pas à pas dans cette installation.
 | 1.5 | Socle web | VS Code et extensions | [x] |
 | 1.6 | Socle web | Navigateur de test (Chromium) | [ ] |
 | 2 | Fonctionnel | Rien de nouveau côté système (vérification seulement) | [x] |
-| 3.1 | APK | KVM (accélération de l'émulateur) | [ ] |
-| 3.2 | APK | Android Studio + SDK | [ ] |
-| 3.3 | APK | Variables d'environnement Android | [ ] |
+| 3.1 | APK | KVM (accélération de l'émulateur) | [x] |
+| 3.2 | APK | ~~Android Studio +~~ SDK en ligne de commande (D62) | [x] |
+| 3.3 | APK | Variables d'environnement Android | [x] |
 | 3.4 | APK | ADB, règles udev, téléphone en USB | [ ] |
 | 4.1 | Distribution | Keystore de signature + GitHub Secrets | [ ] |
 | 4.2 | Distribution | Obtainium sur le téléphone | [ ] |
@@ -44,6 +44,13 @@ Tu accompagnes l'utilisateur pas à pas dans cette installation.
 > - 1.4 : Firebase CLI en dépendance du projet (`npx firebase`), connectée au compte perso.
 > - 1.5 : VS Code en Flatpak (`com.visualstudio.code`).
 > - **Non fait :** bloc 0 (`paru` absent : nécessaire au bloc 3.2 pour Android Studio) et 1.6 (Chromium absent ; Firefox et le navigateur de VS Code servent aux tests ; Chromium sera utile au jalon 3 pour `chrome://inspect`).
+
+> **Jalon 3, poste « Bobby II », le 2026-11-23 (D62)** — installé à distance par Claude :
+> - 3.1 : `/dev/kvm` déjà accessible (`emulator -accel-check` : « KVM is installed and usable »), sans ajout au groupe `kvm`.
+> - 3.2 : **pas d'Android Studio**. `commandlinetools-linux-16111833_latest.zip` (somme SHA-1 vérifiée) dans `~/Android/Sdk/cmdline-tools/latest`, puis `sdkmanager "platform-tools" "emulator" "platforms;android-36" "build-tools;36.1.0" "system-images;android-37.0;google_apis_playstore;x86_64"` (4 Go). Licences acceptées avec l'accord de Maxime. `sdkmanager` est annoncé obsolète au profit de `android sdk` (même dossier), mais fonctionne.
+> - Appareil virtuel : `avdmanager create avd -n machimoto-pixel7pro -d pixel_7_pro` (Android 17, Play Store). Démarrage sans fenêtre : `emulator -avd machimoto-pixel7pro -no-window -no-audio -no-boot-anim -no-snapshot-save -gpu swiftshader_indirect` ; captures : `adb exec-out screencap -p > capture.png`.
+> - 3.3 : `~/.config/environment.d/android.conf` écrit ; effectif à la prochaine ouverture de session KDE.
+> - **Reste (Maxime)** : 3.4 (`sudo pacman -S android-udev`, débogage USB sur le Pixel) ; poste Flatpak (D9) non équipé.
 
 ---
  
