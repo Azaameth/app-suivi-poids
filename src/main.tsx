@@ -6,8 +6,8 @@ import { ServicesProvider } from './context/ServicesProvider'
 import './index.css'
 import { createMiseAJour, createServices } from './platform'
 
-const services = createServices()
-const miseAJour = createMiseAJour()
+// Adaptateurs chargés selon la plateforme (web ou Android) avant le premier rendu.
+const [services, miseAJour] = await Promise.all([createServices(), createMiseAJour()])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

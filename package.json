@@ -26,8 +26,11 @@
     "suggestions": "node scripts/suggestions.mjs"
   },
   "dependencies": {
+    "@capacitor-firebase/authentication": "^8.6.0",
+    "@capacitor-firebase/firestore": "^8.6.0",
     "@capacitor/android": "^8.6.0",
     "@capacitor/core": "^8.6.0",
+    "@capacitor/network": "^8.0.1",
     "firebase": "^13.1.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -61,6 +64,12 @@
   "overrides": {
     "@firebase/firestore": {
       "@grpc/grpc-js": "^1.14.6"
+    },
+    "@capacitor-firebase/authentication": {
+      "firebase": "$firebase"
+    },
+    "@capacitor-firebase/firestore": {
+      "firebase": "$firebase"
     }
   },
   "engines": {
