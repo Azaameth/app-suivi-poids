@@ -54,3 +54,6 @@ installation, lancement. `-- --apk` s'arrête à l'APK.
 - Android 17 : permission « accès au réseau local ». `adb reverse` passe par `localhost` et n'est
   pas concerné ; joindre une machine du réseau (Wi-Fi) le serait.
 - Pas de service worker sur Android (`platform.ts`) : les fichiers viennent de l'APK.
+- `google-services.json` (D65) : le vrai (projet `machimoto`, fourni par Maxime) dans
+  `android/app/`, pour la release ; l'APK de debug utilise un fichier fictif `demo-suivi-poids`
+  que `npm run android` régénère dans `android/app/src/debug/`. Les deux sont ignorés par Git.
