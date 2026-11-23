@@ -37,11 +37,12 @@ installation, lancement. `-- --apk` s'arrête à l'APK.
 ## 3. Piloter et regarder
 
 - `node .claude/skills/android/webview.mjs connexion` : compte e-mail neuf, coffre, tableau de bord.
+- `node .claude/skills/android/webview.mjs peser <kg>` / `deverrouiller` : pesée du jour, phrase de test.
 - `node .claude/skills/android/webview.mjs capture <nom>` : PNG de la WebView dans `.claude/etat/captures/`.
 - `node .claude/skills/android/webview.mjs etat` : texte de l'écran, requêtes en échec, erreurs de console.
 - Écran entier (barres Android, dialogues système) : `adb exec-out screencap -p > <scratchpad>/x.png`.
-- Logs : `adb logcat -d | grep -iE "machimoto|chromium|capacitor|FATAL"`. Au démarrage d'un
-  émulateur, un SIGABRT de `android.hardware…` est un bruit connu, sans rapport avec l'appli.
+- Logs : `adb logcat -d | grep -iE "machimoto|chromium|capacitor|FATAL"`. Les plantages en boucle de
+  `android.hardware.uwb-service` (pas de puce UWB dans l'émulateur) sont un bruit sans rapport.
 - Playwright absent : `node .claude/skills/voir-appli/captures.mjs --installer`.
 
 ## 4. Arrêter
@@ -50,7 +51,18 @@ installation, lancement. `-- --apk` s'arrête à l'APK.
 
 ## Pièges connus
 
+- **Simuler le hors ligne** : le mode avion (`adb shell cmd connectivity airplane-mode enable`)
+  coupe le réseau vu par l'appli (indicateur « Hors ligne »), mais **pas** `adb reverse`, qui
+  passe par le canal de débogage. Pour que Firestore ne joigne vraiment plus l'émulateur :
+  `adb reverse --remove tcp:8080`, puis **redémarrer l'appli** (une connexion déjà ouverte survit
+  au retrait du tunnel). Retour : `adb reverse tcp:8080 tcp:8080`, mode avion désactivé.
+- **Recharger la WebView ne redémarre pas le SDK natif** : il garde l'émulateur branché et son
+  cache ouvert. Le vidage du cache à la déconnexion se fait au démarrage à froid suivant (D67).
+
 - Connexion Google : impossible dans l'émulateur sans compte Google ; utiliser l'e-mail (D53).
 - Android 17 : permission « accès au réseau local ». `adb reverse` passe par `localhost` et n'est
   pas concerné ; joindre une machine du réseau (Wi-Fi) le serait.
 - Pas de service worker sur Android (`platform.ts`) : les fichiers viennent de l'APK.
+- `google-services.json` (D65) : le vrai (projet `machimoto`, fourni par Maxime) dans
+  `android/app/`, pour la release ; l'APK de debug utilise un fichier fictif `demo-suivi-poids`
+  que `npm run android` régénère dans `android/app/src/debug/`. Les deux sont ignorés par Git.

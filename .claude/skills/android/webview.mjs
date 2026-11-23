@@ -3,6 +3,8 @@
 // même Playwright que voir-appli, branché sur la WebView via `adb forward`.
 //   node .claude/skills/android/webview.mjs connexion        compte e-mail neuf + coffre → tableau de bord
 //   node .claude/skills/android/webview.mjs capture <nom>    PNG dans .claude/etat/captures/android-<nom>.png
+//   node .claude/skills/android/webview.mjs peser <kg>       saisit ou remplace la pesée du jour
+//   node .claude/skills/android/webview.mjs deverrouiller    phrase de test sur « Coffre verrouillé »
 //   node .claude/skills/android/webview.mjs etat             texte de l'écran + requêtes en échec
 import { execFileSync } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
@@ -52,6 +54,26 @@ try {
     await page.getByRole('button', { name: 'Continuer' }).click()
     await page.getByRole('heading', { name: 'Tableau de bord' }).waitFor({ timeout: 20_000 })
     console.log('✓ compte, coffre et tableau de bord (émulateurs Firebase joints)')
+  } else if (commande === 'peser') {
+    await page
+      .getByRole('button', { name: /Saisir ma première pesée|Saisir la pesée du jour|Modifier/ })
+      .first()
+      .click()
+    const fenetre = page.getByRole('dialog', { name: 'Pesée du jour' })
+    await fenetre.getByLabel('Poids (kg)').fill(nom)
+    await fenetre.getByRole('button', { name: /Ajouter|Enregistrer/ }).click()
+    const remplacer = fenetre.getByRole('button', { name: /Remplacer/ })
+    if (await remplacer.isVisible().catch(() => false)) await remplacer.click()
+    await page.waitForTimeout(1500)
+    const statut = (await page.locator('header').innerText())
+      .split('\n')
+      .find((l) => /ligne|Synchro/.test(l))
+    console.log(`✓ pesée ${nom} kg ; synchro : ${statut}`)
+  } else if (commande === 'deverrouiller') {
+    await page.getByLabel('Phrase secrète').fill(PHRASE)
+    await page.getByRole('button', { name: 'Déverrouiller' }).click()
+    await page.getByRole('heading', { name: 'Tableau de bord' }).waitFor({ timeout: 30_000 })
+    console.log('✓ coffre déverrouillé')
   } else if (commande === 'capture') {
     const dossier = join(RACINE, '.claude/etat/captures')
     mkdirSync(dossier, { recursive: true })

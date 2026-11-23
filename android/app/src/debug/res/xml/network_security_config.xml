@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- APK de debug uniquement : HTTP en clair vers les émulateurs Firebase, joints par
+     `adb reverse` sur localhost. La release garde la politique par défaut (HTTPS seul). -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
