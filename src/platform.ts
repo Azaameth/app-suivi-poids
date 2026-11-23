@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core'
 import { MemoryKeyStore } from './adapters/memory/MemoryKeyStore'
 import { db } from './adapters/web/firebase'
 import { creerMiseAJourWeb } from './adapters/web/miseAJour'
@@ -22,7 +23,12 @@ export function createServices(): Services {
   }
 }
 
-/** Service worker : appli disponible hors ligne, nouvelles versions proposées (bloc 2.14). */
+/**
+ * Service worker : appli disponible hors ligne, nouvelles versions proposées (bloc 2.14).
+ * Android : jamais. Les fichiers sont dans l'APK, mis à jour avec lui ; un service worker
+ * risquerait de resservir une ancienne version après une mise à jour de l'APK.
+ */
 export function createMiseAJour(): MiseAJour {
+  if (Capacitor.isNativePlatform()) return { surveiller: () => () => {}, appliquer: () => {} }
   return creerMiseAJourWeb()
 }

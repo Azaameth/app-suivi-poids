@@ -88,7 +88,8 @@
 - Restitution : v1 faite (2.6) ; **v1.1 (objectif, profil, IMC) = bloc 6.1, avancé avant le jalon 3 (D55), terminé et déployé** ; Q1 tranchée (D56) ; infobulles d'explication proposées (#44). Import CSV robuste et export « Pour Excel » (#64, D59) ; ergonomie coffre / graphique (#65) ; graphique explorable et légende par couche (#70, D60, validé sur le Pixel le 2026-11-23).
 - **Idée suivante :** cercles de proches, partage chiffré du suivi (#74), après la `v1.0.0` (blocs 6.2 → 6.8 proposés).
 - Avant le jalon 3 : tests accélérés (#62, `npm test` 9,7 s → 4,8 s) ; audit de dette (skill `audit-dette`), graphique découpé (`cadre.ts`, `useExploration.ts`), `check:exports`.
-- **Prochain :** **jalon 3 (APK)** : blocs 3.x de `plan-installation-outils.md` (SDK Android, adb) puis bloc 3.1 Capacitor.
+- **Jalon 3 (APK)** : SDK Android en ligne de commande et 3 émulateurs (D62) ; bloc 3.1 Capacitor fait (`npm run android`, D63 : config Firebase choisie par `MODE`, D64 : pas de service worker sur Android).
+- **Prochain :** bloc 3.2 (Firebase Android, SHA-1 : console Firebase par Maxime), puis 3.3 (adaptateurs natifs). Liste de Maxime à son retour : #78.
 
 ---
 
@@ -97,6 +98,7 @@
 | Commande                            | Rôle                                                                                                                        |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `npm run dev` + `npm run emulators` | Appli en dev contre les émulateurs (UI : http://localhost:4000)                                                             |
+| `npm run android`                   | APK de dev (projet fictif, garde-fou anti-production) installé et lancé sur l'appareil branché ; voir la skill `android`     |
 | `npm run verify`                    | Secrets, exports inutilisés, lint, types, tests unitaires, tests des outils, build                                          |
 | `npm run test:emulateurs`           | Règles, stockage, hors ligne, session (son propre émulateur, ports 8181 / 9199)                                             |
 | `npm run suggestions`               | Suggestions des proches en prod (SDK Admin, lecture seule ; `--aide`, `--emulateur`) : Maxime, ou Claude **sur sa demande** |
@@ -128,6 +130,7 @@ En dev, l'onglet « Réglages » propose des **outils de dev** (données fictive
 | `trier-suggestions` | Suggestions des proches → issues, après accord                                                                                                                    |
 | `voir-appli`        | Changement d'interface ou défaut visuel : émulateurs + Vite en arrière-plan (`env-dev.mjs`), captures Playwright mobile / bureau, clair / sombre (`captures.mjs`) |
 | `audit-dette`       | Avant chaque jalon, ou « regarde la dette / refactorise » : mesures (code mort, CSS, gros fichiers, tests lents), refactoring vérifié par captures avant / après identiques |
+| `android`           | Jalon 3 : émulateur sans fenêtre (Pixel 7 Pro, moderne 16 Ko, Canary), `npm run android`, pilotage de la WebView par Playwright (`webview.mjs`), logs |
 
 **Agent** (`.claude/agents/`) : `inspecteur-visuel` (Sonnet) lit des captures et renvoie un compte
 rendu court. Il garde le contexte léger mais coûte plus de tokens au total (≈ 49 k pour 4 images,

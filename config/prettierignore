@@ -7,3 +7,5 @@ docs/
 .emulator-data/
 # État local des outils de Claude (ignoré par Git) : pids, captures, empreintes.
 **/.claude/etat/
+# Projet Android natif (Capacitor, jalon 3) : généré, formaté par les outils Android.
+android/

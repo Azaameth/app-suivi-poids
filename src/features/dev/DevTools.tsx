@@ -3,8 +3,8 @@ import type { Pesee, PeseeInput, PeseeRepository } from '../../core/pesees'
 import { fakeBaisseReguliere, fakePesees } from './fakePesees'
 
 /**
- * Outils de développement (données fictives). Affiché uniquement sous `npm run dev` :
- * en production, `import.meta.env.DEV` vaut false et ce code est retiré du bundle.
+ * Outils de développement (données fictives). Affiché hors du mode `production` (`npm run dev`,
+ * APK de dev) : en production, la condition est fausse et ce code est retiré du bundle.
  */
 export function DevTools({ pesees, repo }: { pesees: Pesee[]; repo: PeseeRepository }) {
   const [message, setMessage] = useState<string | null>(null)
