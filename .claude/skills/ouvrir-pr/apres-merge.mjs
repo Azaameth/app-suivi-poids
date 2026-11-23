@@ -32,15 +32,22 @@ const distantes = new Set(
 )
 const locales = new Set(sh("git branch --format='%(refname:short)'").split('\n'))
 const courante = sh('git branch --show-current')
+// Une même branche peut porter plusieurs PR fusionnées (PR reprise, ex. #81 puis #86) :
+// chaque branche n'est traitée qu'une fois.
 for (const { headRefName: branche, number } of fusionnees) {
   if (branche === 'main' || branchesOuvertes.has(branche)) continue
-  if (distantes.has(branche)) {
-    agir(
-      `branche distante ${branche} (PR #${number} fusionnée) supprimée`,
-      `git push -q origin --delete ${branche}`,
-    )
+  if (distantes.delete(branche)) {
+    try {
+      agir(
+        `branche distante ${branche} (PR #${number} fusionnée) supprimée`,
+        `git push -q origin --delete ${branche}`,
+      )
+    } catch (erreur) {
+      // Déjà supprimée par GitHub (suppression automatique à la fusion) : rien à faire.
+      if (!/remote ref does not exist/.test(String(erreur.stderr))) throw erreur
+    }
   }
-  if (locales.has(branche) && branche !== courante) {
+  if (locales.delete(branche) && branche !== courante) {
     agir(`branche locale ${branche} supprimée`, `git branch -D ${branche}`)
   }
 }
