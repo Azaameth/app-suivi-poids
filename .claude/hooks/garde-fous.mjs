@@ -8,8 +8,8 @@
 //     par Claude : la commande se tue elle-même (vécu au bloc 6.1) ;
 //  5. `prettier --write` sans `--ignore-path config/prettierignore` : reformate des fichiers que
 //     le projet exclut (vécu deux fois le 2026-11-22 : docs réécrites, tableaux réalignés).
-// Appels GitHub en REST (`gh api`) : `gh pr list` & co passent par GraphQL, refusé dans les
-// sessions cloud de Claude Code ; REST marche partout (postes locaux et cloud).
+// Appels GitHub en REST (`gh api`) plutôt que `gh pr list` & co (GraphQL) : marche dans tous les
+// environnements, même là où GraphQL est refusé.
 // Entrée : JSON sur stdin ({ tool_name, tool_input }). Refus : JSON permissionDecision « deny ».
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -103,7 +103,7 @@ function verifierBranches(branches) {
   for (const branche of branches) {
     let ouvertes = '0'
     try {
-      // REST et non `gh pr list` (GraphQL, refusé dans les sessions cloud de Claude Code)
+      // REST et non `gh pr list` (GraphQL, pas disponible partout)
       ouvertes = sh(
         `gh api "repos/${REPO}/pulls?state=open&head=${REPO.split('/')[0]}:${branche}" --jq length`,
       )
@@ -117,7 +117,7 @@ function verifierBranches(branches) {
   return null
 }
 
-/** `gh api … -f body=texte` ou `-F body=@fichier` (REST : seule voie dans les sessions cloud). */
+/** `gh api … -f body=texte` ou `-F body=@fichier` (REST). */
 function corpsApi(args) {
   for (let i = 2; i < args.length; i++) {
     const a = args[i]
@@ -199,7 +199,7 @@ function verifierPrettier(args) {
 }
 
 /**
- * Outils MCP GitHub (sessions cloud, sans `gh` complet) : tout texte publié (`body`) doit
+ * Outils MCP GitHub : tout texte publié (`body`) doit
  * commencer par la signature, comme avec `gh`. Sans `body` (réaction, changement de base) : libre.
  */
 export function examinerMcp(outil, entree = {}) {

@@ -5,8 +5,8 @@ description: Ouvrir une PR de bout en bout (vérifications, commit, push, descri
 
 # Ouvrir une PR
 
-**GitHub en REST partout** (`gh api`, ou outils MCP GitHub en session cloud) : `gh pr …` et
-`gh issue …` passent par GraphQL, refusé dans les sessions cloud de Claude Code. `gh run …` marche.
+**GitHub en REST partout** (`gh api`, ou outils MCP GitHub) plutôt que `gh pr …` / `gh issue …`
+(GraphQL, pas disponible partout). `gh run …` marche.
 
 0. Une autre session ou Azaameth travaille déjà dans le dossier (hook de démarrage : worktrees,
    rebase en cours, ports pris) → travailler dans un **worktree** :
@@ -27,8 +27,7 @@ description: Ouvrir une PR de bout en bout (vérifications, commit, push, descri
    `gh api repos/Azaameth/app-suivi-poids/pulls -f base=<main|branche> -f head=<branche> -f title="…" -F body=@<fichier> --jq .html_url`
    (ou l'outil MCP `create_pull_request`). Le hook refuse un texte non signé, passé par variable ou
    par stdin, qu'il passe par `gh` ou par MCP.
-6. CI : `node .claude/skills/ouvrir-pr/ci.mjs <n>` (attend la fin, code 0 vert / 1 échec ; en cloud,
-   `subscribe_pr_activity` réveille la session à la fin de la CI). En cas d'échec :
+6. CI : `node .claude/skills/ouvrir-pr/ci.mjs <n>` (attend la fin, code 0 vert / 1 échec). En cas d'échec :
    `gh run view <id> --log-failed`, corriger, recommencer à l'étape 2.
 7. Commenter les issues liées : `gh api repos/Azaameth/app-suivi-poids/issues/<n>/comments -F body=@<fichier>`
    (texte signé) ; `Closes #n` dans la description si la PR les résout.
