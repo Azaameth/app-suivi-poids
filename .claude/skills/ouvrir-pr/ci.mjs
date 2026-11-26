@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Attend la fin de la CI d'une PR et donne le verdict (remplace `gh pr checks --watch`, qui passe
-// par GraphQL, refusé dans les sessions cloud de Claude Code ; ici REST, qui marche partout).
+// par GraphQL ; ici REST, qui marche dans tous les environnements).
 //   node .claude/skills/ouvrir-pr/ci.mjs <n° de PR> [--une-fois]
 // Code de sortie : 0 tout vert, 1 au moins un échec, 2 encore en cours (--une-fois).
 import { execSync } from 'node:child_process'

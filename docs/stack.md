@@ -98,7 +98,6 @@ Réglages détaillés : [CONTRIBUTING.md § 8](../CONTRIBUTING.md#8-configuratio
 | `scripts/`               | Anti-secrets, exports inutilisés, `android.mjs`, `plan.mjs`, suggestions     |
 | `.githooks/pre-commit`   | Refuse un commit contenant un secret                                         |
 | Claude Code (`.claude/`) | Hooks de sécurité, skills (PR, fin de bloc, captures web et Android…), voir [CLAUDE.md](../CLAUDE.md) |
-| Sessions cloud Claude Code | Environnement personnel `app-suivi-poids` (claude.ai) : réseau limité + `dl.google.com`, script d'installation (Node 24, SDK Android, `npm ci`). GitHub en REST (`gh api`) ou MCP, sans GraphQL ; pas de KVM, donc pas d'émulateur Android |
 
 ## Dépendances (2026-11-23)
 

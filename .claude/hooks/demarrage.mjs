@@ -32,16 +32,14 @@ const ouvert = (port) =>
     socket.on('timeout', () => fin(false))
   })
 
-const poste = process.env.CLAUDE_CODE_REMOTE
-  ? 'session cloud Claude Code (GitHub : gh api REST ou MCP, pas de GraphQL ; pas de KVM)'
-  : `${hostname()}${process.env.FLATPAK_ID ? ' (VS Code Flatpak)' : ''}`
+const poste = `${hostname()}${process.env.FLATPAK_ID ? ' (VS Code Flatpak)' : ''}`
 const node = `Node ${process.versions.node}${existsSync('node_modules') ? '' : ', node_modules ABSENT (npm ci)'}`
 const gh = sh('command -v gh')
   ? sh('gh auth token')
     ? 'gh connecté'
     : 'gh NON connecté (gh auth login, par Azaameth)'
   : 'gh absent'
-// « Picked up _JAVA_OPTIONS… » peut précéder la ligne de version (sessions cloud)
+// « Picked up _JAVA_OPTIONS… » peut précéder la ligne de version (selon les variables Java du poste)
 const java = sh('java -version 2>&1')?.match(/version "(\d+)/)?.[1]
 const branche = sh('git branch --show-current') || '(HEAD détachée)'
 const worktrees = (sh('git worktree list') ?? '').split('\n').filter(Boolean).length

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Ménage après la fusion de PR : `main` local à jour, PR empilées rebasculées vers `main`,
 // branches fusionnées supprimées (local + GitHub) — jamais une branche dont la PR est ouverte.
-// GitHub en REST (`gh api`) : `gh pr list/edit` passent par GraphQL, refusé dans les sessions
-// cloud de Claude Code ; REST marche partout.
+// GitHub en REST (`gh api`) plutôt que `gh pr list/edit` (GraphQL) : marche dans tous les
+// environnements, même là où GraphQL est refusé.
 //   node .claude/skills/ouvrir-pr/apres-merge.mjs [--simuler]
 import { execSync } from 'node:child_process'
 import { REPO } from '../../hooks/garde-fous.mjs'

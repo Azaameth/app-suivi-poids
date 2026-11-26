@@ -18,7 +18,7 @@ const depuis =
     ? readFileSync(ETAT, 'utf8').trim()
     : new Date(Date.now() - 48 * 3600e3).toISOString())
 
-/** Chemins refusés (ex. alertes de sécurité via le proxy des sessions cloud) : signalés, pas tus. */
+/** Chemins refusés (ex. alertes de sécurité sans le droit requis) : signalés, pas tus. */
 const refuses = new Set()
 const api = (chemin) => {
   try {
