@@ -43,5 +43,20 @@ export async function supprimerCompte(
   await data.remove(uid, META, PROFIL_DOC)
   await data.remove(uid, META, KEYS_DOC)
   await keys.clear()
+  await keys.appareil?.oublier(uid)
   await auth.deleteAccount()
+}
+
+/**
+ * Déconnexion : verrouille et oublie la clé conservée sur l'appareil (Android, D13), puis ferme
+ * la session. La session est fermée même si l'appareil ne répond pas.
+ */
+export async function seDeconnecter(services: Pick<Services, 'auth' | 'keys'>, uid: string) {
+  const { auth, keys } = services
+  try {
+    await keys.clear()
+    await keys.appareil?.oublier(uid)
+  } finally {
+    await auth.signOut()
+  }
 }

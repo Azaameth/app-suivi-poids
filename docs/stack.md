@@ -59,7 +59,7 @@ le code, et la décision qui l'a fixé (`Dxx`, détaillée dans le 🗂️ Regis
   | ------------------ | --------------------------------------------- | --------------------------------------------------------- |
   | Auth               | SDK JS, Google par fenêtre                    | SDK Android, Google par le sélecteur de compte            |
   | Données hors ligne | IndexedDB (option, D49), service worker (D54) | Cache Firestore natif, toujours actif ; pas de service worker (D64) |
-  | Clé de données     | En mémoire (D13)                              | En mémoire pour l'instant ; Keystore + empreinte à trancher (#82) |
+  | Clé de données     | En mémoire (D13)                              | En mémoire, et conservée par le Keystore, liée à l'empreinte (D68 à D70) |
   | Export de fichier  | Téléchargement                                | Partage natif à venir (D27)                               |
 
 ## Android
@@ -72,6 +72,7 @@ le code, et la décision qui l'a fixé (`Dxx`, détaillée dans le 🗂️ Regis
 | Java                    | JDK 21                                                     |
 | Outils                  | SDK en ligne de commande, sans Android Studio (D62)        |
 | Émulateurs              | Pixel 7 Pro (Android 17), « moderne » (Android 17 QPR2, pages 16 Ko), Canary |
+| Empreinte               | `androidx.biometric` 1.1.0, plugin de l'appli `CoffreAppareil` (Java, D68) |
 
 - **APK de debug** : projet Firebase **fictif** (`demo-suivi-poids`) côté web (D63) et natif
   (D65), émulateurs Firebase joints par `adb reverse`, HTTP en clair vers `localhost` seulement.

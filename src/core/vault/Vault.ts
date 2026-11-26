@@ -3,7 +3,9 @@ import {
   ajouterCodeSecours,
   changePassphrase,
   createKeyMeta,
+  exporterCleBrute,
   genererCodeSecours,
+  importerCleBrute,
   normaliserCode,
   remplacerPhraseAvecCode,
   unlockDataKey,
@@ -52,7 +54,8 @@ function checkStrength(passphrase: string) {
 
 /**
  * Coffre de l'utilisateur : la clé de données, encapsulée par la phrase secrète dans
- * `meta/keys`, n'est déverrouillée qu'en mémoire (KeyStore). Aucune API de plateforme ici.
+ * `meta/keys`, n'est déverrouillée qu'en mémoire (KeyStore). Sur Android, elle est aussi
+ * conservée sur l'appareil, liée à l'empreinte (`keys.appareil`, D13). Aucune API de plateforme.
  */
 export class Vault {
   private readonly data: DataStore
@@ -86,8 +89,12 @@ export class Vault {
     // Écraser meta/keys rendrait illisibles toutes les données existantes.
     if (await this.readMeta()) throw new VaultAlreadyExistsError()
     const codeSecours = genererCodeSecours()
-    const { key, meta } = await createKeyMeta(passphrase, normaliserCode(codeSecours))
-    await this.data.set(this.uid, META, KEYS_DOC, { ...meta })
+    const created = await createKeyMeta(passphrase, normaliserCode(codeSecours))
+    await this.data.set(this.uid, META, KEYS_DOC, { ...created.meta })
+    // Android : la phrase vient d'être saisie, la clé est confiée à l'appareil dès maintenant.
+    const key = this.keys.appareil
+      ? await this.deverrouillerEtConfier(passphrase, created.meta)
+      : created.key
     await this.keys.save(key)
     return { key, codeSecours }
   }
@@ -124,17 +131,74 @@ export class Vault {
     return this.unlock(nouvellePhrase)
   }
 
-  /** Lève WrongPassphraseError si la phrase est incorrecte. */
+  /**
+   * Lève WrongPassphraseError si la phrase est incorrecte. Sur Android, confie aussi la clé à
+   * l'appareil (empreinte) si ce n'est pas déjà fait : voir `deverrouillerEtConfier`.
+   */
   async unlock(passphrase: string): Promise<CryptoKey> {
     const meta = await this.readMeta()
     if (!meta) throw new Error('Aucune phrase secrète n’a encore été créée')
-    const key = await unlockDataKey(passphrase, meta)
+    const key = await this.deverrouillerEtConfier(passphrase, meta)
     await this.keys.save(key)
     return key
   }
 
+  /**
+   * Clé non extractible pour l'usage courant. Sur un appareil qui peut conserver la clé
+   * (Android, D13) et ne l'a pas encore : la lui confie, ce qui demande l'empreinte. Un refus ou
+   * une erreur de l'appareil n'empêche pas le déverrouillage : la phrase sera redemandée.
+   */
+  private async deverrouillerEtConfier(passphrase: string, meta: KeyMeta): Promise<CryptoKey> {
+    const appareil = this.keys.appareil
+    if (!appareil || (await appareil.presente(this.uid)) || !(await appareil.disponible())) {
+      return unlockDataKey(passphrase, meta)
+    }
+    const brute = await exporterCleBrute(
+      await unlockDataKey(passphrase, meta, { extractable: true }),
+    )
+    try {
+      const key = await importerCleBrute(brute)
+      await appareil.conserver(this.uid, brute).catch(() => {})
+      return key
+    } finally {
+      brute.fill(0)
+    }
+  }
+
+  /** Une clé est-elle conservée sur cet appareil (déverrouillage par empreinte possible) ? */
+  async cleSurAppareil(): Promise<boolean> {
+    return (await this.keys.appareil?.presente(this.uid)) ?? false
+  }
+
+  /**
+   * Déverrouille par l'empreinte, avec la clé conservée sur l'appareil. Lève
+   * EmpreinteAnnuleeError (réessayer, ou la phrase) ou CleAppareilInvalideeError (phrase requise).
+   */
+  async deverrouillerAppareil(): Promise<CryptoKey> {
+    const appareil = this.keys.appareil
+    if (!appareil) throw new Error('Cet appareil ne conserve pas de clé')
+    const brute = await appareil.restituer(this.uid)
+    try {
+      const key = await importerCleBrute(brute)
+      await this.keys.save(key)
+      return key
+    } finally {
+      brute.fill(0)
+    }
+  }
+
+  /**
+   * Verrouille : efface la clé en mémoire. Celle conservée sur l'appareil reste, l'empreinte
+   * suffit à rouvrir (inactivité, D12 ; arbitrage #82).
+   */
   lock(): Promise<void> {
     return this.keys.clear()
+  }
+
+  /** Verrouille et oublie la clé conservée sur l'appareil (déconnexion). */
+  async oublier(): Promise<void> {
+    await this.keys.clear()
+    await this.keys.appareil?.oublier(this.uid)
   }
 
   /** Ré-encapsule la même clé : les données déjà chiffrées restent lisibles. */

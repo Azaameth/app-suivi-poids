@@ -7,7 +7,8 @@ export {
 } from './auth/AuthService'
 export type { DataStore, DocData, StoredDoc, SyncState } from './data/DataStore'
 export type { FileExporter } from './files/FileExporter'
-export type { KeyStore } from './keys/KeyStore'
+export type { CleAppareil, KeyStore } from './keys/KeyStore'
+export { CleAppareilInvalideeError, EmpreinteAnnuleeError } from './keys/KeyStore'
 export type { Preferences, PreferencesStore } from './prefs/Preferences'
 export type { Unsubscribe } from './types'
 

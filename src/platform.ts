@@ -10,16 +10,18 @@ import type { Services } from './core'
  */
 export async function createServices(): Promise<Services> {
   if (Capacitor.isNativePlatform()) {
-    const [{ NativeAuthService }, { NativeDataStore }, prefs, files] = await Promise.all([
-      import('./adapters/native/NativeAuthService'),
-      import('./adapters/native/NativeDataStore'),
-      import('./adapters/web/WebPreferencesStore'),
-      import('./adapters/web/WebFileExporter'),
-    ])
+    const [{ NativeAuthService }, { NativeDataStore }, { NativeKeyStore }, prefs, files] =
+      await Promise.all([
+        import('./adapters/native/NativeAuthService'),
+        import('./adapters/native/NativeDataStore'),
+        import('./adapters/native/NativeKeyStore'),
+        import('./adapters/web/WebPreferencesStore'),
+        import('./adapters/web/WebFileExporter'),
+      ])
     return {
       auth: new NativeAuthService(), // Firebase Auth natif (émulateur pour l'APK de debug)
       data: new NativeDataStore(), // Firestore natif, cache hors ligne d'Android
-      keys: new MemoryKeyStore(), // en mémoire en attendant le KeyStore natif (D13, à trancher)
+      keys: new NativeKeyStore(), // mémoire + clé gardée sur le téléphone, liée à l'empreinte (D13)
       prefs: new prefs.WebPreferencesStore(), // localStorage de la WebView, rien de secret (D26)
       files: new files.WebFileExporter(), // partage natif à venir (D27)
     }

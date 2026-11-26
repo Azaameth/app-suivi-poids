@@ -111,6 +111,24 @@ export async function desenvelopper(
   }
 }
 
+/** Octets bruts (32) d'une clé de données extractible, pour la conserver sur l'appareil (D13). */
+export async function exporterCleBrute(key: CryptoKey): Promise<Uint8Array> {
+  return new Uint8Array(await crypto.subtle.exportKey('raw', key))
+}
+
+/** Clé de données non extractible à partir de ses octets bruts (restitués par l'appareil). */
+export async function importerCleBrute(brute: Uint8Array): Promise<CryptoKey> {
+  if (brute.length !== DATA_KEY_ALGO.length / 8) {
+    throw new Error(
+      `Clé de données de ${brute.length} octets, ${DATA_KEY_ALGO.length / 8} attendus`,
+    )
+  }
+  return crypto.subtle.importKey('raw', new Uint8Array(brute), DATA_KEY_ALGO, false, [
+    'encrypt',
+    'decrypt',
+  ])
+}
+
 /**
  * Premier usage : crée la clé de données et ses méta-données à enregistrer, encapsulée par la
  * phrase et, si fourni, par le code de secours.
@@ -127,8 +145,8 @@ export async function createKeyMeta(
 }
 
 /**
- * Déverrouille la clé de données. `extractable` ne sert qu'à l'adaptateur natif
- * s'il doit la placer dans le Keystore Android (jalon 3).
+ * Déverrouille la clé de données. `extractable` ne sert qu'à la confier à l'appareil
+ * (Android, D13), le temps d'en sortir les octets bruts.
  */
 export async function unlockDataKey(
   passphrase: string,
