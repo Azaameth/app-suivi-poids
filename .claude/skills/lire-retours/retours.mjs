@@ -18,21 +18,30 @@ const depuis =
     ? readFileSync(ETAT, 'utf8').trim()
     : new Date(Date.now() - 48 * 3600e3).toISOString())
 
+/** Chemins refusés (ex. alertes de sécurité via le proxy des sessions cloud) : signalés, pas tus. */
+const refuses = new Set()
 const api = (chemin) => {
   try {
     return JSON.parse(
-      execSync(`gh api --paginate "${chemin}"`, { encoding: 'utf8', maxBuffer: 1 << 26 }),
+      execSync(`gh api --paginate "${chemin}"`, {
+        encoding: 'utf8',
+        maxBuffer: 1 << 26,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      }),
     )
   } catch {
+    refuses.add(chemin)
     return []
   }
 }
 const signe = (texte) => (texte ?? '').startsWith(SIGNATURE)
 const extrait = (texte) => (texte ?? '').trim().replace(/\r/g, '')
 const sortie = [`# Retours depuis ${depuis}\n`]
-const section = (titre, lignes) => {
+const section = (titre, lignes, chemin) => {
   sortie.push(`## ${titre}\n`)
-  sortie.push(lignes.length ? lignes.join('\n\n') : '_rien_')
+  if (chemin && refuses.has(chemin))
+    sortie.push(`_inaccessible ici (gh api ${chemin.split('?')[0]})_`)
+  else sortie.push(lignes.length ? lignes.join('\n\n') : '_rien_')
   sortie.push('')
 }
 
@@ -126,12 +135,17 @@ section(
 )
 
 // 6. Alertes de sécurité ouvertes
-const alertes = api(`repos/${REPO}/secret-scanning/alerts?state=open`)
+const cheminAlertes = `repos/${REPO}/secret-scanning/alerts?state=open`
+const alertes = api(cheminAlertes)
 section(
   'Alertes de sécurité ouvertes',
   alertes.map((a) => `**secret #${a.number}** ${a.secret_type_display_name} — ${a.html_url}`),
+  cheminAlertes,
 )
 
+if (refuses.size) {
+  sortie.push(`⚠️ ${refuses.size} lecture(s) GitHub refusée(s) : ${[...refuses].join(', ')}`)
+}
 console.log(sortie.join('\n'))
 if (marquer) {
   mkdirSync('.claude/etat', { recursive: true })

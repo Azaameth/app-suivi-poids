@@ -158,5 +158,6 @@ Skill `fin-de-bloc` : vérifications, `git status`, case 📍 Suivi, ligne de �
   - `gh` en binaire dans `~/.local/bin`, authentifié (jeton dans KWallet).
 - Commande absente du bac à sable : `flatpak-spawn --host <commande>`.
 - **Second poste « Bobby II »** (Arch natif, hors Flatpak) : Node 24 via nvm, `gh` (pacman, jeton dans le trousseau), Java 21 par défaut (`archlinux-java`), `gcloud` (AUR) pour `npm run suggestions`.
+- **Session cloud Claude Code** (claude.ai, environnement personnel `app-suivi-poids`) : Ubuntu, Node 24, Java 21, SDK Android dans `~/Android/Sdk`, installés par le script de l'environnement. Réseau limité (paquets + `dl.google.com`). GitHub : `gh api` (REST) et outils MCP, **pas de GraphQL** (`gh pr …`, `gh issue …` refusés) ; scripts et skills passent donc tous par REST. Pas de KVM : APK compilable (`npm run android -- --apk`), pas d'émulateur. Branche imposée par la session (`claude/…`).
 - Les avertissements `npm warn Unknown env config "nodedir"` / `"tmp"` viennent du Flatpak : sans effet.
 - Jalon 3 : USB/adb accessible (`devices=all`), SDK Android à installer dans le dossier personnel.
