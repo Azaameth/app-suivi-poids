@@ -5,6 +5,9 @@ description: Ouvrir une PR de bout en bout (vérifications, commit, push, descri
 
 # Ouvrir une PR
 
+**GitHub en REST partout** (`gh api`, ou outils MCP GitHub en session cloud) : `gh pr …` et
+`gh issue …` passent par GraphQL, refusé dans les sessions cloud de Claude Code. `gh run …` marche.
+
 0. Une autre session ou Azaameth travaille déjà dans le dossier (hook de démarrage : worktrees,
    rebase en cours, ports pris) → travailler dans un **worktree** :
    `git worktree add ../app-suivi-poids-<sujet> -b <branche> origin/main` puis `npm ci` dedans.
@@ -21,12 +24,14 @@ description: Ouvrir une PR de bout en bout (vérifications, commit, push, descri
 3. Plan : `node scripts/plan.mjs cocher|critere|journal|decision …` (jamais de retouche à la main).
 4. `git add -A && git commit` (Conventional Commits + ligne Co-Authored-By), puis `git push -u origin <branche>`.
 5. Description : copier `.claude/skills/ouvrir-pr/modele.md` dans le scratchpad, la remplir, puis
-   `gh pr create --base <main|branche> --head <branche> --title "…" --body-file <fichier>`
-   (le hook refuse un texte non signé ou passé par variable).
-6. CI : `until gh pr checks <n> | grep -qE "pass|fail"; do sleep 5; done; gh pr checks <n> --watch`.
-   En cas d'échec : `gh run view <id> --log-failed`, corriger, recommencer à l'étape 2.
-7. Commenter les issues liées (texte signé, `--body-file`) ; `Closes #n` dans la description si la PR
-   les résout.
+   `gh api repos/Azaameth/app-suivi-poids/pulls -f base=<main|branche> -f head=<branche> -f title="…" -F body=@<fichier> --jq .html_url`
+   (ou l'outil MCP `create_pull_request`). Le hook refuse un texte non signé, passé par variable ou
+   par stdin, qu'il passe par `gh` ou par MCP.
+6. CI : `node .claude/skills/ouvrir-pr/ci.mjs <n>` (attend la fin, code 0 vert / 1 échec ; en cloud,
+   `subscribe_pr_activity` réveille la session à la fin de la CI). En cas d'échec :
+   `gh run view <id> --log-failed`, corriger, recommencer à l'étape 2.
+7. Commenter les issues liées : `gh api repos/Azaameth/app-suivi-poids/issues/<n>/comments -F body=@<fichier>`
+   (texte signé) ; `Closes #n` dans la description si la PR les résout.
 8. Interface touchée : vérifier en captures (skill `voir-appli`) et l'indiquer dans la PR.
 9. Plusieurs PR ouvertes en même temps : elles ajoutent toutes des lignes au 📝 Journal et au
    🗂️ Registre → conflit pour la 2e fusionnée. Résolution : garder **toutes** les lignes, et

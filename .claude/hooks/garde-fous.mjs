@@ -3,18 +3,21 @@
 //  1. git commit sans `npm run verify` réussi sur cet état du code (+ test:emulateurs si les
 //     règles ou les tests sous émulateur changent) ;
 //  2. suppression d'une branche dont la PR est encore ouverte ;
-//  3. texte posté sur GitHub sans la signature « 🤖 Claude » ;
+//  3. texte posté sur GitHub sans la signature « 🤖 Claude » (gh, gh api REST, outils MCP GitHub) ;
 //  4. `pkill -f <motif>` dont le motif se retrouve dans la ligne de commande du shell lancé
 //     par Claude : la commande se tue elle-même (vécu au bloc 6.1) ;
 //  5. `prettier --write` sans `--ignore-path config/prettierignore` : reformate des fichiers que
 //     le projet exclut (vécu deux fois le 2026-11-22 : docs réécrites, tableaux réalignés).
-// Entrée : JSON sur stdin ({ tool_input: { command } }). Refus : JSON permissionDecision « deny ».
+// Appels GitHub en REST (`gh api`) : `gh pr list` & co passent par GraphQL, refusé dans les
+// sessions cloud de Claude Code ; REST marche partout (postes locaux et cloud).
+// Entrée : JSON sur stdin ({ tool_name, tool_input }). Refus : JSON permissionDecision « deny ».
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { empreinte, estDoc } from '../../scripts/empreinte.mjs'
 
 export const SIGNATURE =
   '> 🤖 **Claude** · assistant IA (Claude Code), qui poste via le compte Azaameth'
+export const REPO = 'Azaameth/app-suivi-poids'
 
 const sh = (cmd) => execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
 
@@ -100,7 +103,10 @@ function verifierBranches(branches) {
   for (const branche of branches) {
     let ouvertes = '0'
     try {
-      ouvertes = sh(`gh pr list --head "${branche}" --state open --json number --jq length`)
+      // REST et non `gh pr list` (GraphQL, refusé dans les sessions cloud de Claude Code)
+      ouvertes = sh(
+        `gh api "repos/${REPO}/pulls?state=open&head=${REPO.split('/')[0]}:${branche}" --jq length`,
+      )
     } catch {
       return `Suppression refusée : impossible de vérifier la PR de « ${branche} » (gh indisponible).`
     }
@@ -111,8 +117,25 @@ function verifierBranches(branches) {
   return null
 }
 
+/** `gh api … -f body=texte` ou `-F body=@fichier` (REST : seule voie dans les sessions cloud). */
+function corpsApi(args) {
+  for (let i = 2; i < args.length; i++) {
+    const a = args[i]
+    const champ = ['-f', '-F', '--field', '--raw-field'].includes(a)
+      ? args[i + 1]
+      : a.match(/^(?:-[fF]|--(?:raw-)?field=)(body=.*)$/)?.[1]
+    if (!champ?.startsWith('body=')) continue
+    const valeur = champ.slice(5)
+    const brut = a === '-f' || a === '--raw-field' || a.startsWith('--raw-field=') || /^-f./.test(a)
+    if (!brut && valeur.startsWith('@')) return { fichier: valeur.slice(1) }
+    return { texte: valeur }
+  }
+  return null
+}
+
 function corpsGitHub(args) {
   if (args[0] !== 'gh') return undefined
+  if (args[1] === 'api') return corpsApi(args)
   const cible = `${args[1]} ${args[2]}`
   if (!/^(issue|pr) (comment|create|edit|review)$/.test(cible)) return undefined
   for (let i = 3; i < args.length; i++) {
@@ -175,6 +198,20 @@ function verifierPrettier(args) {
   )
 }
 
+/**
+ * Outils MCP GitHub (sessions cloud, sans `gh` complet) : tout texte publié (`body`) doit
+ * commencer par la signature, comme avec `gh`. Sans `body` (réaction, changement de base) : libre.
+ */
+export function examinerMcp(outil, entree = {}) {
+  if (!outil.startsWith('mcp__github__')) return null
+  const texte = entree.body
+  if (typeof texte !== 'string' || !texte) return null
+  if (!texte.startsWith(SIGNATURE)) {
+    return `Texte GitHub refusé : il doit commencer par la signature :\n${SIGNATURE}`
+  }
+  return null
+}
+
 export function examiner(commande) {
   for (const args of sousCommandes(commande)) {
     if (args[0] === 'git' && args[1] === 'commit') {
@@ -194,7 +231,11 @@ export function examiner(commande) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const entree = JSON.parse(readFileSync(0, 'utf8') || '{}')
-  const refus = examiner(entree.tool_input?.command ?? '')
+  const outil = entree.tool_name ?? 'Bash'
+  const refus =
+    outil === 'Bash'
+      ? examiner(entree.tool_input?.command ?? '')
+      : examinerMcp(outil, entree.tool_input)
   if (refus) {
     console.log(
       JSON.stringify({

@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 // Ménage après la fusion de PR : `main` local à jour, PR empilées rebasculées vers `main`,
 // branches fusionnées supprimées (local + GitHub) — jamais une branche dont la PR est ouverte.
+// GitHub en REST (`gh api`) : `gh pr list/edit` passent par GraphQL, refusé dans les sessions
+// cloud de Claude Code ; REST marche partout.
 //   node .claude/skills/ouvrir-pr/apres-merge.mjs [--simuler]
 import { execSync } from 'node:child_process'
+import { REPO } from '../../hooks/garde-fous.mjs'
 
 const simuler = process.argv.includes('--simuler')
 const sh = (cmd) => execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
@@ -10,17 +13,28 @@ const agir = (description, cmd) => {
   console.log(`${simuler ? '[simulation] ' : ''}${description}`)
   if (!simuler) sh(cmd)
 }
-const json = (cmd) => JSON.parse(sh(cmd) || '[]')
+const pulls = (requete) =>
+  JSON.parse(sh(`gh api "repos/${REPO}/pulls?${requete}"`) || '[]').map((p) => ({
+    number: p.number,
+    headRefName: p.head.ref,
+    baseRefName: p.base.ref,
+    merged: Boolean(p.merged_at),
+  }))
 
 sh('git fetch -q --prune origin')
-const fusionnees = json('gh pr list --state merged --limit 30 --json number,headRefName')
-const ouvertes = json('gh pr list --state open --json number,headRefName,baseRefName')
+const fusionnees = pulls('state=closed&sort=updated&direction=desc&per_page=30').filter(
+  (p) => p.merged,
+)
+const ouvertes = pulls('state=open&per_page=100')
 const branchesOuvertes = new Set(ouvertes.map((p) => p.headRefName))
 
 // PR empilées dont la base a été fusionnée → base = main
 for (const pr of ouvertes) {
   if (pr.baseRefName !== 'main' && fusionnees.some((m) => m.headRefName === pr.baseRefName)) {
-    agir(`PR #${pr.number} : base ${pr.baseRefName} → main`, `gh pr edit ${pr.number} --base main`)
+    agir(
+      `PR #${pr.number} : base ${pr.baseRefName} → main`,
+      `gh api -X PATCH repos/${REPO}/pulls/${pr.number} -f base=main --silent`,
+    )
   }
 }
 
