@@ -223,8 +223,9 @@ Les écrans passent par les **5 interfaces** de `Services` (`AuthService`, `KeyS
   du chiffré.
 - **Aucun filtre, tri ni index Firestore sur un champ chiffré.** La date, en clair, sert
   d'identifiant et de tri.
-- Sur le web (et pour l'instant sur Android, #82), la clé et la phrase restent **en mémoire
-  uniquement**.
+- Sur le web, la clé et la phrase restent **en mémoire uniquement**. Sur Android, la clé est
+  aussi conservée, chiffrée par une clé du Keystore **utilisable seulement avec l'empreinte**
+  (plugin `CoffreAppareil`, D68 à D70) ; la phrase n'est jamais conservée.
 - `users/{uid}/meta/keys` n'est **jamais écrasé** (D25).
 
 ### Firestore

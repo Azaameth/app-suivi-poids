@@ -34,7 +34,7 @@ Résumé ci-dessous ; détail et versions dans `docs/stack.md`.
 | Chiffrement      | Web Crypto, AES-GCM 256 sur `poids` / `note` ; clé de données encapsulée par PBKDF2-SHA256 (600 000 itérations)                                                                                                  |
 | Architecture     | 5 interfaces dans `Services` : `AuthService`, `KeyStore`, `DataStore`, `PreferencesStore`, `FileExporter` ; adaptateurs `web/` puis `native/` ; choix dans `src/platform.ts`                                     |
 | Cache            | Web : IndexedDB chiffré si « Garder mes données sur cet appareil » (défaut, D49), sinon mémoire ; effacé à la déconnexion ; service worker pour ouvrir l'appli hors ligne (D54). Android : cache natif Firestore |
-| Mobile (jalon 3) | Capacitor 8 + `@capacitor-firebase/authentication`, `/firestore` (override firebase 13, D66), `@capacitor/network` ; KeyStore natif à trancher (#82). SDK Android en ligne de commande (D62) |
+| Mobile (jalon 3) | Capacitor 8 + `@capacitor-firebase/authentication`, `/firestore` (override firebase 13, D66), `@capacitor/network` ; KeyStore natif : Android Keystore lié à l'empreinte (plugin `CoffreAppareil`, D68). SDK Android en ligne de commande (D62) |
 | Hébergement / CI | Firebase Hosting ; GitHub Actions (repo **public**), `main` protégée (PR + check `verify`)                                                                                                                       |
 | Distribution     | GitHub Releases + Obtainium                                                                                                                                                                                      |
 
@@ -92,7 +92,8 @@ Résumé ci-dessous ; détail et versions dans `docs/stack.md`.
 - **Idée suivante :** cercles de proches, partage chiffré du suivi (#74), après la `v1.0.0` (blocs 6.2 → 6.8 proposés).
 - Avant le jalon 3 : tests accélérés (#62, `npm test` 9,7 s → 4,8 s) ; audit de dette (skill `audit-dette`), graphique découpé (`cadre.ts`, `useExploration.ts`), `check:exports`.
 - **Jalon 3 (APK)** : SDK Android en ligne de commande et 3 émulateurs (D62) ; bloc 3.1 Capacitor fait (`npm run android`, D63 : config Firebase choisie par `MODE`, D64 : pas de service worker sur Android).
-- **Prochain :** bloc 3.2 (Firebase Android, SHA-1 : console Firebase par Maxime), puis 3.3 (adaptateurs natifs). Liste de Maxime à son retour : #78.
+- Bloc 3.2 clos (#88). **Bloc 3.3** : adaptateurs natifs, et KeyStore natif lié à l'empreinte (#82, D68 à D70) ; reste la validation de l'empreinte sur émulateur et sur le Pixel, par Maxime.
+- **Prochain :** bloc 3.4 (icônes, écran de démarrage, nom). Liste de Maxime à son retour : #78.
 
 ---
 

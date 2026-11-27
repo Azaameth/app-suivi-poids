@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AuthUser } from '../../core'
+import { seDeconnecter } from '../../core/compte/supprimerCompte'
 import { useServices } from '../../context/ServicesContext'
 import { MachimotoDit } from '../commun/Mascotte'
 import { usePreferences } from '../prefs/usePreferences'
@@ -18,7 +19,7 @@ export function ProfileMenu({
   onLock?: () => void
   onSettings?: () => void
 }) {
-  const { auth } = useServices()
+  const services = useServices()
   const [open, setOpen] = useState(false)
   const [depart, setDepart] = useState(false)
   const root = useRef<HTMLDivElement>(null)
@@ -79,7 +80,12 @@ export function ProfileMenu({
           </button>
         </div>
       )}
-      {depart && <Depart onPartir={() => void auth.signOut()} onRester={() => setDepart(false)} />}
+      {depart && (
+        <Depart
+          onPartir={() => void seDeconnecter(services, user.uid).catch(() => {})}
+          onRester={() => setDepart(false)}
+        />
+      )}
     </div>
   )
 }

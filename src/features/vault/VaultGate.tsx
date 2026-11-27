@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { CleAppareilInvalideeError, EmpreinteAnnuleeError } from '../../core'
 import { MIN_PASSPHRASE_LENGTH, Vault, VaultAlreadyExistsError } from '../../core/vault'
 import { useServices } from '../../context/ServicesContext'
 import { usePreferences } from '../prefs/usePreferences'
@@ -13,16 +14,23 @@ type State =
   | { kind: 'loading' }
   | { kind: 'error'; message: string }
   | { kind: 'setup' }
-  | { kind: 'locked' }
+  | { kind: 'locked'; empreinte: boolean; message?: string }
   | { kind: 'oubli' }
   | { kind: 'code'; key: CryptoKey; code: string }
   | { kind: 'unlocked'; key: CryptoKey }
+
+/** Coffre verrouillé : déverrouillage par empreinte proposé si une clé est gardée (Android). */
+async function etatVerrouille(vault: Vault): Promise<State> {
+  const empreinte = await vault.cleSurAppareil().catch(() => false)
+  return { kind: 'locked', empreinte }
+}
 
 async function readState(vault: Vault): Promise<State> {
   try {
     const status = await vault.status()
     const key = status === 'unlocked' ? await vault.key() : null
-    return key ? { kind: 'unlocked', key } : { kind: status === 'setup' ? 'setup' : 'locked' }
+    if (key) return { kind: 'unlocked', key }
+    return status === 'setup' ? { kind: 'setup' } : await etatVerrouille(vault)
   } catch {
     return { kind: 'error', message: HORS_LIGNE }
   }
@@ -63,8 +71,20 @@ export function VaultGate({
   }, [vault])
 
   const lock = useCallback(() => {
-    void vault.lock()
-    setState({ kind: 'locked' })
+    void vault.lock().then(() => etatVerrouille(vault).then(setState))
+  }, [vault])
+
+  const parEmpreinte = useCallback(async () => {
+    try {
+      setState({ kind: 'unlocked', key: await vault.deverrouillerAppareil() })
+    } catch (error) {
+      if (error instanceof EmpreinteAnnuleeError) return
+      const message =
+        error instanceof CleAppareilInvalideeError
+          ? error.message
+          : 'Empreinte indisponible : saisis ta phrase secrète.'
+      setState({ kind: 'locked', empreinte: false, message })
+    }
   }, [vault])
 
   const unlocked = useMemo<UnlockedVault | null>(
@@ -174,8 +194,14 @@ export function VaultGate({
           >
             <h2>Coffre verrouillé</h2>
             <MachimotoDit taille={48}>
-              <p>Re-bonjour ! Ta phrase secrète, et on reprend.</p>
+              <p>
+                {state.empreinte
+                  ? 'Re-bonjour ! Ton empreinte, ou ta phrase secrète, et on reprend.'
+                  : 'Re-bonjour ! Ta phrase secrète, et on reprend.'}
+              </p>
             </MachimotoDit>
+            {state.message && <p role="alert">{state.message}</p>}
+            {state.empreinte && <Empreinte onDemander={parEmpreinte} />}
             <p>
               <button type="button" className="lien" onClick={() => setState({ kind: 'oubli' })}>
                 J’ai oublié ma phrase
@@ -226,7 +252,11 @@ export function VaultGate({
               </p>
             </MachimotoDit>
             <p>
-              <button type="button" className="lien" onClick={() => setState({ kind: 'locked' })}>
+              <button
+                type="button"
+                className="lien"
+                onClick={() => void etatVerrouille(vault).then(setState)}
+              >
                 Retour
               </button>
             </p>
@@ -261,4 +291,21 @@ export function VaultGate({
 function AutoLock({ onIdle, timeoutMs }: { onIdle: () => void; timeoutMs: number }) {
   useAutoLock(onIdle, timeoutMs)
   return null
+}
+
+/** Bouton d'empreinte ; demandée d'office une fois à l'affichage (une seule fois en StrictMode). */
+function Empreinte({ onDemander }: { onDemander: () => Promise<void> }) {
+  const demandee = useRef(false)
+  useEffect(() => {
+    if (demandee.current) return
+    demandee.current = true
+    void onDemander()
+  }, [onDemander])
+  return (
+    <p>
+      <button type="button" onClick={() => void onDemander()}>
+        👆 Déverrouiller avec l’empreinte
+      </button>
+    </p>
+  )
 }

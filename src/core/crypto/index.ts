@@ -12,6 +12,8 @@ export {
   WrongPassphraseError,
   changePassphrase,
   createKeyMeta,
+  exporterCleBrute,
+  importerCleBrute,
   unlockDataKey,
   type Enveloppe,
   type KeyMeta,
