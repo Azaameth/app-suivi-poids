@@ -54,3 +54,33 @@ jobs:
       - run: npm run test:outils
       - run: npm run test:emulateurs
       - run: npm run build
+
+  # Bloc 4.2 : le projet Android compile (APK de debug, projet Firebase fictif, garde-fou
+  # anti-production de scripts/android.mjs). Job à part : verify ne s'en trouve pas ralenti.
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      # Gradle et le plugin Android ; SDK Android déjà présent sur le runner (ANDROID_HOME).
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Cache de node_modules
+        id: node-modules
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('.node-version', 'package-lock.json') }}
+
+      - if: steps.node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run android -- --apk
