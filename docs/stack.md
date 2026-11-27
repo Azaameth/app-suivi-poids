@@ -77,7 +77,9 @@ le code, et la décision qui l'a fixé (`Dxx`, détaillée dans le 🗂️ Regis
   (D65), émulateurs Firebase joints par `adb reverse`, HTTP en clair vers `localhost` seulement.
   `npm run android` refuse tout APK de debug configuré pour la production.
 - **APK de release** (jalon 4) : vrai `google-services.json` (ignoré par Git, injecté par la CI),
-  signature par une clé gardée dans les secrets GitHub.
+  signature par une clé gardée dans les secrets GitHub, lue par Gradle **seulement** dans
+  l'environnement (`ANDROID_KEYSTORE_FILE`, `ANDROID_KEY_ALIAS`, mots de passe). Version prise
+  de `APP_VERSION` (tag) ou de `package.json` ; APK nommé `machimoto-<version>-<type>.apk` (D72).
 
 ## Services externes
 

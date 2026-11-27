@@ -7,7 +7,7 @@
 //   npm run android            tout
 //   npm run android -- --apk   s'arrête à l'APK (android/app/build/outputs/apk/debug/)
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -15,7 +15,8 @@ import { fileURLToPath } from 'node:url'
 const RACINE = fileURLToPath(new URL('..', import.meta.url))
 const SDK = process.env.ANDROID_HOME ?? join(homedir(), 'Android/Sdk')
 const ADB = join(SDK, 'platform-tools/adb')
-const APK = join(RACINE, 'android/app/build/outputs/apk/debug/app-debug.apk')
+/** Dossier de l'APK de debug ; son nom porte la version (machimoto-<version>-debug.apk, 4.1). */
+const DOSSIER_APK = join(RACINE, 'android/app/build/outputs/apk/debug')
 const APP_ID = 'io.github.azaameth.machimoto'
 /** Ports des émulateurs Firebase, rendus accessibles à l'appareil via `adb reverse`. */
 const PORTS = [9099, 8080]
@@ -57,6 +58,16 @@ export function servicesDebug(appId = APP_ID) {
   }
 }
 
+/** L'APK le plus récent de `dossier` (un ancien nom, d'avant la version dans le nom, peut rester). */
+export function apkDe(dossier) {
+  const apks = readdirSync(dossier)
+    .filter((f) => f.endsWith('.apk'))
+    .map((f) => join(dossier, f))
+    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)
+  if (!apks.length) throw new Error(`Aucun APK dans ${dossier}`)
+  return apks[0]
+}
+
 /** Projet Firebase compilé dans l'APK (ressource `project_id` générée par Gradle). */
 export function projetCompile(valuesXml) {
   return valuesXml.match(/name="project_id"[^>]*>([^<]*)</)?.[1] ?? null
@@ -92,6 +103,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error('  Arrêt : un APK de dev ne doit jamais parler à la production (D8).')
     process.exit(1)
   }
+  const APK = apkDe(DOSSIER_APK)
   console.log(`APK : ${APK} (projet natif : ${projet})`)
   if (seulementApk) process.exit(0)
 

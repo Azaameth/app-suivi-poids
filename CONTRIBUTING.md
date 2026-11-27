@@ -314,8 +314,29 @@ le menu du profil, connexion, déverrouillage, une saisie.
   git tag -a v0.3.0 -m "v0.3.0 : …" && git push origin v0.3.0
   ```
 
-- Android : `versionCode = MAJEUR*10000 + MINEUR*100 + CORRECTIF` (`v1.2.3` → `10203`).
+- Android : `versionCode = MAJEUR*10000 + MINEUR*100 + CORRECTIF` (`v1.2.3` → `10203`), calculé
+  par `android/app/build.gradle` à partir de `APP_VERSION` (la release le prend du tag) ou, à
+  défaut, de `package.json`. L'APK s'appelle `machimoto-<version>-<debug|release>.apk`.
   Distribution par GitHub Releases + Obtainium (jalon 4).
+
+### APK de release signé à la main (bloc 4.1)
+
+La clé de signature reste **hors du repo** (`~/.android-keys/`, sauvegardée dans le gestionnaire
+de mots de passe) ; Gradle ne la lit que dans l'environnement. Il faut aussi le vrai
+`android/app/google-services.json` (ignoré par Git) et un build web de production :
+
+```sh
+npm run build && npx cap sync android
+cd android
+APP_VERSION=1.0.0 \
+ANDROID_KEYSTORE_FILE=~/.android-keys/machimoto-release.jks \
+ANDROID_KEY_ALIAS=machimoto \
+ANDROID_KEYSTORE_PASSWORD='…' ANDROID_KEY_PASSWORD='…' \
+./gradlew assembleRelease
+```
+
+Sans `ANDROID_KEYSTORE_FILE`, l'APK sort **non signé** (`…-release-unsigned.apk`). En CI, le
+workflow de release décode le secret `ANDROID_KEYSTORE_BASE64` dans un fichier temporaire.
 
 ## 8. Configuration des services externes
 
