@@ -7,7 +7,9 @@
 //  4. `pkill -f <motif>` dont le motif se retrouve dans la ligne de commande du shell lancé
 //     par Claude : la commande se tue elle-même (vécu au bloc 6.1) ;
 //  5. `prettier --write` sans `--ignore-path config/prettierignore` : reformate des fichiers que
-//     le projet exclut (vécu deux fois le 2026-11-22 : docs réécrites, tableaux réalignés).
+//     le projet exclut (vécu deux fois le 2026-11-22 : docs réécrites, tableaux réalignés) ;
+//  6. pousser un tag de version (`v1.2.3`, `--tags`) : il déclenche release.yml, donc un
+//     déploiement en production, réservé à Azaameth (bloc 4.3).
 // Appels GitHub en REST (`gh api`) plutôt que `gh pr list` & co (GraphQL) : marche dans tous les
 // environnements, même là où GraphQL est refusé.
 // Entrée : JSON sur stdin ({ tool_name, tool_input }). Refus : JSON permissionDecision « deny ».
@@ -187,6 +189,21 @@ function verifierPkill(args) {
 }
 
 /** `prettier --write` (ou `-w`) doit passer par la configuration et les exclusions du projet. */
+/** Un tag de version poussé lance release.yml : déploiement en production, geste d'Azaameth. */
+function verifierTag(args) {
+  if (args[0] !== 'git' || args[1] !== 'push') return null
+  const tag = args
+    .slice(2)
+    .find(
+      (a) => ['--tags', '--follow-tags'].includes(a) || /^(refs\/tags\/)?v\d+\.\d+\.\d+/.test(a),
+    )
+  if (!tag) return null
+  return (
+    `Push de tag refusé (« ${tag} ») : un tag vX.Y.Z lance release.yml, donc un déploiement en ` +
+    'production, réservé à Azaameth. Lui indiquer la commande à lancer.'
+  )
+}
+
 function verifierPrettier(args) {
   const i = args.findIndex((a) => a === 'prettier' || a.endsWith('/prettier'))
   if (i < 0 || !args.slice(i).some((a) => a === '--write' || a === '-w')) return null
@@ -223,7 +240,8 @@ export function examiner(commande) {
       const refus = verifierBranches(branches)
       if (refus) return refus
     }
-    const refus = verifierSignature(args) ?? verifierPkill(args) ?? verifierPrettier(args)
+    const refus =
+      verifierSignature(args) ?? verifierPkill(args) ?? verifierPrettier(args) ?? verifierTag(args)
     if (refus) return refus
   }
   return null

@@ -1,0 +1,127 @@
+# Bloc 4.3 : release complète sur un tag vX.Y.Z posé par Azaameth (seul à déployer, CLAUDE.md §3).
+# Ordre : tout vérifier et construire d'abord (web + APK signé), puis publier (Hosting + règles,
+# GitHub Release). Un échec avant la publication ne laisse rien à moitié en ligne.
+# Secrets requis (Settings → Secrets and variables → Actions) : ANDROID_KEYSTORE_BASE64,
+# ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD,
+# GOOGLE_SERVICES_JSON_BASE64, FIREBASE_SERVICE_ACCOUNT. Sans eux, le workflow s'arrête d'emblée.
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: write # création de la GitHub Release
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Environnement GitHub : on peut y exiger une approbation avant de publier (Settings → Environments).
+    environment: production
+    env:
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Secrets présents
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          FSA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          manquants=""
+          for nom in KS KS_PASS ALIAS KEY_PASS GSJ FSA; do
+            [ -n "${!nom}" ] || manquants="$manquants $nom"
+          done
+          if [ -n "$manquants" ]; then
+            echo "::error::Secrets manquants :$manquants (voir l'en-tête de release.yml)"
+            exit 1
+          fi
+
+      - name: Tag et package.json concordent
+        run: |
+          attendu="v$(node -p "require('./package.json').version")"
+          if [ "$VERSION" != "$attendu" ]; then
+            echo "::error::Tag $VERSION, mais package.json annonce $attendu : mettre la version à jour par PR avant de taguer."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - run: npm ci
+
+      # 1. Tests (mêmes vérifications que npm run deploy) ; verify construit aussi le web de
+      #    production (dist/, config Firebase « machimoto », D63).
+      - run: npm run verify
+      - run: npm run test:emulateurs
+
+      # 2. APK signé : fichiers sensibles dans RUNNER_TEMP ou ignorés par Git, effacés à la fin.
+      - name: Injecter google-services.json et le keystore
+        env:
+          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$GSJ" | base64 -d > android/app/google-services.json
+          echo "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
+
+      - run: npx cap sync android
+
+      - name: APK de release signé
+        working-directory: android
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          export APP_VERSION="${APP_VERSION#v}"
+          export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
+          ./gradlew assembleRelease --console=plain
+
+      - name: Vérifier la signature et le nom de l'APK
+        id: apk
+        run: |
+          apk="android/app/build/outputs/apk/release/machimoto-${VERSION#v}-release.apk"
+          test -f "$apk" || { echo "::error::APK signé introuvable : $apk"; ls android/app/build/outputs/apk/release; exit 1; }
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$apksigner" verify "$apk"
+          echo "chemin=$apk" >> "$GITHUB_OUTPUT"
+
+      # 3. Publication web : Hosting et règles Firestore, comme npm run deploy.
+      - name: Déployer Hosting et règles
+        env:
+          FSA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$FSA" > "$RUNNER_TEMP/compte-service.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/compte-service.json"
+          npx firebase deploy --project machimoto --only hosting,firestore:rules --non-interactive
+
+      # 4. GitHub Release avec l'APK (suivie par Obtainium) et des notes générées.
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$VERSION" "${{ steps.apk.outputs.chemin }}" \
+            --verify-tag --title "Professeur Machimoto $VERSION" --generate-notes
+
+      # 5. Nettoyage, même en cas d'échec.
+      - name: Effacer les fichiers sensibles
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/release.jks" "$RUNNER_TEMP/compte-service.json" android/app/google-services.json
