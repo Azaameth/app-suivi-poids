@@ -607,11 +607,12 @@ git check-ignore android/app/google-services.json && echo "OK : ignoré"
 | --------------------------------------------------------------------------------- | ----------------------------------------------- | --- |
 | Mode avion, création et modification, fermeture complète de l'appli, réouverture  | Données présentes (cache natif)                 | [ ] |
 | Sortie du mode avion                                                              | Synchro automatique                             | [ ] |
-| Modification sur le web pendant que le téléphone est hors ligne, puis reconnexion | Conflit résolu selon la règle choisie           | [ ] |
+| Modification sur le web pendant que le téléphone est hors ligne, puis reconnexion | Dernière écriture gagnante (D6)                 | [ ] |
 | Désinstallation puis réinstallation                                               | Connexion + phrase secrète → données récupérées | [ ] |
+| Fermeture complète puis réouverture (coffre créé sur le téléphone)                | Empreinte seule, sans la phrase (D68)           | [ ] |
 | Débogage via `chrome://inspect`                                                   | Aucune erreur dans la console                   | [ ] |
 
-**🏁 Fin du jalon 3 :** tag `v0.3.0` (APK de debug).
+**🏁 Fin du jalon 3 :** tag `v0.4.0` (APK de debug ; `v0.3.0` est déjà la fin du jalon 2, D74).
 
 ---
 
@@ -762,6 +763,7 @@ Déclenché sur un tag `v*` :
 | D65 | 2026-11-23 | APK de debug : google-services.json fictif (projet demo-suivi-poids) généré par npm run android dans android/app/src/debug/ ; le vrai (machimoto) ne sert qu'à la release. Garde-fou sur le project_id compilé (D63 côté natif) | Les plugins natifs (bloc 3.3) lisent google-services.json : sans cela, l'APK de dev parlerait à la production | Un seul google-services.json (production en dev) ; fichier fictif commité (exception au contrôle des secrets) |
 | D66 | 2026-11-23 | npm overrides : @capacitor-firebase/authentication et /firestore utilisent le firebase ^13 du projet malgré leur peer optionnel ^12.6 | Le peer ne sert qu'à leur implémentation web, que l'appli n'utilise pas (adaptateurs web maison) ; rester sur Firebase 13 pour le web | --legacy-peer-deps (désactive le contrôle pour tout le projet) ; revenir à Firebase 12 |
 | D67 | 2026-11-23 | Android : la copie locale Firestore est effacée au démarrage à froid qui suit la déconnexion ou la suppression du compte (demande notée dans le localStorage), sans recharger la WebView (révise D49 pour l'APK) | Le SDK natif survit au rechargement de la WebView et n'accepte clearPersistence qu'avant toute autre opération ; le cache ne contient que des données chiffrées, comme le serveur | Recharger la WebView (appli bloquée : useEmulator refusé) ; quitter l'appli à la déconnexion (@capacitor/app) |
+| D74 | 2026-11-27 | Fin du jalon 3 : tag v0.4.0 (et package.json en 0.4.0 avant le tag), au lieu de v0.3.0 prévu par le plan | v0.3.0 est déjà posé (fin du jalon 2 : 2.9 à 2.14, 6.1) ; un tag ne se réutilise pas | v0.3.1 (laisserait croire à un simple correctif) |
 
 ## ⚠️ Risques
 
