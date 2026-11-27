@@ -24,6 +24,7 @@ import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import javax.crypto.AEADBadTagException;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -89,6 +90,9 @@ public class CoffreAppareilPlugin extends Plugin {
         }
         byte[] brute = Base64.decode(cle, Base64.NO_WRAP);
         try {
+            // Ancien chiffré retiré d'abord : il ne doit jamais survivre à la clé qui l'a produit
+            // (sinon, empreinte annulée ici → « présente » mais indéchiffrable à chaque ouverture).
+            effacer(uid);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.ENCRYPT_MODE, creerCle(uid));
             authentifier(call, cipher, "Déverrouiller avec l’empreinte", c -> {
@@ -127,7 +131,15 @@ public class CoffreAppareilPlugin extends Plugin {
                 return;
             }
             authentifier(call, cipher, "Déverrouiller le coffre", c -> {
-                byte[] brute = c.doFinal(chiffre);
+                byte[] brute;
+                try {
+                    brute = c.doFinal(chiffre);
+                } catch (AEADBadTagException e) {
+                    // Chiffré qui ne correspond plus à la clé : inutilisable, on l'oublie.
+                    effacer(uid);
+                    call.reject("Clé conservée illisible", "INVALIDEE");
+                    return;
+                }
                 JSObject resultat = new JSObject();
                 resultat.put("cle", b64(brute));
                 Arrays.fill(brute, (byte) 0);

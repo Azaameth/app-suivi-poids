@@ -82,7 +82,7 @@ export function ProfileMenu({
       )}
       {depart && (
         <Depart
-          onPartir={() => void seDeconnecter(services, user.uid)}
+          onPartir={() => void seDeconnecter(services, user.uid).catch(() => {})}
           onRester={() => setDepart(false)}
         />
       )}

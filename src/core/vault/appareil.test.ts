@@ -132,6 +132,23 @@ describe('Vault et clé conservée sur l’appareil (Android, D13)', () => {
     expect(signOut).toHaveBeenCalledTimes(2)
   })
 
+  test('plugin en erreur : la phrase déverrouille quand même (repli indépendant de l’appareil)', async () => {
+    const { vault, appareil } = setup()
+    appareil.estDisponible = false
+    await vault.setup(PHRASE)
+    await vault.lock()
+    appareil.presente.mockRejectedValueOnce(new Error('Keystore illisible'))
+    await vault.unlock(PHRASE)
+    expect(await vault.status()).toBe('unlocked')
+    expect(appareil.conserver).not.toHaveBeenCalled()
+
+    await vault.lock()
+    appareil.estDisponible = true
+    appareil.disponible.mockRejectedValueOnce(new Error('plugin absent'))
+    await vault.unlock(PHRASE)
+    expect(await vault.status()).toBe('unlocked')
+  })
+
   test('web (pas d’appareil) : comportement inchangé', async () => {
     const services = createMemoryServices()
     const vault = new Vault(services.data, services.keys, 'alice')

@@ -150,9 +150,13 @@ export class Vault {
    */
   private async deverrouillerEtConfier(passphrase: string, meta: KeyMeta): Promise<CryptoKey> {
     const appareil = this.keys.appareil
-    if (!appareil || (await appareil.presente(this.uid)) || !(await appareil.disponible())) {
-      return unlockDataKey(passphrase, meta)
-    }
+    // Le repli par la phrase ne doit jamais dépendre de l'appareil : une erreur du plugin ici
+    // vaut « ne rien conserver ».
+    const confier =
+      appareil !== undefined &&
+      !(await appareil.presente(this.uid).catch(() => true)) &&
+      (await appareil.disponible().catch(() => false))
+    if (!appareil || !confier) return unlockDataKey(passphrase, meta)
     const brute = await exporterCleBrute(
       await unlockDataKey(passphrase, meta, { extractable: true }),
     )
