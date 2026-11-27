@@ -1,5 +1,19 @@
 apply plugin: 'com.android.application'
 
+// Version de l'appli (bloc 4.1) : une seule source. La release la prend du tag (APP_VERSION=1.2.3,
+// voir release.yml) ; sinon, celle de package.json. versionCode = X*10000 + Y*100 + Z (CLAUDE.md).
+def versionAppli = System.getenv('APP_VERSION') ?: new groovy.json.JsonSlurper()
+    .parse(file('../../package.json')).version
+def morceaux = versionAppli =~ /^(\d+)\.(\d+)\.(\d+)$/
+if (!morceaux.matches()) throw new GradleException("Version « ${versionAppli} » : X.Y.Z attendu")
+def codeAppli = morceaux.group(1).toInteger() * 10000 + morceaux.group(2).toInteger() * 100 +
+    morceaux.group(3).toInteger()
+
+// Signature de release (bloc 4.1) : uniquement depuis l'environnement (CI : secrets GitHub ;
+// poste : variables exportées à la main). Le keystore et ses mots de passe ne sont jamais dans le
+// repo. Sans ces variables, l'APK de release n'est pas signé.
+def keystoreRelease = System.getenv('ANDROID_KEYSTORE_FILE')
+
 android {
     namespace = "io.github.azaameth.machimoto"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +21,8 @@ android {
         applicationId "io.github.azaameth.machimoto"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode codeAppli
+        versionName versionAppli
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,12 +30,28 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (keystoreRelease) {
+            release {
+                storeFile file(keystoreRelease)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystoreRelease) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+}
+
+// Nom de l'APK : machimoto-<version>-<type>.apk (critère du bloc 4.3)
+base {
+    archivesName = "machimoto-${versionAppli}"
 }
 
 repositories {
