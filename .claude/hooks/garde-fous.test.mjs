@@ -91,6 +91,15 @@ test('prettier --write : refusé sans --ignore-path, accepté avec ; --check lib
   assert.equal(examiner('npm run format'), null)
 })
 
+test('tag de version : push refusé (déploiement), branches et autres pushes libres', () => {
+  assert.match(examiner('git push origin v1.0.0'), /Push de tag refusé/)
+  assert.match(examiner('git push origin refs/tags/v0.4.0'), /Push de tag refusé/)
+  assert.match(examiner('git push --tags'), /Push de tag refusé/)
+  assert.match(examiner('git push --follow-tags origin main'), /Push de tag refusé/)
+  assert.equal(examiner('git push -u origin feat/4.3-workflow-release'), null)
+  assert.equal(examiner('git tag -a v1.0.0 -m "x"'), null)
+})
+
 test('commandes sans rapport : autorisées', () => {
   assert.equal(examiner('ls -la && npm run verify'), null)
 })

@@ -314,6 +314,12 @@ le menu du profil, connexion, déverrouillage, une saisie.
   git tag -a v0.3.0 -m "v0.3.0 : …" && git push origin v0.3.0
   ```
 
+- **Release automatique** (bloc 4.3, `.github/workflows/release.yml`) : pousser un tag `vX.Y.Z`
+  lance les tests, le build web de production et l'APK signé, **puis** le déploiement (Hosting +
+  règles) et une GitHub Release avec l'APK (suivie par Obtainium). Le tag doit correspondre à
+  `package.json` (sinon arrêt avant toute publication) ; il faut les secrets listés en tête du
+  workflow. Pousser un tag est réservé au mainteneur : le hook de Claude le refuse.
+
 - Android : `versionCode = MAJEUR*10000 + MINEUR*100 + CORRECTIF` (`v1.2.3` → `10203`).
   Distribution par GitHub Releases + Obtainium (jalon 4).
 
